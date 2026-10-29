@@ -1,0 +1,109 @@
+services:
+  # 1. Frontend Web App (Nginx SPA + Reverse Proxy) - Port 1009
+  pacs-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: pacs-frontend-app
+    restart: unless-stopped
+    ports:
+      - "1009:80"
+    depends_on:
+      - pacs-backend
+
+  # 2. Backend Gateway & DICOM Processing Server - Port 2009
+  pacs-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: pacs-backend-app
+    restart: unless-stopped
+    ports:
+      - "2009:2009"
+    environment:
+      - PORT=2009
+      - PACS_HOST=http://192.168.101.224
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://pacs-mongo:27017/pacs_db
+      - MINIO_ENDPOINT=pacs-minio
+      - MINIO_PORT=4009
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET=pacs-dicom
+      - STORAGE_DIR=/app/storage
+      - MAX_STORAGE_GB=25
+      - MAX_CACHE_GB=25
+      - JWT_SECRET=mapims-pacs-connect-secret-jwt-key-2026
+      - WATI_API_TOKEN=${WATI_API_TOKEN}
+      - WATI_TEMPLATE_ID=${WATI_TEMPLATE_ID}
+      - WATI_ACCESS_TOKEN=${WATI_ACCESS_TOKEN}
+      - API_ENDPOINT=${API_ENDPOINT}
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      pacs-mongo:
+        condition: service_healthy
+      pacs-minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2009/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # 3. Local MongoDB Database (Compass on Port 3009)
+  pacs-mongo:
+    image: mongo:7
+    container_name: pacs-mongo-db
+    restart: unless-stopped
+    command: mongod --wiredTigerCacheSizeGB 1 --bind_ip_all
+    ports:
+      - "3009:27017"
+    volumes:
+      - ./storage/mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 4. MinIO Object Storage for DICOM Files (API 4009 / Console 5009)
+  pacs-minio:
+    image: minio/minio:latest
+    container_name: pacs-minio-storage
+    restart: unless-stopped
+    command: server /data --address :4009 --console-address :5009
+    ports:
+      - "4009:4009"
+      - "5009:5009"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+      - MINIO_COMPRESS=on
+      - MINIO_COMPRESS_EXTENSIONS=.dcm,.dic,.pdf,.doc,.json,.bin
+      - MINIO_COMPRESS_MIME_TYPES=application/dicom,application/pdf,application/json,binary/octet-stream
+    volumes:
+      - ./storage/minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4009/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 5. One-Shot MinIO Provisioner (Auto-creates pacs-dicom & 25 GiB Hard Quota)
+  pacs-minio-init:
+    image: minio/minio:latest
+    container_name: pacs-minio-init
+    depends_on:
+      pacs-minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://pacs-minio:4009 minioadmin minioadmin123;
+      mc mb --ignore-existing local/pacs-dicom;
+      mc quota set local/pacs-dicom --size 25GiB;
+      exit 0;
+      "
+    restart: "no"
+

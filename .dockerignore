@@ -1,0 +1,10 @@
+node_modules
+.venv
+.git
+.gitignore
+*.log
+cookies.txt
+cmd.txt
+.env
+storage
+storage/
