@@ -22,19 +22,19 @@ services:
       - "2009:2009"
     environment:
       - PORT=2009
-      - PACS_HOST=http://192.168.101.224
+      - PACS_HOST=${PACS_HOST:-http://192.168.101.224}
       - NODE_ENV=production
       - MONGODB_URI=mongodb://pacs-mongo:27017/pacs_db
       - MINIO_ENDPOINT=pacs-minio
       - MINIO_PORT=4009
       - MINIO_USE_SSL=false
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin123
-      - MINIO_BUCKET=pacs-dicom
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin123}
+      - MINIO_BUCKET=${MINIO_BUCKET:-pacs-dicom}
       - STORAGE_DIR=/app/storage
-      - MAX_STORAGE_GB=25
-      - MAX_CACHE_GB=25
-      - JWT_SECRET=mapims-pacs-connect-secret-jwt-key-2026
+      - MAX_STORAGE_GB=${MAX_STORAGE_GB:-25}
+      - MAX_CACHE_GB=${MAX_CACHE_GB:-25}
+      - JWT_SECRET=${JWT_SECRET:-mapims-pacs-connect-secret-jwt-key-2026}
       - WATI_API_TOKEN=${WATI_API_TOKEN}
       - WATI_TEMPLATE_ID=${WATI_TEMPLATE_ID}
       - WATI_ACCESS_TOKEN=${WATI_ACCESS_TOKEN}
