@@ -6,10 +6,11 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies
-RUN npm install --omit=dev
+RUN apk add --no-cache poppler-utils chromium font-noto font-noto-cjk nss freetype harfbuzz ttf-freefont \
+ && npm install --omit=dev
 
 # Copy application source
-COPY server.js db.js minioClient.js ./
+COPY server.js db.js minioClient.js auth.js reportGenerator.js ./
 COPY scripts ./scripts
 COPY public ./public
 

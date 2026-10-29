@@ -28,6 +28,7 @@ const {
   requireAuth,
   optionalAuth
 } = require('./auth');
+const { parseReportFromPdf, generateReportHtml, renderModernPdf } = require('./reportGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 2010;
@@ -627,9 +628,67 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
     const { studyUid } = req.params;
     const safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
     const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+    const isHtml = req.query.format === 'html' || req.headers.accept?.includes('text/html');
+    const isRaw = req.query.raw === '1';
 
-    // Check local cache
+    // 1. Ensure raw PDF report is cached locally from PACS if not already present
+    if (!fs.existsSync(localPdfPath)) {
+      const pdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
+      try {
+        const response = await fetch(pdfUrl);
+        if (response.ok) {
+          const buffer = Buffer.from(await response.arrayBuffer());
+          await fsp.writeFile(localPdfPath, buffer).catch(() => {});
+        }
+      } catch (e) {}
+    }
+
+    // Retrieve studyDoc for clinical metadata enrichment
+    let studyDoc = {};
+    try {
+      const db = await connectDB().catch(() => null);
+      if (db) {
+        studyDoc = await db.collection('studies').findOne({ studyUid }) || {};
+      }
+    } catch (e) {}
+
+    // 2. If Final PDF is available, generate/serve Modern Colourful UI or PDF
     if (fs.existsSync(localPdfPath)) {
+      // Interactive HTML format (for in-browser modal viewing)
+      if (isHtml) {
+        const reportData = parseReportFromPdf(localPdfPath, studyDoc);
+        const html = await generateReportHtml(reportData, studyUid);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(html);
+      }
+
+      // If user specifically requested legacy raw PACS PDF
+      if (isRaw) {
+        const stat = fs.statSync(localPdfPath);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Length', stat.size);
+        res.setHeader('Content-Disposition', `inline; filename="Final_${safeStudy}.pdf"`);
+        res.setHeader('Accept-Ranges', 'bytes');
+        return res.sendFile(localPdfPath);
+      }
+
+      // Otherwise serve modern colourful PDF
+      try {
+        const pdfFile = await renderModernPdf(studyUid, studyDoc);
+        if (fs.existsSync(pdfFile) && fs.statSync(pdfFile).size > 1000) {
+          const stat = fs.statSync(pdfFile);
+          const disposition = req.query.download === '1' ? 'attachment' : 'inline';
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Length', stat.size);
+          res.setHeader('Content-Disposition', `${disposition}; filename="MAPIMS_Report_${safeStudy}.pdf"`);
+          res.setHeader('Accept-Ranges', 'bytes');
+          return res.sendFile(pdfFile);
+        }
+      } catch (renderErr) {
+        console.warn(`[REPORT] Modern PDF render failed for ${studyUid}, falling back to raw PDF:`, renderErr.message);
+      }
+
+      // Fallback to raw PDF
       const stat = fs.statSync(localPdfPath);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Length', stat.size);
@@ -638,23 +697,9 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
       return res.sendFile(localPdfPath);
     }
 
-    // 1. Try PDF report from PACS
-    const pdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
-    let response = await fetch(pdfUrl);
-
-    if (response.ok) {
-      const buffer = Buffer.from(await response.arrayBuffer());
-      await fsp.writeFile(localPdfPath, buffer).catch(() => {});
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Length', buffer.length);
-      res.setHeader('Content-Disposition', `inline; filename="Final_${safeStudy}.pdf"`);
-      res.setHeader('Accept-Ranges', 'bytes');
-      return res.send(buffer);
-    }
-
-    // 2. Try DOC report from PACS
+    // 3. Try DOC report from PACS if no Final PDF
     const docUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.doc`;
-    response = await fetch(docUrl);
+    let response = await fetch(docUrl);
     if (response.ok) {
       const buffer = Buffer.from(await response.arrayBuffer());
       res.setHeader('Content-Type', 'application/msword');
@@ -662,7 +707,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
       return res.send(buffer);
     }
 
-    // 3. Fallback un-prefixed .doc
+    // 4. Fallback un-prefixed .doc
     const docUrl2 = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/${encodeURIComponent(studyUid)}.doc`;
     response = await fetch(docUrl2);
     if (response.ok) {
@@ -799,10 +844,21 @@ app.get('/reports/:token/:filename', async (req, res) => {
       }
     }
 
-    const stat = fs.statSync(localPdfPath);
-    console.log(`[REPORT DOWNLOAD] Serving Final_${safeStudy}.pdf (${stat.size} bytes) to UA: ${req.headers['user-agent']} (IP: ${req.ip})`);
+    // Generate or fetch modern colourful PDF
+    let fileToServe = localPdfPath;
+    try {
+      const modernPdf = await renderModernPdf(studyUid, info || {});
+      if (fs.existsSync(modernPdf) && fs.statSync(modernPdf).size > 1000) {
+        fileToServe = modernPdf;
+      }
+    } catch (renderErr) {
+      console.warn(`[REPORT DOWNLOAD] Modern render fallback to raw PDF for ${studyUid}:`, renderErr.message);
+    }
 
-    res.sendFile(localPdfPath, {
+    const stat = fs.statSync(fileToServe);
+    console.log(`[REPORT DOWNLOAD] Serving ${path.basename(fileToServe)} (${stat.size} bytes) to UA: ${req.headers['user-agent']} (IP: ${req.ip})`);
+
+    res.sendFile(fileToServe, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Length': stat.size,
@@ -835,10 +891,21 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
       }
     }
 
-    const stat = fs.statSync(localPdfPath);
-    console.log(`[REPORT DOWNLOAD DIRECT] Serving Final_${safeStudy}.pdf (${stat.size} bytes) to UA: ${req.headers['user-agent']}`);
+    // Generate or fetch modern colourful PDF
+    let fileToServe = localPdfPath;
+    try {
+      const modernPdf = await renderModernPdf(studyUid, {});
+      if (fs.existsSync(modernPdf) && fs.statSync(modernPdf).size > 1000) {
+        fileToServe = modernPdf;
+      }
+    } catch (renderErr) {
+      console.warn(`[REPORT DOWNLOAD DIRECT] Modern render fallback to raw PDF for ${studyUid}:`, renderErr.message);
+    }
 
-    res.sendFile(localPdfPath, {
+    const stat = fs.statSync(fileToServe);
+    console.log(`[REPORT DOWNLOAD DIRECT] Serving ${path.basename(fileToServe)} (${stat.size} bytes) to UA: ${req.headers['user-agent']}`);
+
+    res.sendFile(fileToServe, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Length': stat.size,
