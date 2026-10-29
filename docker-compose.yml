@@ -1,5 +1,5 @@
 services:
-  # 1. Frontend Web App (Nginx SPA + Reverse Proxy) - Port 1009
+  # 1. Frontend Web App (Nginx SPA + Reverse Proxy) - Port 1010
   pacs-frontend:
     build:
       context: .
@@ -7,11 +7,11 @@ services:
     container_name: pacs-frontend-app
     restart: unless-stopped
     ports:
-      - "1009:80"
+      - "${FRONTEND_PORT:-1010}:80"
     depends_on:
       - pacs-backend
 
-  # 2. Backend Gateway & DICOM Processing Server - Port 2009
+  # 2. Backend Gateway & DICOM Processing Server - Port 2010
   pacs-backend:
     build:
       context: .
@@ -19,14 +19,14 @@ services:
     container_name: pacs-backend-app
     restart: unless-stopped
     ports:
-      - "2009:2009"
+      - "${BACKEND_PORT:-2010}:2010"
     environment:
-      - PORT=2009
+      - PORT=2010
       - PACS_HOST=${PACS_HOST:-http://192.168.101.224}
       - NODE_ENV=production
       - MONGODB_URI=mongodb://pacs-mongo:27017/pacs_db
       - MINIO_ENDPOINT=pacs-minio
-      - MINIO_PORT=4009
+      - MINIO_PORT=${MINIO_API_PORT:-4010}
       - MINIO_USE_SSL=false
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin123}
@@ -47,19 +47,19 @@ services:
       pacs-minio:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2009/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2010/health"]
       interval: 15s
       timeout: 5s
       retries: 3
 
-  # 3. Local MongoDB Database (Compass on Port 3009)
+  # 3. Local MongoDB Database (Compass on Port 3010)
   pacs-mongo:
     image: mongo:7
     container_name: pacs-mongo-db
     restart: unless-stopped
     command: mongod --wiredTigerCacheSizeGB 1 --bind_ip_all
     ports:
-      - "3009:27017"
+      - "${MONGO_PORT:-3010}:27017"
     volumes:
       - ./storage/mongo:/data/db
     healthcheck:
@@ -68,15 +68,15 @@ services:
       timeout: 5s
       retries: 5
 
-  # 4. MinIO Object Storage for DICOM Files (API 4009 / Console 5009)
+  # 4. MinIO Object Storage for DICOM Files (API 4010 / Console 5010)
   pacs-minio:
     image: minio/minio:latest
     container_name: pacs-minio-storage
     restart: unless-stopped
-    command: server /data --address :4009 --console-address :5009
+    command: server /data --address :4010 --console-address :5010
     ports:
-      - "4009:4009"
-      - "5009:5009"
+      - "${MINIO_API_PORT:-4010}:4010"
+      - "${MINIO_CONSOLE_PORT:-5010}:5010"
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin123
@@ -86,7 +86,7 @@ services:
     volumes:
       - ./storage/minio:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4009/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:4010/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -100,7 +100,7 @@ services:
         condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      mc alias set local http://pacs-minio:4009 minioadmin minioadmin123;
+      mc alias set local http://pacs-minio:4010 minioadmin minioadmin123;
       mc mb --ignore-existing local/pacs-dicom;
       mc quota set local/pacs-dicom --size 25GiB;
       exit 0;

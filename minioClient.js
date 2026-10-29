@@ -1,7 +1,7 @@
 const Minio = require('minio');
 
 const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || '127.0.0.1';
-const MINIO_PORT = parseInt(process.env.MINIO_PORT || '4009', 10);
+const MINIO_PORT = parseInt(process.env.MINIO_PORT || '4010', 10);
 const MINIO_USE_SSL = process.env.MINIO_USE_SSL === 'true';
 const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || 'minioadmin';
 const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY || 'minioadmin123';
@@ -154,13 +154,15 @@ async function getMinioStats() {
       stream.on('end', () => resolve());
     });
 
+    const minioApiPort = process.env.MINIO_API_PORT || MINIO_PORT || 4010;
+    const minioConsolePort = process.env.MINIO_CONSOLE_PORT || 5010;
     return {
       connected: true,
       endpoint: `${MINIO_ENDPOINT}:${MINIO_PORT}`,
-      apiUri: `http://localhost:4009`,
-      lanApiUri: `http://192.168.101.130:4009`,
-      consoleUri: `http://localhost:5009`,
-      lanConsoleUri: `http://192.168.101.130:5009`,
+      apiUri: `http://localhost:${minioApiPort}`,
+      lanApiUri: `http://192.168.101.130:${minioApiPort}`,
+      consoleUri: `http://localhost:${minioConsolePort}`,
+      lanConsoleUri: `http://192.168.101.130:${minioConsolePort}`,
       bucket: BUCKET_NAME,
       totalDicomFiles: totalFiles,
       totalBytes,

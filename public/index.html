@@ -2635,7 +2635,7 @@
                 </span>
                 <div class="service-menu-text">
                   <span class="service-menu-label">MongoDB Master</span>
-                  <span class="service-menu-val" id="mongoBadgeText">Mongo: Port 3009</span>
+                  <span class="service-menu-val" id="mongoBadgeText">Mongo: Port 3010</span>
                 </div>
               </div>
 
@@ -2646,7 +2646,7 @@
                 </span>
                 <div class="service-menu-text">
                   <span class="service-menu-label">MinIO S3</span>
-                  <span class="service-menu-val" id="minioBadgeText">MinIO S3: Port 4009</span>
+                  <span class="service-menu-val" id="minioBadgeText">MinIO S3: Port 4010</span>
                 </div>
               </div>
             </div>
@@ -3761,7 +3761,7 @@
         <div class="meta-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
           <div class="meta-item">
             <div class="meta-title">MongoDB Status</div>
-            <div class="meta-val" id="mongoConnStatus" style="color: #34d399;">Connected (Port 3009)</div>
+            <div class="meta-val" id="mongoConnStatus" style="color: #34d399;">Connected (Port 3010)</div>
           </div>
           <div class="meta-item">
             <div class="meta-title">Database Name</div>
@@ -3783,10 +3783,10 @@
             <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="copyCompassUri()">Copy URI</button>
           </div>
           <div id="mongoCompassUriDisplay" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #34d399; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 4px; word-break: break-all;">
-            mongodb://localhost:3009/pacs_db
+            mongodb://localhost:3010/pacs_db
           </div>
           <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
-            For access from another PC on the hospital network: <span style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;" id="mongoLanUriDisplay">mongodb://192.168.101.130:3009/pacs_db</span>
+            For access from another PC on the hospital network: <span style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;" id="mongoLanUriDisplay">mongodb://192.168.101.130:3010/pacs_db</span>
           </div>
         </div>
 
@@ -3794,7 +3794,7 @@
           <div style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">How to view in MongoDB Compass:</div>
           <ol style="font-size: 12px; color: var(--text-muted); margin: 0; padding-left: 18px; line-height: 1.6;">
             <li>Open <strong>MongoDB Compass</strong> on your computer.</li>
-            <li>Paste <code style="color: #34d399;">mongodb://localhost:3009/pacs_db</code> into the connection URI box.</li>
+            <li>Paste <code style="color: #34d399;">mongodb://localhost:3010/pacs_db</code> into the connection URI box.</li>
             <li>Click <strong>Connect</strong> to explore the <code>patients</code> and <code>studies</code> collections.</li>
           </ol>
         </div>
@@ -3821,7 +3821,7 @@
           <span style="font-size: 22px;">📦</span>
           <div>
             <h3>MinIO DICOM Object Storage</h3>
-            <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Dedicated Part-10 DICOM Image Store &bull; Port 4009 (API) / Port 5009 (Console)</p>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Dedicated Part-10 DICOM Image Store &bull; Port 4010 (API) / Port 5010 (Console)</p>
           </div>
         </div>
         <button class="btn-icon" onclick="closeMinioModal()">&times;</button>
@@ -3830,7 +3830,7 @@
         <div class="meta-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
           <div class="meta-item">
             <div class="meta-title">MinIO S3 Service</div>
-            <div class="meta-val" id="minioConnStatus" style="color: #e879f9;">Connected (Port 4009)</div>
+            <div class="meta-val" id="minioConnStatus" style="color: #e879f9;">Connected (Port 4010)</div>
           </div>
           <div class="meta-item">
             <div class="meta-title">DICOM Storage Bucket</div>
@@ -3852,22 +3852,22 @@
             <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="copyMinioApiUri()">Copy API URI</button>
           </div>
           <div id="minioApiUriDisplay" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e879f9; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 4px; word-break: break-all;">
-            http://localhost:4009
+            http://localhost:4010
           </div>
           <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
-            LAN S3 Endpoint: <span style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;" id="minioLanApiUriDisplay">http://192.168.101.130:4009</span>
+            LAN S3 Endpoint: <span style="font-family: 'JetBrains Mono', monospace; color: #38bdf8;" id="minioLanApiUriDisplay">http://192.168.101.130:4010</span>
           </div>
         </div>
 
         <div style="background: rgba(192, 38, 211, 0.08); border: 1px solid rgba(192, 38, 211, 0.25); border-radius: var(--radius-sm); padding: 12px 14px;">
           <div style="font-size: 12px; font-weight: 700; color: #e879f9; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
             <span>MinIO Web Console (Management Portal):</span>
-            <a id="minioConsoleLink" href="http://localhost:5009" target="_blank" class="btn btn-secondary" style="padding: 3px 10px; font-size: 11px; text-decoration: none; color: #e879f9; border-color: rgba(192, 38, 211, 0.4);">
+            <a id="minioConsoleLink" href="http://localhost:5010" target="_blank" class="btn btn-secondary" style="padding: 3px 10px; font-size: 11px; text-decoration: none; color: #e879f9; border-color: rgba(192, 38, 211, 0.4);">
               Open Web Console &#8599;
             </a>
           </div>
           <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
-            Console Port: <strong>5009</strong> &bull; LAN URL: <code style="color: #38bdf8;" id="minioLanConsoleDisplay">http://192.168.101.130:5009</code><br>
+            Console Port: <strong>5010</strong> &bull; LAN URL: <code style="color: #38bdf8;" id="minioLanConsoleDisplay">http://192.168.101.130:5010</code><br>
             Root Username: <code style="color: #fbbf24;">minioadmin</code> &bull; Root Password: <code style="color: #fbbf24;">minioadmin123</code>
           </div>
         </div>
@@ -3926,7 +3926,7 @@
           <div style="font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">Storage Breakdown:</div>
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
             <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
-              <span style="color: var(--text-dim);">📦 MinIO Part-10 DICOM Slices (Port 4009):</span>
+              <span style="color: var(--text-dim);">📦 MinIO Part-10 DICOM Slices (Port 4010):</span>
               <strong id="quotaMinioDicomMb" style="color: #e879f9; font-family: 'JetBrains Mono', monospace;">0.00 MB</strong>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
@@ -6269,7 +6269,7 @@
             if (badgeText) {
               badgeText.textContent = data.totalDicomFiles > 0
                 ? `MinIO: ${data.totalDicomFiles} DICOMs (${data.totalMb} MB)`
-                : 'MinIO S3: Port 4009';
+                : 'MinIO S3: Port 4010';
             }
             const fCount = document.getElementById('minioFilesCount');
             if (fCount) fCount.textContent = (data.totalDicomFiles || 0).toLocaleString();
@@ -6284,7 +6284,7 @@
             const consoleLink = document.getElementById('minioConsoleLink');
             if (consoleLink && data.consoleUri) {
               consoleLink.href = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
-                ? `http://${window.location.hostname}:5009`
+                ? `http://${window.location.hostname}:5010`
                 : data.consoleUri;
             }
           }

@@ -148,6 +148,12 @@ sleep 6
 echo -e "\n${BOLD}Container Status:${NC}"
 $DOCKER_COMPOSE ps
 
+# Read configured ports from .env or fallback to new defaults
+F_PORT=$(grep -E "^[[:space:]]*FRONTEND_PORT=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 | xargs || echo "1010")
+B_PORT=$(grep -E "^[[:space:]]*BACKEND_PORT=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 | xargs || echo "2010")
+M_PORT=$(grep -E "^[[:space:]]*MONGO_PORT=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 | xargs || echo "3010")
+MC_PORT=$(grep -E "^[[:space:]]*MINIO_CONSOLE_PORT=" "$ENV_FILE" 2>/dev/null | cut -d'=' -f2 | xargs || echo "5010")
+
 # Detect Hostinger Public IP or fallback
 VPS_IP=$(curl -s --max-time 3 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')
 
@@ -155,9 +161,9 @@ echo -e "\n${BOLD}======================================================${NC}"
 echo -e "${GREEN}${BOLD}  🚀 DEPLOYMENT COMPLETED SUCCESSFULLY!              ${NC}"
 echo -e "${BOLD}======================================================${NC}"
 echo -e "Your MAPIMS PACS Connect stack is now running:"
-echo -e "  🌐 ${CYAN}Web Portal (Frontend):${NC}  http://${VPS_IP}:1009"
-echo -e "  ⚡ ${CYAN}API Gateway (Backend):${NC}  http://${VPS_IP}:2009"
-echo -e "  🗄️ ${CYAN}MinIO S3 Console:${NC}       http://${VPS_IP}:5009 (user: minioadmin)"
-echo -e "  💾 ${CYAN}MongoDB Compass:${NC}        mongodb://${VPS_IP}:3009/pacs_db"
+echo -e "  🌐 ${CYAN}Web Portal (Frontend):${NC}  http://${VPS_IP}:${F_PORT}"
+echo -e "  ⚡ ${CYAN}API Gateway (Backend):${NC}  http://${VPS_IP}:${B_PORT}"
+echo -e "  🗄️ ${CYAN}MinIO S3 Console:${NC}       http://${VPS_IP}:${MC_PORT} (user: minioadmin)"
+echo -e "  💾 ${CYAN}MongoDB Compass:${NC}        mongodb://${VPS_IP}:${M_PORT}/pacs_db"
 echo -e "\nLogs can be checked at any time with:"
 echo -e "  ${BOLD}${DOCKER_COMPOSE} logs -f${NC}\n"

@@ -78,7 +78,7 @@ async function syncAllPatients() {
   const database = await connectDB();
   if (!database) {
     console.error('ERROR: Could not establish connection to local MongoDB!');
-    console.error('Make sure container pacs-mongo-db is running on port 3009.');
+    console.error('Make sure container pacs-mongo-db is running on port 3010.');
     process.exit(1);
   }
 

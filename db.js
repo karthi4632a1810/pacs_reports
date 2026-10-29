@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:3009/pacs_db';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:3010/pacs_db';
 const DB_NAME = 'pacs_db';
 
 let client = null;
@@ -250,11 +250,12 @@ async function updatePatientProfiles(patientIds) {
 // Fetch MongoDB Stats for Compass & Dashboard
 async function getMongoStats() {
   const database = await connectDB();
+  const mongoPort = process.env.MONGO_PORT || 3010;
   if (!database) {
     return {
       connected: false,
       error: 'MongoDB disconnected',
-      compassUri: 'mongodb://localhost:3009/pacs_db'
+      compassUri: `mongodb://localhost:${mongoPort}/pacs_db`
     };
   }
 
@@ -279,8 +280,8 @@ async function getMongoStats() {
       connected: true,
       database: DB_NAME,
       hostUri: MONGODB_URI.replace(/\/\/.*@/, '//'),
-      compassUri: 'mongodb://localhost:3009/pacs_db',
-      compassLanUri: 'mongodb://192.168.101.130:3009/pacs_db',
+      compassUri: `mongodb://localhost:${mongoPort}/pacs_db`,
+      compassLanUri: `mongodb://192.168.101.130:${mongoPort}/pacs_db`,
       totalStudies,
       totalPatients,
       modalities: modAgg.reduce((acc, m) => {
@@ -294,7 +295,7 @@ async function getMongoStats() {
     return {
       connected: false,
       error: err.message,
-      compassUri: 'mongodb://localhost:3009/pacs_db'
+      compassUri: `mongodb://localhost:${mongoPort}/pacs_db`
     };
   }
 }

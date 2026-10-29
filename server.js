@@ -30,7 +30,7 @@ const {
 } = require('./auth');
 
 const app = express();
-const PORT = process.env.PORT || 2009;
+const PORT = process.env.PORT || 2010;
 const PACS_HOST = process.env.PACS_HOST || 'http://192.168.101.224';
 
 // Local storage configuration
@@ -2432,12 +2432,12 @@ app.get('*', (req, res) => {
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`===================================================`);
   console.log(` MAPIMS PACS Connect Gateway is running!`);
-  console.log(` Frontend (Nginx)  : http://localhost:1009`);
+  console.log(` Frontend (Nginx)  : http://localhost:${process.env.FRONTEND_PORT || 1010}`);
   console.log(` Backend API       : http://localhost:${PORT}`);
   console.log(` PACS Host         : ${PACS_HOST}`);
-  console.log(` MongoDB Local     : mongodb://localhost:3009/pacs_db`);
-  console.log(` MinIO DICOM S3    : http://localhost:4009 (Bucket: ${BUCKET_NAME})`);
-  console.log(` MinIO Console     : http://localhost:5009`);
+  console.log(` MongoDB Local     : mongodb://localhost:${process.env.MONGO_PORT || 3010}/pacs_db`);
+  console.log(` MinIO DICOM S3    : http://localhost:${process.env.MINIO_API_PORT || 4010} (Bucket: ${BUCKET_NAME})`);
+  console.log(` MinIO Console     : http://localhost:${process.env.MINIO_CONSOLE_PORT || 5010}`);
   console.log(`===================================================`);
   
   // Establish initial connections
