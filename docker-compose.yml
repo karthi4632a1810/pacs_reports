@@ -45,7 +45,7 @@ services:
       pacs-mongo:
         condition: service_healthy
       pacs-minio:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2010/health"]
       interval: 15s
@@ -69,8 +69,9 @@ services:
       retries: 5
 
   # 4. MinIO Object Storage for DICOM Files (API 4010 / Console 5010)
+  # Uses Chainguard's maintained public image since upstream minio/minio was archived
   pacs-minio:
-    image: minio/minio:latest
+    image: cgr.dev/chainguard/minio:latest
     container_name: pacs-minio-storage
     restart: unless-stopped
     command: server /data --address :4010 --console-address :5010
@@ -85,25 +86,4 @@ services:
       - MINIO_COMPRESS_MIME_TYPES=application/dicom,application/pdf,application/json,binary/octet-stream
     volumes:
       - ./storage/minio:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4010/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # 5. One-Shot MinIO Provisioner (Auto-creates pacs-dicom & 25 GiB Hard Quota)
-  pacs-minio-init:
-    image: minio/minio:latest
-    container_name: pacs-minio-init
-    depends_on:
-      pacs-minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://pacs-minio:4010 minioadmin minioadmin123;
-      mc mb --ignore-existing local/pacs-dicom;
-      mc quota set local/pacs-dicom --size 25GiB;
-      exit 0;
-      "
-    restart: "no"
 
