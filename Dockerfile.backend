@@ -8,9 +8,13 @@ COPY package*.json ./
 # Install production dependencies
 RUN npm install --omit=dev
 
+# Optional: Install cloudflared binary for public trycloudflare gateway
+RUN apk add --no-cache curl \
+ && ARCH=$(uname -m) \
+ && if [ "$ARCH" = "x86_64" ]; then CF_ARCH="amd64"; else CF_ARCH="arm64"; fi \
+ && (curl -fsSL "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${CF_ARCH}" -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared || echo "[INFO] cloudflared download skipped")
+
 # Copy application source code
-COPY cloudflared /usr/local/bin/cloudflared
-RUN chmod +x /usr/local/bin/cloudflared
 COPY server.js db.js minioClient.js auth.js ./
 COPY scripts ./scripts
 COPY public ./public
