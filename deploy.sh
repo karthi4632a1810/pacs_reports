@@ -112,7 +112,8 @@ fi
 info "Verifying local persistent storage directories..."
 mkdir -p storage/mongo storage/minio storage/dicom storage/reports storage/thumbnails public/reports
 
-# Ensure readable and writable by containers
+# Ensure readable and writable by containers (including non-root Chainguard MinIO user)
+chmod -R 777 storage/minio 2>/dev/null || true
 chmod -R 775 storage public/reports 2>/dev/null || true
 success "Storage directory structure verified."
 
