@@ -6,6 +6,25 @@ const QRCode = require('qrcode');
 
 const REPORT_DIR = path.join(__dirname, 'storage/reports');
 
+// Pre-load official hospital logo as Base64 Data URI for instant zero-latency embedding
+let LOGO_DATA_URI = '';
+try {
+  const logoCandidates = [
+    path.join(__dirname, 'logo.png'),
+    path.join(__dirname, 'public/logo.png')
+  ];
+  for (const candidate of logoCandidates) {
+    if (fs.existsSync(candidate)) {
+      const logoBuf = fs.readFileSync(candidate);
+      LOGO_DATA_URI = `data:image/png;base64,${logoBuf.toString('base64')}`;
+      break;
+    }
+  }
+} catch (e) {
+  console.warn('[ReportGen] Could not load logo.png:', e.message);
+}
+
+
 /**
  * Extract structured clinical data from the raw PACS Final PDF text.
  */
@@ -484,16 +503,25 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     }
 
     .hospital-logo {
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 58px;
       background: #ffffff;
-      border-radius: 10px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 3px 4px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
       flex-shrink: 0;
     }
+
+    .hospital-logo-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
 
     .hospital-title h1 {
       font-size: 16px;
@@ -573,10 +601,24 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     /* Report Content Container */
     .report-body {
       padding: 18px 24px 22px;
+      position: relative;
+    }
+
+    .report-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 290px;
+      opacity: 0.038;
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* Patient Demographics Card */
     .patient-card {
+      position: relative;
+      z-index: 1;
       background: #f8fafc;
       border: 1px solid #cbd5e1;
       border-radius: 10px;
@@ -584,6 +626,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       margin-bottom: 16px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
     }
+
 
     .patient-grid {
       display: grid;
@@ -646,6 +689,8 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
 
     /* Examination Title Ribbon */
     .exam-ribbon {
+      position: relative;
+      z-index: 1;
       background: linear-gradient(90deg, #f0f9ff 0%, #ffffff 100%);
       border-left: 4px solid var(--primary);
       border-radius: 0 8px 8px 0;
@@ -655,6 +700,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       align-items: center;
       justify-content: space-between;
     }
+
 
     .exam-title {
       font-size: 16px;
@@ -1067,9 +1113,19 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
         padding: 14px 20px 10px !important;
       }
       .hospital-logo {
-        width: 44px !important;
-        height: 44px !important;
+        width: 42px !important;
+        height: 50px !important;
+        padding: 2px 3px !important;
       }
+      .hospital-logo-img {
+        max-width: 100% !important;
+        max-height: 100% !important;
+      }
+      .report-watermark {
+        opacity: 0.032 !important;
+        width: 250px !important;
+      }
+
       .hospital-title h1 {
         font-size: 14px !important;
       }
@@ -1167,13 +1223,18 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       <div class="header-top">
         <div class="hospital-brand">
           <div class="hospital-logo">
-            <!-- Medical Cross Emblem -->
-            <svg width="38" height="38" viewBox="0 0 48 48" fill="none">
-              <circle cx="24" cy="24" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-              <path d="M20 12h8v8h8v8h-8v8h-8v-8h-8v-8h8v-8z" fill="#0284c7"/>
-              <path d="M22 14h4v8h8v4h-8v8h-4v-8h-8v-4h8v-8z" fill="#0d9488"/>
-            </svg>
+            ${LOGO_DATA_URI ? `
+              <img src="${LOGO_DATA_URI}" alt="MAPIMS Logo" class="hospital-logo-img">
+            ` : `
+              <!-- Medical Cross Emblem -->
+              <svg width="38" height="38" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="22" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+                <path d="M20 12h8v8h8v8h-8v8h-8v-8h-8v-8h8v-8z" fill="#0284c7"/>
+                <path d="M22 14h4v8h8v4h-8v8h-4v-8h-8v-4h8v-8z" fill="#0d9488"/>
+              </svg>
+            `}
           </div>
+
           <div class="hospital-title">
             <h1>Melmaruvathur Adhiparasakthi</h1>
             <h2>Institute of Medical Sciences & Research (MAPIMS)</h2>
@@ -1202,6 +1263,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     </header>
 
     <div class="report-body">
+      ${LOGO_DATA_URI ? `<img src="${LOGO_DATA_URI}" alt="" class="report-watermark" aria-hidden="true">` : ''}
       <!-- Patient Information Grid -->
       <section class="patient-card">
         <div class="patient-grid">
