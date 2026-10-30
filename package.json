@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "sync:mongo": "node scripts/sync_all_patients.js"
+    "sync:mongo": "node scripts/sync_all_patients.js",
+    "push:vps": "python3 scripts/push_to_vps.py",
+    "deploy:vps": "python3 scripts/push_to_vps.py"
   },
   "keywords": [
     "pacs",
