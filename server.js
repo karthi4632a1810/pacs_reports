@@ -537,6 +537,27 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
     const { studyUid } = req.params;
     const safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
     const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+
+    let patientName = '';
+    let patientId = '';
+    try {
+      const db = await connectDB().catch(() => null);
+      if (db) {
+        const studyDoc = await db.collection('studies').findOne({
+          $or: [
+            { studyUid: studyUid },
+            { studyInstanceUid: studyUid },
+            { accessionNumber: studyUid }
+          ]
+        }, { projection: { patientName: 1, patientId: 1 } });
+        if (studyDoc) {
+          patientName = studyDoc.patientName || '';
+          patientId = studyDoc.patientId || '';
+        }
+      }
+    } catch (_) {}
+
+    const downloadFilename = formatReportFilename(patientName, patientId, studyUid);
     
     // 1. Check local cache for Final PDF
     if (fs.existsSync(localPdfPath)) {
@@ -546,6 +567,9 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
         isCompleted: true,
         type: 'pdf',
         filename: `Final_${safeStudy}.pdf`,
+        downloadFilename,
+        patientName,
+        patientId,
         status: 'COMPLETED',
         whatsappAllowed: true,
         url: `/api/report/${studyUid}`,
@@ -567,6 +591,9 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
         isCompleted: true,
         type: 'pdf',
         filename: `Final_${safeStudy}.pdf`,
+        downloadFilename,
+        patientName,
+        patientId,
         status: 'COMPLETED',
         whatsappAllowed: true,
         url: `/api/report/${studyUid}`,
@@ -588,6 +615,9 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
         isCompleted: false,
         type: 'doc',
         filename: `Final_${safeStudy}.doc`,
+        downloadFilename,
+        patientName,
+        patientId,
         status: 'DRAFT_DOC',
         whatsappAllowed: false,
         url: `/api/report/${studyUid}`,
@@ -609,6 +639,9 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
         isCompleted: false,
         type: 'doc',
         filename: `${safeStudy}.doc`,
+        downloadFilename,
+        patientName,
+        patientId,
         status: 'DRAFT_DOC',
         whatsappAllowed: false,
         url: `/api/report/${studyUid}`,
@@ -622,6 +655,9 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
       hasFinalPdf: false,
       isCompleted: false,
       type: null,
+      downloadFilename,
+      patientName,
+      patientId,
       status: 'NOT_FOUND',
       whatsappAllowed: false,
       message: 'No diagnostic report file found in PACS D:\\ drive.'

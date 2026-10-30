@@ -6470,7 +6470,7 @@
 
             <!-- Diagnostic PDF File -->
             <td style="padding: 12px 14px;">
-              <button onclick="previewPdfFromStudy('${item.studyUid}', '${item.patientName || ''}')" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;" title="Preview Diagnostic Final PDF">
+              <button onclick="previewPdfFromStudy('${item.studyUid}', '${(item.patientName || '').replace(/'/g, "\\'")}', '${item.patientId || ''}')" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;" title="Preview Diagnostic Final PDF">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span style="font-family: 'JetBrains Mono', monospace;">${pdfFileName}</span>
               </button>
@@ -6487,7 +6487,7 @@
             <!-- Actions -->
             <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
               <div style="display: inline-flex; align-items: center; gap: 6px;">
-                <button class="btn btn-secondary" onclick="previewPdfFromStudy('${item.studyUid}', '${item.patientName || ''}')" style="padding: 3px 8px; font-size: 11px;" title="View Report PDF">
+                <button class="btn btn-secondary" onclick="previewPdfFromStudy('${item.studyUid}', '${(item.patientName || '').replace(/'/g, "\\'")}', '${item.patientId || ''}')" style="padding: 3px 8px; font-size: 11px;" title="View Report PDF">
                   👁️ View
                 </button>
                 <button class="btn btn-secondary" onclick="retryWhatsAppDispatch('${item._id}')" style="padding: 3px 8px; font-size: 11px; color: ${st === 'FAILED' ? '#f87171' : '#34d399'}; border-color: ${st === 'FAILED' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(16, 185, 129, 0.35)'};" title="Re-dispatch PDF report to recipient">
@@ -7110,9 +7110,9 @@
       }
     }
 
-    function previewPdfFromStudy(studyUid, patientName) {
+    function previewPdfFromStudy(studyUid, patientName, patientId) {
       if (!studyUid) return;
-      openReportModal(studyUid, patientName || 'Patient');
+      openReportModal(null, studyUid, patientName || 'Patient', patientId || '');
     }
 
     function openWhatsAppAuditModal(logId) {
@@ -7889,7 +7889,7 @@
       }
     }
 
-    async function openReportModal(event, studyUid, optPatientName) {
+    async function openReportModal(event, studyUid, optPatientName, optPatientId) {
       let targetStudyUid = studyUid;
       if (typeof event === 'string') {
         targetStudyUid = event;
@@ -7912,6 +7912,7 @@
 
       const s = allStudies.find(item => item.studyUid === targetStudyUid) || advSearchResults.find(item => item.studyUid === targetStudyUid) || {};
       const patientDisplayName = s.patientName || optPatientName || 'Patient';
+      const patientIdVal = s.patientId || optPatientId || '';
 
       document.getElementById('reportPatientTitle').textContent = `Diagnostic Report: ${patientDisplayName}`;
       document.getElementById('reportSubTitle').textContent = `${s.study || 'Study'} &bull; ${s.modality || ''} &bull; ${s.studyDate || ''} &bull; Accession: ${s.accessionNumber || '-'}`;
@@ -7930,7 +7931,7 @@
         .replace(/[^\w\s-]/g, '')
         .trim()
         .replace(/\s+/g, '_');
-      const cleanId = (s.patientId || '').trim().replace(/[^\w-]/g, '');
+      const cleanId = (patientIdVal || '').trim().replace(/[^\w-]/g, '');
       const downloadFilename = (cleanName && cleanId) 
         ? `${cleanName}_${cleanId}.pdf` 
         : (cleanName ? `${cleanName}.pdf` : (cleanId ? `Patient_${cleanId}.pdf` : `Report_${targetStudyUid}.pdf`));
@@ -7968,6 +7969,16 @@
       try {
         const res = await fetch(`/api/report/${encodeURIComponent(studyUid)}/check`);
         const checkData = await res.json();
+
+        // If backend provided enriched patient info or filename, ensure download button uses it
+        if (checkData.downloadFilename && dlBtn) {
+          dlBtn.href = `/reports/study/${encodeURIComponent(targetStudyUid)}/${encodeURIComponent(checkData.downloadFilename)}?download=1`;
+          dlBtn.setAttribute('download', checkData.downloadFilename);
+          dlBtn.setAttribute('title', `Download ${checkData.downloadFilename}`);
+        }
+        if (checkData.patientName && (!patientDisplayName || patientDisplayName === 'Patient')) {
+          document.getElementById('reportPatientTitle').textContent = `Diagnostic Report: ${checkData.patientName}`;
+        }
 
         if (checkData.hasFinalPdf) {
           // Final PDF completed: Enable WhatsApp delivery!
