@@ -1704,8 +1704,85 @@ app.post('/api/admin/actions', requireAuth('canManageUsers'), async (req, res) =
       return res.json({ success: true, html });
     }
 
+    if (action === 'test_minio_connection') {
+      const start = Date.now();
+      const stats = await getMinioStats();
+      const pingMs = Date.now() - start;
+      const online = !stats.error;
+      const bucket = process.env.MINIO_BUCKET || 'pacs-dicom';
+      await settingsManager.logAudit('MINIO_TEST', 'storage', `MinIO Ping test executed (${pingMs}ms, Online: ${online})`, username);
+      return res.json({
+        success: true,
+        online,
+        pingMs,
+        totalFiles: stats.totalFiles || stats.totalDicomFiles || 0,
+        totalBytes: stats.totalBytes || 0,
+        bucket,
+        error: stats.error || null
+      });
+    }
+
+    if (action === 'clear_audit_logs') {
+      await settingsManager.clearAuditLogs();
+      await settingsManager.logAudit('LOGS_CLEARED', 'system', 'System audit logs cleared by administrator', username);
+      return res.json({ success: true, message: 'All system audit logs cleared successfully.' });
+    }
+
+    if (action === 'change_admin_password') {
+      const { currentPassword, newPassword } = payload || {};
+      if (!newPassword || newPassword.length < 4) {
+        return res.status(400).json({ success: false, error: 'New password must be at least 4 characters.' });
+      }
+      const user = await authenticateUser(username, currentPassword);
+      if (!user) {
+        return res.status(400).json({ success: false, error: 'Current password verification failed.' });
+      }
+      await updateUser(username, { password: newPassword });
+      await settingsManager.logAudit('PASSWORD_CHANGE', 'users', `Password updated for account '${username}'`, username);
+      return res.json({ success: true, message: 'Password updated successfully!' });
+    }
+
     return res.status(400).json({ success: false, error: `Unknown action: ${action}` });
   } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Logo Upload Endpoint for Admin Custom Branding
+app.post('/api/admin/upload-logo', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const { imageBase64 } = req.body || {};
+    if (!imageBase64 || typeof imageBase64 !== 'string') {
+      return res.status(400).json({ success: false, error: 'Valid imageBase64 data is required.' });
+    }
+
+    // Strip data URI scheme prefix if present
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const imgBuffer = Buffer.from(base64Data, 'base64');
+
+    if (imgBuffer.length < 100) {
+      return res.status(400).json({ success: false, error: 'Image file is too small or corrupt.' });
+    }
+    if (imgBuffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, error: 'Logo file exceeds maximum size of 5 MB.' });
+    }
+
+    const publicLogo = path.join(__dirname, 'public', 'logo.png');
+    const rootLogo = path.join(__dirname, 'logo.png');
+
+    await fsp.writeFile(publicLogo, imgBuffer);
+    await fsp.writeFile(rootLogo, imgBuffer).catch(() => null);
+
+    const logoUrl = `/logo.png?v=${Date.now()}`;
+    await settingsManager.updateSettings({
+      reportTemplate: { logoUrl }
+    }, req.user?.username || 'admin');
+
+    await settingsManager.logAudit('LOGO_UPLOAD', 'report', `Custom hospital logo uploaded (${(imgBuffer.length / 1024).toFixed(1)} KB)`, req.user?.username || 'admin');
+
+    res.json({ success: true, message: 'Hospital logo uploaded successfully.', logoUrl });
+  } catch (err) {
+    console.error('[Admin] Error uploading logo:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

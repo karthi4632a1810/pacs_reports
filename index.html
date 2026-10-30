@@ -138,7 +138,8 @@
       align-items: center;
       gap: 12px;
       padding: 8px 16px;
-      height: 52px;
+      min-height: 52px;
+      height: auto;
       background: var(--bg-card);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
@@ -1814,21 +1815,134 @@
       width: 100%;
     }
 
+    /* Modern Adaptive Responsive Media Queries for All Devices */
     @media (max-width: 1024px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
       .analytics-kpi-grid { grid-template-columns: repeat(2, 1fr); }
       .analytics-charts-grid { grid-template-columns: 1fr; }
       .chart-panel-full { grid-column: span 1; }
-      .app-main-nav { flex-direction: column; align-items: stretch; gap: 10px; }
-      .app-nav-tabs { flex-direction: column; align-items: stretch; width: 100%; }
-      .app-nav-tab { width: 100%; justify-content: center; }
-      .adv-grid { grid-template-columns: repeat(2, 1fr); }
-      .app-container { padding: 14px; }
-      header { flex-direction: column; align-items: stretch; gap: 14px; }
-      .header-actions { flex-wrap: wrap; }
+      .app-main-nav { flex-direction: column; align-items: stretch; gap: 8px; }
+      .app-nav-tabs {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        white-space: nowrap;
+        width: 100%;
+        padding-bottom: 4px;
+      }
+      .app-nav-tabs::-webkit-scrollbar { display: none; }
+      .app-nav-tab { flex-shrink: 0; white-space: nowrap; }
+      .admin-nav-bar {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap !important;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        white-space: nowrap;
+        width: 100%;
+      }
+      .admin-nav-bar::-webkit-scrollbar { display: none; }
+      .admin-nav-tab { flex-shrink: 0; white-space: nowrap; }
+      .adv-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .app-container { padding: clamp(10px, 2vw, 16px); }
+      header {
+        height: auto !important;
+        min-height: 52px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 10px 14px;
+      }
+      .brand-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 8px;
+      }
       .pagination-bar { flex-direction: column; align-items: stretch; gap: 12px; }
       .pagination-right { justify-content: space-between; width: 100%; }
       .pagination-controls { flex-wrap: wrap; justify-content: center; }
+    }
+
+    @media (max-width: 768px) {
+      .header-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 8px;
+      }
+      .user-profile-widget {
+        margin-left: auto;
+      }
+      .clock-display {
+        font-size: 11px;
+      }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .kpi-card { padding: 12px 14px; }
+      .kpi-card-val { font-size: 20px; }
+      .adv-grid { grid-template-columns: 1fr; gap: 10px; }
+      .filter-row { flex-direction: column; align-items: stretch; gap: 10px; }
+      .table-wrapper {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      }
+      .studies-table th, .studies-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      .modal-card {
+        max-width: 95vw !important;
+        margin: 10px auto !important;
+        max-height: 92dvh !important;
+      }
+      .auth-brand-text h2 {
+        font-size: clamp(16px, 4.5vw, 22px);
+      }
+      .admin-top-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .admin-top-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+      .admin-top-actions .btn-admin-save,
+      .admin-top-actions .btn-admin-reload {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; gap: 8px; }
+      .telemetry-grid { grid-template-columns: 1fr !important; }
+      .brand-section { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .header-actions { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+      .app-nav-tab { padding: 8px 12px; font-size: 12px; }
+      .admin-nav-tab { padding: 8px 12px; font-size: 12px; }
+      .btn { padding: 7px 12px; font-size: 12px; min-height: 38px; }
+      .btn-icon { width: 34px; height: 34px; }
     }
     /* ==========================================================
        Role-Based Access Control (RBAC) & User Profile Styles
@@ -2465,15 +2579,16 @@
        =================================================== */
     .admin-container {
       max-width: 1420px;
+      width: 100%;
       margin: 0 auto;
-      padding: 18px 0 40px 0;
+      padding: clamp(12px, 2vw, 22px) 0 40px 0;
       animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .admin-header-card {
-      background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(30, 41, 59, 0.7) 100%);
-      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.78) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(30, 41, 59, 0.78) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
       border-radius: 12px;
-      padding: 22px 24px;
+      padding: clamp(14px, 2.5vw, 24px);
       margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
@@ -2494,26 +2609,29 @@
       display: flex;
       align-items: center;
       gap: 14px;
+      flex: 1 1 320px;
     }
     .admin-header-icon {
-      font-size: 32px;
+      font-size: clamp(24px, 3.5vw, 32px);
       background: rgba(245, 158, 11, 0.15);
       border: 1px solid rgba(245, 158, 11, 0.35);
       border-radius: 12px;
-      width: 52px;
-      height: 52px;
+      width: clamp(44px, 5vw, 54px);
+      height: clamp(44px, 5vw, 54px);
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+      flex-shrink: 0;
     }
     .admin-header-h2 {
-      font-size: 20px;
+      font-size: clamp(16px, 2.4vw, 20px);
       font-weight: 800;
       color: #ffffff;
       display: flex;
       align-items: center;
-      gap: 10px;
+      flex-wrap: wrap;
+      gap: 8px;
       letter-spacing: -0.01em;
     }
     .admin-badge-super {
@@ -2528,11 +2646,11 @@
       text-transform: uppercase;
     }
     .admin-header-desc {
-      font-size: 13px;
+      font-size: clamp(12px, 1.5vw, 13px);
       color: var(--text-dim);
       margin-top: 4px;
-      max-width: 680px;
-      line-height: 1.4;
+      max-width: 720px;
+      line-height: 1.45;
     }
     .admin-header-actions {
       display: flex;
@@ -2554,6 +2672,7 @@
       gap: 8px;
       box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
       transition: all 0.2s ease;
+      min-height: 40px;
     }
     .btn-admin-save:hover {
       transform: translateY(-1px);
@@ -2573,6 +2692,7 @@
       align-items: center;
       gap: 6px;
       transition: all 0.15s ease;
+      min-height: 40px;
     }
     .btn-admin-reload:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -2582,17 +2702,21 @@
     /* Sub-Navigation Tabs */
     .admin-nav-bar {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       overflow-x: auto;
-      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 2px;
       margin-bottom: 20px;
       border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
     }
+    .admin-nav-bar::-webkit-scrollbar { display: none; }
     .admin-nav-tab {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 18px;
+      padding: 10px 16px;
       border-radius: 8px 8px 0 0;
       background: rgba(15, 23, 42, 0.4);
       border: 1px solid transparent;
@@ -2602,7 +2726,9 @@
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
+      flex-shrink: 0;
       transition: all 0.2s ease;
+      min-height: 42px;
     }
     .admin-nav-tab:hover {
       color: var(--text-main);
@@ -2628,15 +2754,15 @@
     /* Form Grid Cards */
     .admin-grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+      gap: 18px;
       margin-bottom: 20px;
     }
     .admin-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 10px;
-      padding: 20px;
+      padding: clamp(14px, 2vw, 22px);
       box-shadow: var(--shadow-sm);
     }
     .admin-card-title {
@@ -2647,6 +2773,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 10px;
     }
@@ -2675,6 +2803,7 @@
       color: var(--text-main);
       font-size: 13px;
       font-family: inherit;
+      min-height: 40px;
       transition: all 0.15s ease;
     }
     .admin-form-input:focus, .admin-form-select:focus, .admin-form-textarea:focus {
@@ -2696,6 +2825,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
       padding: 10px 12px;
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--border-color);
@@ -2710,23 +2840,46 @@
     .admin-switch-sub {
       font-size: 11px;
       color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* Hospital Logo Preview Box */
+    .admin-logo-preview-box {
+      width: 100%;
+      height: 96px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px dashed rgba(245, 158, 11, 0.4);
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .admin-logo-preview-box img {
+      max-height: 76px;
+      max-width: 90%;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
     }
 
     /* Diagnostic Telemetry Badges */
     .telemetry-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+      gap: 12px;
       margin-bottom: 20px;
     }
     .telemetry-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 14px 16px;
+      padding: 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
     .telemetry-card-head {
       display: flex;
@@ -2739,7 +2892,7 @@
       letter-spacing: 0.05em;
     }
     .telemetry-card-val {
-      font-size: 20px;
+      font-size: clamp(18px, 2.5vw, 22px);
       font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
       color: var(--text-main);
@@ -2774,13 +2927,45 @@
       background: rgba(255, 255, 255, 0.02);
     }
 
-    /* Logs Console Viewer */
+    /* Logs Console Viewer & Filters */
+    .admin-log-filters {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+      margin-bottom: 10px;
+    }
+    .admin-log-filters::-webkit-scrollbar { display: none; }
+    .admin-log-filter-btn {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .admin-log-filter-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .admin-log-filter-btn.active {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.5);
+      font-weight: 700;
+    }
     .admin-log-console {
       background: #090d16;
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 12px 16px;
-      height: 380px;
+      height: clamp(260px, 35vh, 400px);
       overflow-y: auto;
       font-family: 'JetBrains Mono', monospace;
       font-size: 11.5px;
@@ -2788,27 +2973,68 @@
       color: #94a3b8;
     }
     .admin-log-item {
-      padding: 3px 0;
+      padding: 4px 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.03);
       display: flex;
       gap: 10px;
+      align-items: baseline;
     }
     .admin-log-time {
       color: #64748b;
       flex-shrink: 0;
+      font-size: 11px;
     }
     .admin-log-tag {
       font-weight: 700;
       flex-shrink: 0;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.04);
     }
-    .admin-log-tag.pacs { color: #38bdf8; }
-    .admin-log-tag.storage { color: #f59e0b; }
-    .admin-log-tag.users { color: #a855f7; }
-    .admin-log-tag.whatsapp { color: #34d399; }
-    .admin-log-tag.system { color: #fbbf24; }
+    .admin-log-tag.pacs { color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
+    .admin-log-tag.storage { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+    .admin-log-tag.users { color: #a855f7; background: rgba(168, 85, 247, 0.1); }
+    .admin-log-tag.whatsapp { color: #34d399; background: rgba(52, 211, 153, 0.1); }
+    .admin-log-tag.report { color: #ec4899; background: rgba(236, 72, 153, 0.1); }
+    .admin-log-tag.system { color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
     .admin-log-desc {
       color: #e2e8f0;
       word-break: break-word;
+    }
+
+    @media (max-width: 768px) {
+      .admin-header-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .admin-header-actions {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+      .btn-admin-save, .btn-admin-reload {
+        flex: 1;
+        justify-content: center;
+      }
+      .admin-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .telemetry-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+      .admin-user-table th, .admin-user-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+    }
+    @media (max-width: 480px) {
+      .telemetry-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -3998,7 +4224,7 @@
                 <span class="admin-badge-super">Super Admin Authorized</span>
               </div>
               <div class="admin-header-desc">
-                Full unconstrained operational authority over PACS Core connection, 100 GB storage policies, WhatsApp delivery gateway, diagnostic report templates, and role-based user accounts.
+                Full unconstrained operational authority over PACS Core connection, MinIO S3 object store, 100 GB storage quotas, WhatsApp delivery gateway, diagnostic report templates, hospital branding, and role-based user accounts.
               </div>
             </div>
           </div>
@@ -4059,16 +4285,19 @@
             <span>🏥</span> <span>PACS &amp; Hospital Profile</span>
           </button>
           <button class="admin-nav-tab" onclick="switchAdminSubtab('storage')" id="subtabBtnStorage">
-            <span>💾</span> <span>Storage &amp; Quota Watchdog</span>
+            <span>💾</span> <span>Storage &amp; MinIO Quotas</span>
           </button>
           <button class="admin-nav-tab" onclick="switchAdminSubtab('whatsapp')" id="subtabBtnWhatsapp">
             <span>💬</span> <span>WhatsApp Gateway</span>
           </button>
           <button class="admin-nav-tab" onclick="switchAdminSubtab('report')" id="subtabBtnReport">
-            <span>🎨</span> <span>Report &amp; PDF Branding</span>
+            <span>🎨</span> <span>Report Branding &amp; Logo</span>
           </button>
           <button class="admin-nav-tab" onclick="switchAdminSubtab('users')" id="subtabBtnUsers">
             <span>👥</span> <span>User Accounts &amp; RBAC</span>
+          </button>
+          <button class="admin-nav-tab" onclick="switchAdminSubtab('security')" id="subtabBtnSecurity">
+            <span>🔐</span> <span>Security &amp; Passwords</span>
           </button>
           <button class="admin-nav-tab" onclick="switchAdminSubtab('diagnostics')" id="subtabBtnDiagnostics">
             <span>🩺</span> <span>Diagnostics &amp; Audit Logs</span>
@@ -4080,7 +4309,7 @@
           <div class="admin-grid-2">
             <div class="admin-card">
               <div class="admin-card-title">
-                <span><span>🌐</span> PACS Server Connectivity</span>
+                <span><span>🌐</span> PACS Server Connectivity &amp; Polling</span>
                 <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="testPacsPing()">⚡ Test Ping</button>
               </div>
               <div class="admin-form-group">
@@ -4088,23 +4317,50 @@
                 <input type="text" class="admin-form-input mono" id="adminPacsHost" placeholder="http://192.168.101.224">
                 <div class="admin-form-hint">Address of the hospital PACS gateway handling DICOM query/retrieve &amp; ZeroFootprint sessions.</div>
               </div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Request Timeout (Seconds)</label>
+                  <input type="number" class="admin-form-input mono" id="adminPacsTimeoutSec" min="5" max="180" value="30">
+                  <div class="admin-form-hint">Max wait for PACS HTTP response.</div>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Polling Interval (Minutes)</label>
+                  <input type="number" class="admin-form-input mono" id="adminPacsSyncInterval" min="1" max="1440" value="10">
+                  <div class="admin-form-hint">Background worker query frequency.</div>
+                </div>
+              </div>
               <div class="admin-form-group">
-                <label class="admin-form-label">Background Polling Sync Interval (Minutes)</label>
-                <input type="number" class="admin-form-input" id="adminPacsSyncInterval" min="1" max="1440" value="10">
-                <div class="admin-form-hint">How often the background worker queries PACS for newly arrived imaging studies.</div>
+                <label class="admin-form-label">Default Lookback Range (Days)</label>
+                <input type="number" class="admin-form-input mono" id="adminPacsLookbackDays" min="1" max="90" value="10">
+                <div class="admin-form-hint">Number of past days to query during automatic and 1-click sync runs.</div>
               </div>
               <div class="admin-switch-row">
                 <div>
                   <div class="admin-switch-text">Automated Background Study Sync</div>
-                  <div class="admin-switch-sub">Continuously ingest new studies into MongoDB archive</div>
+                  <div class="admin-switch-sub">Continuously ingest newly arrived studies into MongoDB archive</div>
                 </div>
                 <input type="checkbox" id="adminAutoSyncEnabled" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
               </div>
-              <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:12px; color:var(--text-muted);">Sync On-Demand:</span>
-                <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="triggerManualPacsSync(this)">
-                  🔄 Resync Recent Studies (10 Days)
+              
+              <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-color);">
+                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:8px;">🔄 On-Demand Study Synchronization</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:var(--text-dim);">From:</span>
+                    <input type="date" id="adminSyncFromDate" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:4px; padding:4px 8px; color:var(--text-main); font-size:11.5px;">
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:var(--text-dim);">To:</span>
+                    <input type="date" id="adminSyncToDate" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:4px; padding:4px 8px; color:var(--text-main); font-size:11.5px;">
+                  </div>
+                  <button class="btn btn-secondary" style="font-size:11.5px; padding:5px 10px;" onclick="triggerCustomPacsSync(this)">
+                    Sync Custom Range
+                  </button>
+                </div>
+                <button class="btn btn-primary" style="font-size:12px; padding:6px 14px; width:100%;" onclick="triggerManualPacsSync(this)">
+                  ⚡ 1-Click Resync Recent (10 Days)
                 </button>
+                <div id="adminPacsPingStatus" style="font-size:11.5px; margin-top:8px;"></div>
               </div>
             </div>
 
@@ -4115,6 +4371,7 @@
               <div class="admin-form-group">
                 <label class="admin-form-label">Hospital / Institution Official Name</label>
                 <input type="text" class="admin-form-input" id="adminHospitalName" value="MAPIMS Hospital">
+                <div class="admin-form-hint">Displayed across worklist headers, PDF diagnostics, and WhatsApp dispatches.</div>
               </div>
               <div class="admin-form-group">
                 <label class="admin-form-label">Department / Imaging Center</label>
@@ -4132,7 +4389,7 @@
           </div>
         </div>
 
-        <!-- SUBTAB 2: Storage & Quota Watchdog -->
+        <!-- SUBTAB 2: Storage & MinIO Quotas -->
         <div class="admin-tab-pane" id="adminPaneStorage">
           <div class="admin-grid-2">
             <div class="admin-card">
@@ -4161,9 +4418,64 @@
                 </div>
                 <input type="checkbox" id="adminAutoPruneEnabled" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
               </div>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
+                <button class="btn btn-secondary" style="font-size:12px; flex:1;" onclick="triggerAdminStoragePrune(this)">
+                  🧹 Run LRU Cleanup Now
+                </button>
+                <button class="btn btn-secondary" style="font-size:12px; color:#f87171; border-color:rgba(239,68,68,0.3); flex:1;" onclick="triggerAdminClearCache(this)">
+                  🗑️ Purge Temp Report Cache
+                </button>
+              </div>
             </div>
 
+            <!-- MinIO S3 Object Storage Configuration -->
             <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>📦</span> MinIO S3 Object Storage Gateway</span>
+                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px; color:#38bdf8;" onclick="testMinioConnection(this)">
+                  ⚡ Test MinIO
+                </button>
+              </div>
+              <div style="display:grid; grid-template-columns: 2fr 1fr; gap:12px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">MinIO Server Endpoint / Host</label>
+                  <input type="text" class="admin-form-input mono" id="adminMinioEndpoint" value="pacs-minio">
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">API Port</label>
+                  <input type="number" class="admin-form-input mono" id="adminMinioPort" value="4010">
+                </div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">DICOM S3 Bucket Name</label>
+                <input type="text" class="admin-form-input mono" id="adminMinioBucket" value="pacs-dicom">
+                <div class="admin-form-hint">Bucket storing raw multi-frame DICOM Part-10 instances.</div>
+              </div>
+              <div class="admin-switch-row">
+                <div>
+                  <div class="admin-switch-text">Use SSL / HTTPS Connection</div>
+                  <div class="admin-switch-sub">Enable secure TLS communication with S3 storage node</div>
+                </div>
+                <input type="checkbox" id="adminMinioUseSSL" style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">MinIO Access Key</label>
+                  <input type="text" class="admin-form-input mono" id="adminMinioAccessKey" value="minioadmin">
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">MinIO Secret Key</label>
+                  <div style="position:relative;">
+                    <input type="password" class="admin-form-input mono" id="adminMinioSecretKey" value="minioadmin" style="padding-right:36px;">
+                    <button type="button" onclick="togglePasswordVisibility('adminMinioSecretKey')" style="position:absolute; right:8px; top:8px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:13px;">👁️</button>
+                  </div>
+                </div>
+              </div>
+              <div id="adminMinioTestResult" style="font-size:11.5px; margin-top:6px;"></div>
+            </div>
+
+            <!-- Storage Breakdown Full Span Card -->
+            <div class="admin-card" style="grid-column: 1 / -1;">
               <div class="admin-card-title">
                 <span><span>📊</span> Storage Breakdown &amp; Maintenance</span>
               </div>
@@ -4177,28 +4489,19 @@
                 </div>
               </div>
 
-              <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:16px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
-                <div style="display:flex; justify-content:space-between;">
-                  <span style="color:var(--text-dim);">📦 MinIO Raw DICOM Slices:</span>
-                  <strong id="adminStorageMinioMb" style="color:#e879f9; font-family:'JetBrains Mono',monospace;">0 MB</strong>
+              <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:6px; padding:12px; font-size:12px; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+                <div>
+                  <span style="color:var(--text-dim); display:block; font-size:11px;">📦 MinIO Raw DICOM Slices:</span>
+                  <strong id="adminStorageMinioMb" style="color:#e879f9; font-family:'JetBrains Mono',monospace; font-size:15px;">0 MB</strong>
                 </div>
-                <div style="display:flex; justify-content:space-between;">
-                  <span style="color:var(--text-dim);">📄 Diagnostic Reports (PDF / DOC):</span>
-                  <strong id="adminStorageReportsMb" style="color:#38bdf8; font-family:'JetBrains Mono',monospace;">0 MB</strong>
+                <div>
+                  <span style="color:var(--text-dim); display:block; font-size:11px;">📄 Diagnostic Reports (PDF / DOC):</span>
+                  <strong id="adminStorageReportsMb" style="color:#38bdf8; font-family:'JetBrains Mono',monospace; font-size:15px;">0 MB</strong>
                 </div>
-                <div style="display:flex; justify-content:space-between;">
-                  <span style="color:var(--text-dim);">🖼️ Series Previews &amp; Thumbnails:</span>
-                  <strong id="adminStorageThumbsMb" style="color:#fbbf24; font-family:'JetBrains Mono',monospace;">0 MB</strong>
+                <div>
+                  <span style="color:var(--text-dim); display:block; font-size:11px;">🖼️ Series Previews &amp; Thumbnails:</span>
+                  <strong id="adminStorageThumbsMb" style="color:#fbbf24; font-family:'JetBrains Mono',monospace; font-size:15px;">0 MB</strong>
                 </div>
-              </div>
-
-              <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn btn-secondary" style="font-size:12px;" onclick="triggerAdminStoragePrune(this)">
-                  🧹 Run LRU Cleanup Now
-                </button>
-                <button class="btn btn-secondary" style="font-size:12px; color:#f87171;" onclick="triggerAdminClearCache(this)">
-                  🗑️ Purge Temp Report Cache
-                </button>
               </div>
             </div>
           </div>
@@ -4209,11 +4512,11 @@
           <div class="admin-grid-2">
             <div class="admin-card">
               <div class="admin-card-title">
-                <span><span>⚙️</span> Operational Mode &amp; Routing</span>
+                <span><span>⚙️</span> Operational Mode &amp; Safety Routing</span>
               </div>
               <div class="admin-switch-row" style="background:rgba(245,158,11,0.06); border-color:rgba(245,158,11,0.3);">
                 <div>
-                  <div class="admin-switch-text" style="color:#fbbf24;">Test Safe Mode</div>
+                  <div class="admin-switch-text" style="color:#fbbf24;">Test Safe Mode (Recommended for Testing)</div>
                   <div class="admin-switch-sub">When ON, all patient report dispatches route strictly to the Fixed Test Phone</div>
                 </div>
                 <input type="checkbox" id="adminFullTestMode" checked style="accent-color:#fbbf24; width:20px; height:20px; cursor:pointer;" onchange="toggleAdminTestModeUI(this.checked)">
@@ -4235,13 +4538,25 @@
                 </div>
                 <input type="checkbox" id="adminAutoSendFinalized" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
               </div>
+
+              <!-- Quick Direct Test Dispatch Section -->
+              <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
+                <div style="font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:8px;">📱 Instant Custom Test Dispatch</div>
+                <div style="display:flex; gap:8px;">
+                  <input type="text" class="admin-form-input mono" id="adminDirectTestPhone" placeholder="Mobile Number (e.g. 9498094815)" style="flex:1;">
+                  <button class="btn btn-secondary" style="color:#34d399; font-size:12px; white-space:nowrap;" onclick="sendCustomWhatsAppTest(this)">
+                    Send Test
+                  </button>
+                </div>
+                <div id="adminDirectTestStatus" style="font-size:11.5px; margin-top:6px;"></div>
+              </div>
             </div>
 
             <div class="admin-card">
               <div class="admin-card-title">
-                <span><span>🔑</span> WATI Gateway Credentials &amp; Retries</span>
+                <span><span>🔑</span> WATI Gateway Credentials &amp; Delivery Policies</span>
                 <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px; color:#34d399;" onclick="sendAdminFullWhatsAppTest(this)">
-                  📱 Send Test WhatsApp Now
+                  📱 1-Click Safe Test
                 </button>
               </div>
               <div class="admin-form-group">
@@ -4268,23 +4583,53 @@
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                 <div class="admin-form-group">
                   <label class="admin-form-label">Auto-Retry Interval (Mins)</label>
-                  <input type="number" class="admin-form-input" id="adminAutoRetryInterval" min="1" max="120" value="15">
+                  <input type="number" class="admin-form-input mono" id="adminAutoRetryInterval" min="1" max="120" value="15">
                 </div>
                 <div class="admin-form-group">
                   <label class="admin-form-label">Max Retry Attempts</label>
-                  <input type="number" class="admin-form-input" id="adminMaxAutoRetries" min="1" max="10" value="3">
+                  <input type="number" class="admin-form-input mono" id="adminMaxAutoRetries" min="1" max="10" value="3">
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- SUBTAB 4: Report Template & Branding -->
+        <!-- SUBTAB 4: Report Template, Logo & Branding -->
         <div class="admin-tab-pane" id="adminPaneReport">
           <div class="admin-grid-2">
+            
+            <!-- Hospital Logo Manager -->
             <div class="admin-card">
               <div class="admin-card-title">
-                <span><span>🎨</span> Theme Palette &amp; Seal Branding</span>
+                <span><span>🖼️</span> Hospital Logo &amp; Visual Header</span>
+              </div>
+              <div class="admin-logo-preview-box" id="adminLogoPreviewBox">
+                <img id="adminReportLogoImg" src="/logo.png" alt="Hospital Official Logo" onerror="this.src='/logo.png'">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Active Logo Resource URL</label>
+                <input type="text" class="admin-form-input mono" id="adminReportLogoUrl" value="/logo.png" oninput="updateLogoPreview(this.value)">
+                <div class="admin-form-hint">Path to the official hospital emblem used across all generated PDF reports.</div>
+              </div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                <input type="file" id="adminLogoFileInput" accept="image/png,image/jpeg,image/webp" style="display:none;" onchange="handleAdminLogoFileSelect(this)">
+                <button type="button" class="btn btn-secondary" style="font-size:12px; flex:1;" onclick="document.getElementById('adminLogoFileInput').click()">
+                  📁 Browse Image
+                </button>
+                <button type="button" class="btn btn-primary" id="btnAdminUploadLogo" style="font-size:12px; flex:1;" onclick="uploadAdminLogo(this)" disabled>
+                  ⬆️ Upload &amp; Apply
+                </button>
+                <button type="button" class="btn btn-secondary" style="font-size:12px;" onclick="resetAdminLogo(this)">
+                  🔄 Reset
+                </button>
+              </div>
+              <div id="adminLogoUploadStatus" style="font-size:11.5px; margin-top:6px;"></div>
+            </div>
+
+            <!-- Theme Palette & Typography -->
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🎨</span> Theme Palette &amp; Typography</span>
                 <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="openSampleReportPreview()">
                   👁️ Live Report Preview
                 </button>
@@ -4293,18 +4638,37 @@
                 <div class="admin-form-group">
                   <label class="admin-form-label">Brand Primary Color</label>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <input type="color" id="adminBrandColorPicker" value="#991b1b" style="width:40px; height:36px; padding:2px; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onchange="document.getElementById('adminBrandColorHex').value = this.value">
-                    <input type="text" class="admin-form-input mono" id="adminBrandColorHex" value="#991b1b" oninput="document.getElementById('adminBrandColorPicker').value = this.value">
+                    <input type="color" id="adminBrandColorPicker" value="#4e1e76" style="width:40px; height:38px; padding:2px; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onchange="document.getElementById('adminBrandColorHex').value = this.value">
+                    <input type="text" class="admin-form-input mono" id="adminBrandColorHex" value="#4e1e76" oninput="document.getElementById('adminBrandColorPicker').value = this.value">
                   </div>
                   <div class="admin-form-hint">Header borders, badges, card accents.</div>
                 </div>
                 <div class="admin-form-group">
                   <label class="admin-form-label">Accent / Highlight Color</label>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <input type="color" id="adminAccentColorPicker" value="#fbb714" style="width:40px; height:36px; padding:2px; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onchange="document.getElementById('adminAccentColorHex').value = this.value">
-                    <input type="text" class="admin-form-input mono" id="adminAccentColorHex" value="#fbb714" oninput="document.getElementById('adminAccentColorPicker').value = this.value">
+                    <input type="color" id="adminAccentColorPicker" value="#0284c7" style="width:40px; height:38px; padding:2px; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onchange="document.getElementById('adminAccentColorHex').value = this.value">
+                    <input type="text" class="admin-form-input mono" id="adminAccentColorHex" value="#0284c7" oninput="document.getElementById('adminAccentColorPicker').value = this.value">
                   </div>
                   <div class="admin-form-hint">Pill badges, verified stamps, highlights.</div>
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Report Font Family</label>
+                  <select class="admin-form-select" id="adminReportFontFamily">
+                    <option value="Inter">Inter (Modern &amp; Crisp)</option>
+                    <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Arial">Arial (System Standard)</option>
+                  </select>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Paper Output Size</label>
+                  <select class="admin-form-select" id="adminReportPageSize">
+                    <option value="A4" selected>ISO A4 (210 x 297 mm)</option>
+                    <option value="Letter">US Letter (8.5 x 11 in)</option>
+                  </select>
                 </div>
               </div>
 
@@ -4336,20 +4700,24 @@
               </div>
             </div>
 
-            <div class="admin-card">
+            <!-- Bilingual Legal Disclaimer Editor (Full Span) -->
+            <div class="admin-card" style="grid-column: 1 / -1;">
               <div class="admin-card-title">
                 <span><span>⚖️</span> Bilingual WhatsApp Legal Disclaimer Editor</span>
               </div>
-              <div class="admin-form-group">
-                <label class="admin-form-label">English Legal Disclaimer Text</label>
-                <textarea class="admin-form-textarea" id="adminDisclaimerEn" rows="4" style="font-size:12px; line-height:1.5;">This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.</textarea>
-              </div>
-              <div class="admin-form-group">
-                <label class="admin-form-label">Tamil Legal Advisory Text (தமிழ்)</label>
-                <textarea class="admin-form-textarea" id="adminDisclaimerTa" rows="4" style="font-size:12.5px; line-height:1.5; font-family:'Noto Sans Tamil',sans-serif;">இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது</textarea>
-                <div class="admin-form-hint">Rendered with embedded Noto Sans Tamil typography for 100% offline accuracy.</div>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">English Legal Disclaimer Text</label>
+                  <textarea class="admin-form-textarea" id="adminDisclaimerEn" rows="4" style="font-size:12px; line-height:1.5;">This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.</textarea>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Tamil Legal Advisory Text (தமிழ்)</label>
+                  <textarea class="admin-form-textarea" id="adminDisclaimerTa" rows="4" style="font-size:12.5px; line-height:1.5; font-family:'Noto Sans Tamil',sans-serif;">இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது</textarea>
+                  <div class="admin-form-hint">Rendered with embedded Noto Sans Tamil typography for 100% offline accuracy.</div>
+                </div>
               </div>
             </div>
+
           </div>
         </div>
 
@@ -4428,15 +4796,74 @@
           </div>
         </div>
 
-        <!-- SUBTAB 6: Diagnostics & Audit Logs -->
+        <!-- SUBTAB 6: Security Policies & Admin Password -->
+        <div class="admin-tab-pane" id="adminPaneSecurity">
+          <div class="admin-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🔐</span> Session &amp; Access Control Policies</span>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">JWT Token Session Validity (Hours)</label>
+                <input type="number" class="admin-form-input mono" id="adminJwtExpiryHours" min="1" max="168" value="24">
+                <div class="admin-form-hint">Session lifetime before users must re-authenticate (default: 24 hours).</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Max Failed Login Attempts Before Rate-Limit</label>
+                <input type="number" class="admin-form-input mono" id="adminMaxLoginAttempts" min="3" max="50" value="10">
+                <div class="admin-form-hint">Throttles brute-force authentication attacks on hospital portal.</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Inactivity Auto-Logout Timeout (Minutes)</label>
+                <input type="number" class="admin-form-input mono" id="adminSessionInactivity" min="15" max="720" value="120">
+                <div class="admin-form-hint">Automatically clears local clinical session if client workstation is idle.</div>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🔑</span> Change Administrator Password</span>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Current Password</label>
+                <div style="position:relative;">
+                  <input type="password" class="admin-form-input mono" id="adminCurrentPass" placeholder="Enter current admin password" style="padding-right:36px;">
+                  <button type="button" onclick="togglePasswordVisibility('adminCurrentPass')" style="position:absolute; right:8px; top:8px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:13px;">👁️</button>
+                </div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">New Password</label>
+                <div style="position:relative;">
+                  <input type="password" class="admin-form-input mono" id="adminNewPass" placeholder="Minimum 4 characters" style="padding-right:36px;">
+                  <button type="button" onclick="togglePasswordVisibility('adminNewPass')" style="position:absolute; right:8px; top:8px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:13px;">👁️</button>
+                </div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Confirm New Password</label>
+                <input type="password" class="admin-form-input mono" id="adminConfirmPass" placeholder="Re-enter new password">
+              </div>
+              <button class="btn btn-primary" style="width:100%; font-size:13px; padding:10px; margin-top:8px;" onclick="changeAdminPassword(this)">
+                🔒 Update Administrator Password
+              </button>
+              <div id="adminPassChangeStatus" style="font-size:12px; margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 7: Diagnostics & Audit Logs -->
         <div class="admin-tab-pane" id="adminPaneDiagnostics">
           <div class="admin-grid-2">
             <div class="admin-card">
               <div class="admin-card-title">
                 <span><span>🩺</span> Live Microservice Health Checks</span>
-                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="loadAdminDiagnostics(true)">
-                  🔄 Refresh Status
-                </button>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <label style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="adminAutoRefreshLogs" onchange="toggleAdminAutoRefresh(this.checked)" style="accent-color:#10b981;"> Auto (10s)
+                  </label>
+                  <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="loadAdminDiagnostics(true)">
+                    🔄 Refresh Status
+                  </button>
+                </div>
               </div>
               <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px solid var(--border-color);">
@@ -4465,10 +4892,35 @@
             <div class="admin-card">
               <div class="admin-card-title">
                 <span><span>📜</span> Live System Audit &amp; Event Logs</span>
-                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="loadAdminLogs(true)">
-                  🔄 Refresh Logs
-                </button>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn btn-secondary" style="font-size:11px; padding:4px 8px;" onclick="exportAdminAuditLogs()" title="Export Audit Logs as JSON">
+                    📥 Export
+                  </button>
+                  <button class="btn btn-secondary" style="font-size:11px; padding:4px 8px; color:#f87171;" onclick="clearAdminAuditLogs(this)" title="Clear all audit logs">
+                    🗑️ Clear
+                  </button>
+                  <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="loadAdminLogs(true)">
+                    🔄 Refresh
+                  </button>
+                </div>
               </div>
+
+              <!-- Log Filter Bar -->
+              <div class="admin-log-filters">
+                <button class="admin-log-filter-btn active" onclick="filterAdminLogs('all', this)">All Logs</button>
+                <button class="admin-log-filter-btn" onclick="filterAdminLogs('pacs', this)">PACS</button>
+                <button class="admin-log-filter-btn" onclick="filterAdminLogs('storage', this)">Storage</button>
+                <button class="admin-log-filter-btn" onclick="filterAdminLogs('whatsapp', this)">WhatsApp</button>
+                <button class="admin-log-filter-btn" onclick="filterAdminLogs('users', this)">Users</button>
+                <button class="admin-log-filter-btn" onclick="filterAdminLogs('report', this)">Report</button>
+                <button class="admin-log-filter-btn" onclick="filterAdminLogs('system', this)">System</button>
+              </div>
+
+              <!-- Log Search Filter Input -->
+              <div style="margin-bottom:8px;">
+                <input type="text" id="adminLogSearchInput" placeholder="🔍 Search event details or usernames..." class="admin-form-input mono" style="font-size:11.5px; padding:6px 10px; min-height:34px;" oninput="applyAdminLogSearch()">
+              </div>
+
               <div class="admin-log-console" id="adminLogConsole">
                 <div style="color:var(--text-dim); text-align:center; padding:20px;">Fetching recent system events...</div>
               </div>
@@ -9247,7 +9699,7 @@
     let adminUsersList = [];
 
     function switchAdminSubtab(subtab) {
-      const tabs = ['pacs', 'storage', 'whatsapp', 'report', 'users', 'diagnostics'];
+      const tabs = ['pacs', 'storage', 'whatsapp', 'report', 'users', 'security', 'diagnostics'];
       tabs.forEach(t => {
         const btn = document.getElementById(`subtabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
         const pane = document.getElementById(`adminPane${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -9303,10 +9755,12 @@
     function populateAdminForm(cfg) {
       if (!cfg) return;
 
-      // PACS & Hospital
+      // 1. PACS & Hospital Profile
       if (cfg.pacs) {
         if (document.getElementById('adminPacsHost')) document.getElementById('adminPacsHost').value = cfg.pacs.pacsHost || '';
+        if (document.getElementById('adminPacsTimeoutSec')) document.getElementById('adminPacsTimeoutSec').value = cfg.pacs.timeoutSeconds || 30;
         if (document.getElementById('adminPacsSyncInterval')) document.getElementById('adminPacsSyncInterval').value = cfg.pacs.syncIntervalMinutes || 10;
+        if (document.getElementById('adminPacsLookbackDays')) document.getElementById('adminPacsLookbackDays').value = cfg.pacs.lookbackDays || 10;
         if (document.getElementById('adminAutoSyncEnabled')) document.getElementById('adminAutoSyncEnabled').checked = cfg.pacs.autoSyncEnabled !== false;
         if (document.getElementById('adminHospitalName')) document.getElementById('adminHospitalName').value = cfg.pacs.hospitalName || 'MAPIMS Hospital';
         if (document.getElementById('adminDepartmentName')) document.getElementById('adminDepartmentName').value = cfg.pacs.departmentName || 'Department of Radiodiagnosis & Imaging';
@@ -9314,23 +9768,29 @@
         if (document.getElementById('adminHospitalAddress')) document.getElementById('adminHospitalAddress').value = cfg.pacs.hospitalAddress || 'Melmaruvathur, Tamil Nadu 603319';
       }
 
-      // Storage & Quotas
+      // 2. Storage & MinIO S3 Object Store
       if (cfg.storage) {
         if (document.getElementById('adminStorageMaxGb')) document.getElementById('adminStorageMaxGb').value = cfg.storage.maxCacheGb || 100;
         if (document.getElementById('adminStorageEvictionTarget')) document.getElementById('adminStorageEvictionTarget').value = cfg.storage.evictionTargetPercent || cfg.storage.evictionTargetPct || 80;
         if (document.getElementById('adminStorageWatchdogInterval')) document.getElementById('adminStorageWatchdogInterval').value = cfg.storage.watchdogIntervalMinutes || 10;
         if (document.getElementById('adminAutoPruneEnabled')) document.getElementById('adminAutoPruneEnabled').checked = cfg.storage.autoPruneEnabled !== false;
+        if (document.getElementById('adminMinioEndpoint')) document.getElementById('adminMinioEndpoint').value = cfg.storage.minioEndpoint || 'pacs-minio';
+        if (document.getElementById('adminMinioPort')) document.getElementById('adminMinioPort').value = cfg.storage.minioPort || 4010;
+        if (document.getElementById('adminMinioBucket')) document.getElementById('adminMinioBucket').value = cfg.storage.minioBucket || 'pacs-dicom';
+        if (document.getElementById('adminMinioUseSSL')) document.getElementById('adminMinioUseSSL').checked = cfg.storage.minioUseSSL === true;
+        if (document.getElementById('adminMinioAccessKey')) document.getElementById('adminMinioAccessKey').value = cfg.storage.minioAccessKey || 'minioadmin';
+        if (document.getElementById('adminMinioSecretKey')) document.getElementById('adminMinioSecretKey').value = cfg.storage.minioSecretKey || 'minioadmin';
       }
 
-      // WhatsApp Gateway
+      // 3. WhatsApp Gateway
       if (cfg.whatsapp) {
         const isTest = cfg.whatsapp.testMode !== false;
         if (document.getElementById('adminFullTestMode')) {
           document.getElementById('adminFullTestMode').checked = isTest;
           toggleAdminTestModeUI(isTest);
         }
-        if (document.getElementById('adminFullFixedPhone')) document.getElementById('adminFullFixedPhone').value = cfg.whatsapp.fixedTestPhone || '7200504251';
-        if (document.getElementById('adminFullTestPatientId')) document.getElementById('adminFullTestPatientId').value = cfg.whatsapp.testPatientId || '4867768';
+        if (document.getElementById('adminFullFixedPhone')) document.getElementById('adminFullFixedPhone').value = cfg.whatsapp.fixedTestPhone || '9498094815';
+        if (document.getElementById('adminFullTestPatientId')) document.getElementById('adminFullTestPatientId').value = cfg.whatsapp.testPatientId || '5038408';
         if (document.getElementById('adminAutoSendFinalized')) document.getElementById('adminAutoSendFinalized').checked = cfg.whatsapp.autoSendFinalized !== false;
         if (document.getElementById('adminWatiEndpoint')) document.getElementById('adminWatiEndpoint').value = cfg.whatsapp.apiEndpoint || cfg.whatsapp.endpoint || '';
         if (document.getElementById('adminWatiTemplateName')) document.getElementById('adminWatiTemplateName').value = cfg.whatsapp.templateName || 'pacs_reports_new';
@@ -9340,21 +9800,34 @@
         if (document.getElementById('adminMaxAutoRetries')) document.getElementById('adminMaxAutoRetries').value = cfg.whatsapp.maxAutoRetries || 3;
       }
 
-      // Report & PDF Branding
+      // 4. Report Template, Logo & Branding
       const rep = cfg.report || cfg.reportTemplate;
       if (rep) {
-        const prim = rep.primaryColor || '#991b1b';
-        const acc = rep.accentColor || '#fbb714';
+        const logoUrl = rep.logoUrl || '/logo.png';
+        if (document.getElementById('adminReportLogoUrl')) document.getElementById('adminReportLogoUrl').value = logoUrl;
+        updateLogoPreview(logoUrl);
+
+        const prim = rep.primaryColor || '#4e1e76';
+        const acc = rep.accentColor || '#0284c7';
         if (document.getElementById('adminBrandColorPicker')) document.getElementById('adminBrandColorPicker').value = prim;
         if (document.getElementById('adminBrandColorHex')) document.getElementById('adminBrandColorHex').value = prim;
         if (document.getElementById('adminAccentColorPicker')) document.getElementById('adminAccentColorPicker').value = acc;
         if (document.getElementById('adminAccentColorHex')) document.getElementById('adminAccentColorHex').value = acc;
+        if (document.getElementById('adminReportFontFamily')) document.getElementById('adminReportFontFamily').value = rep.fontFamily || 'Inter';
+        if (document.getElementById('adminReportPageSize')) document.getElementById('adminReportPageSize').value = rep.pageSize || 'A4';
         if (document.getElementById('adminRadiologistTitle')) document.getElementById('adminRadiologistTitle').value = rep.radiologistTitle || 'DR. CONSULTANT RADIOLOGIST, MD (RD)';
         if (document.getElementById('adminReportFooterNote')) document.getElementById('adminReportFooterNote').value = rep.footerNote || 'For clinical correlation only. Generated by MAPIMS PACS Cloud Connect.';
         if (document.getElementById('adminShowDisclaimerCard')) document.getElementById('adminShowDisclaimerCard').checked = rep.showDisclaimerCard !== false;
         if (document.getElementById('adminShowQrCode')) document.getElementById('adminShowQrCode').checked = rep.showQrCode === true;
         if (document.getElementById('adminDisclaimerEn')) document.getElementById('adminDisclaimerEn').value = rep.disclaimerEn || '';
         if (document.getElementById('adminDisclaimerTa')) document.getElementById('adminDisclaimerTa').value = rep.disclaimerTa || '';
+      }
+
+      // 5. Security & Session Policies
+      if (cfg.security) {
+        if (document.getElementById('adminJwtExpiryHours')) document.getElementById('adminJwtExpiryHours').value = cfg.security.jwtExpiryHours || 24;
+        if (document.getElementById('adminMaxLoginAttempts')) document.getElementById('adminMaxLoginAttempts').value = cfg.security.maxLoginAttempts || 10;
+        if (document.getElementById('adminSessionInactivity')) document.getElementById('adminSessionInactivity').value = cfg.security.sessionInactivityMinutes || 120;
       }
     }
 
@@ -9370,7 +9843,9 @@
         const payload = {
           pacs: {
             pacsHost: document.getElementById('adminPacsHost')?.value.trim() || 'http://192.168.101.224',
+            timeoutSeconds: parseInt(document.getElementById('adminPacsTimeoutSec')?.value, 10) || 30,
             syncIntervalMinutes: parseInt(document.getElementById('adminPacsSyncInterval')?.value, 10) || 10,
+            lookbackDays: parseInt(document.getElementById('adminPacsLookbackDays')?.value, 10) || 10,
             autoSyncEnabled: document.getElementById('adminAutoSyncEnabled')?.checked !== false,
             hospitalName: document.getElementById('adminHospitalName')?.value.trim() || 'MAPIMS Hospital',
             departmentName: document.getElementById('adminDepartmentName')?.value.trim() || 'Department of Radiodiagnosis & Imaging',
@@ -9381,12 +9856,18 @@
             maxCacheGb: parseFloat(document.getElementById('adminStorageMaxGb')?.value) || 100,
             evictionTargetPercent: parseInt(document.getElementById('adminStorageEvictionTarget')?.value, 10) || 80,
             watchdogIntervalMinutes: parseInt(document.getElementById('adminStorageWatchdogInterval')?.value, 10) || 10,
-            autoPruneEnabled: document.getElementById('adminAutoPruneEnabled')?.checked !== false
+            autoPruneEnabled: document.getElementById('adminAutoPruneEnabled')?.checked !== false,
+            minioEndpoint: document.getElementById('adminMinioEndpoint')?.value.trim() || 'pacs-minio',
+            minioPort: parseInt(document.getElementById('adminMinioPort')?.value, 10) || 4010,
+            minioBucket: document.getElementById('adminMinioBucket')?.value.trim() || 'pacs-dicom',
+            minioUseSSL: document.getElementById('adminMinioUseSSL')?.checked === true,
+            minioAccessKey: document.getElementById('adminMinioAccessKey')?.value.trim() || 'minioadmin',
+            minioSecretKey: document.getElementById('adminMinioSecretKey')?.value.trim() || 'minioadmin'
           },
           whatsapp: {
             testMode: document.getElementById('adminFullTestMode')?.checked !== false,
-            fixedTestPhone: document.getElementById('adminFullFixedPhone')?.value.trim() || '7200504251',
-            testPatientId: document.getElementById('adminFullTestPatientId')?.value.trim() || '4867768',
+            fixedTestPhone: document.getElementById('adminFullFixedPhone')?.value.trim() || '9498094815',
+            testPatientId: document.getElementById('adminFullTestPatientId')?.value.trim() || '5038408',
             autoSendFinalized: document.getElementById('adminAutoSendFinalized')?.checked !== false,
             endpoint: document.getElementById('adminWatiEndpoint')?.value.trim() || '',
             templateName: document.getElementById('adminWatiTemplateName')?.value.trim() || 'pacs_reports_new',
@@ -9396,14 +9877,22 @@
             maxAutoRetries: parseInt(document.getElementById('adminMaxAutoRetries')?.value, 10) || 3
           },
           report: {
-            primaryColor: document.getElementById('adminBrandColorHex')?.value.trim() || '#991b1b',
-            accentColor: document.getElementById('adminAccentColorHex')?.value.trim() || '#fbb714',
+            logoUrl: document.getElementById('adminReportLogoUrl')?.value.trim() || '/logo.png',
+            primaryColor: document.getElementById('adminBrandColorHex')?.value.trim() || '#4e1e76',
+            accentColor: document.getElementById('adminAccentColorHex')?.value.trim() || '#0284c7',
+            fontFamily: document.getElementById('adminReportFontFamily')?.value || 'Inter',
+            pageSize: document.getElementById('adminReportPageSize')?.value || 'A4',
             radiologistTitle: document.getElementById('adminRadiologistTitle')?.value.trim() || 'DR. CONSULTANT RADIOLOGIST, MD (RD)',
             footerNote: document.getElementById('adminReportFooterNote')?.value.trim() || '',
             showDisclaimerCard: document.getElementById('adminShowDisclaimerCard')?.checked !== false,
             showQrCode: document.getElementById('adminShowQrCode')?.checked === true,
             disclaimerEn: document.getElementById('adminDisclaimerEn')?.value || '',
             disclaimerTa: document.getElementById('adminDisclaimerTa')?.value || ''
+          },
+          security: {
+            jwtExpiryHours: parseInt(document.getElementById('adminJwtExpiryHours')?.value, 10) || 24,
+            maxLoginAttempts: parseInt(document.getElementById('adminMaxLoginAttempts')?.value, 10) || 10,
+            sessionInactivityMinutes: parseInt(document.getElementById('adminSessionInactivity')?.value, 10) || 120
           }
         };
 
@@ -9443,6 +9932,332 @@
           btn.innerHTML = originalText;
           btn.disabled = false;
         }
+      }
+    }
+
+    // MinIO Connection Test
+    async function testMinioConnection(btn) {
+      const resBox = document.getElementById('adminMinioTestResult');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Testing...'; }
+      if (resBox) resBox.innerHTML = '<span style="color:#38bdf8;">Pinging MinIO S3 object store node...</span>';
+
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'test_minio_connection' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const statusText = data.online ? 'ONLINE' : 'OFFLINE';
+          const color = data.online ? '#34d399' : '#f87171';
+          if (resBox) {
+            resBox.innerHTML = `<span style="color:${color}; font-weight:700;">${statusText} (${data.pingMs} ms)</span> &bull; Bucket: <code>${escapeHtml(data.bucket)}</code> &bull; Files: <strong>${(data.totalFiles || 0).toLocaleString()}</strong>`;
+          }
+          loadAdminDiagnostics();
+        } else {
+          if (resBox) resBox.innerHTML = `<span style="color:#f87171;">MinIO Test Failed: ${escapeHtml(data.error || 'Connection error')}</span>`;
+        }
+      } catch (err) {
+        if (resBox) resBox.innerHTML = `<span style="color:#f87171;">Network Error: ${escapeHtml(err.message)}</span>`;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '⚡ Test MinIO'; }
+      }
+    }
+
+    // Logo Management Handlers
+    function updateLogoPreview(url) {
+      const img = document.getElementById('adminReportLogoImg');
+      if (img && url) {
+        img.src = url;
+      }
+    }
+
+    let selectedLogoBase64 = null;
+    function handleAdminLogoFileSelect(input) {
+      const file = input?.files?.[0];
+      const uploadBtn = document.getElementById('btnAdminUploadLogo');
+      const statusEl = document.getElementById('adminLogoUploadStatus');
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file (PNG, JPG, WebP).');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        selectedLogoBase64 = e.target.result;
+        updateLogoPreview(selectedLogoBase64);
+        if (uploadBtn) uploadBtn.disabled = false;
+        if (statusEl) statusEl.innerHTML = `<span style="color:#fbbf24;">Ready to upload: ${escapeHtml(file.name)} (${(file.size / 1024).toFixed(1)} KB)</span>`;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function uploadAdminLogo(btn) {
+      if (!selectedLogoBase64) return;
+      const statusEl = document.getElementById('adminLogoUploadStatus');
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Uploading...'; }
+      if (statusEl) statusEl.innerHTML = `<span style="color:#38bdf8;">Uploading logo to server...</span>`;
+
+      try {
+        const res = await fetch('/api/admin/upload-logo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: selectedLogoBase64 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (document.getElementById('adminReportLogoUrl')) {
+            document.getElementById('adminReportLogoUrl').value = data.logoUrl;
+          }
+          updateLogoPreview(data.logoUrl);
+          if (statusEl) statusEl.innerHTML = `<span style="color:#34d399; font-weight:700;">✅ Logo successfully uploaded and applied!</span>`;
+          selectedLogoBase64 = null;
+          loadAdminLogs();
+        } else {
+          if (statusEl) statusEl.innerHTML = `<span style="color:#f87171;">❌ Upload failed: ${escapeHtml(data.error || 'Server error')}</span>`;
+        }
+      } catch (err) {
+        if (statusEl) statusEl.innerHTML = `<span style="color:#f87171;">❌ Network error: ${escapeHtml(err.message)}</span>`;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '⬆️ Upload & Apply'; }
+      }
+    }
+
+    function resetAdminLogo(btn) {
+      const urlInput = document.getElementById('adminReportLogoUrl');
+      if (urlInput) urlInput.value = '/logo.png';
+      updateLogoPreview('/logo.png');
+      const statusEl = document.getElementById('adminLogoUploadStatus');
+      if (statusEl) statusEl.innerHTML = `<span style="color:#94a3b8;">Reset to default hospital logo (/logo.png). Click Save All Settings to commit.</span>`;
+    }
+
+    // Direct Custom WhatsApp Test Dispatch
+    async function sendCustomWhatsAppTest(btn) {
+      const phoneInput = document.getElementById('adminDirectTestPhone');
+      const phone = phoneInput?.value.trim();
+      const statusEl = document.getElementById('adminDirectTestStatus');
+      const patientId = document.getElementById('adminFullTestPatientId')?.value.trim() || '5038408';
+
+      if (!phone || phone.length < 10) {
+        alert('Please enter a valid 10-digit mobile number.');
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+      if (statusEl) statusEl.innerHTML = `<span style="color:#38bdf8;">Dispatching test WhatsApp report to ${escapeHtml(phone)}...</span>`;
+
+      try {
+        const res = await fetch('/api/admin/whatsapp-test-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, patientId })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (statusEl) statusEl.innerHTML = `<span style="color:#34d399; font-weight:700;">✅ Dispatched to ${escapeHtml(phone)} (ID: ${data.metaMessageId || 'OK'})</span>`;
+          loadAdminLogs();
+        } else {
+          if (statusEl) statusEl.innerHTML = `<span style="color:#f87171;">❌ Failed: ${escapeHtml(data.error || 'Delivery failed')}</span>`;
+        }
+      } catch (err) {
+        if (statusEl) statusEl.innerHTML = `<span style="color:#f87171;">❌ Network error: ${escapeHtml(err.message)}</span>`;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Send Test'; }
+      }
+    }
+
+    // On-Demand Custom Range PACS Sync
+    async function triggerCustomPacsSync(btn) {
+      const from = document.getElementById('adminSyncFromDate')?.value;
+      const to = document.getElementById('adminSyncToDate')?.value;
+      if (!from || !to) {
+        alert('Please select both From and To dates for custom sync.');
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Syncing...'; }
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_pacs', payload: { from, to } })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`✅ Custom Range PACS Sync Complete!\n• Period: ${from} to ${to}\n• ${data.message}`);
+          loadAdminDiagnostics();
+          loadAdminLogs();
+        } else {
+          alert('❌ Sync failed: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('❌ Error running sync: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Sync Custom Range'; }
+      }
+    }
+
+    // Change Admin Password Handler
+    async function changeAdminPassword(btn) {
+      const currentPassword = document.getElementById('adminCurrentPass')?.value;
+      const newPassword = document.getElementById('adminNewPass')?.value;
+      const confirmPassword = document.getElementById('adminConfirmPass')?.value;
+      const statusEl = document.getElementById('adminPassChangeStatus');
+
+      if (!currentPassword) {
+        alert('Please enter your current password.');
+        return;
+      }
+      if (!newPassword || newPassword.length < 4) {
+        alert('New password must be at least 4 characters long.');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        alert('New password and confirmation do not match.');
+        return;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
+      if (statusEl) statusEl.innerHTML = `<span style="color:#38bdf8;">Verifying credentials and updating password...</span>`;
+
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'change_admin_password',
+            payload: { currentPassword, newPassword }
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('adminCurrentPass').value = '';
+          document.getElementById('adminNewPass').value = '';
+          document.getElementById('adminConfirmPass').value = '';
+          if (statusEl) statusEl.innerHTML = `<span style="color:#34d399; font-weight:700;">✅ Administrator password successfully updated!</span>`;
+          loadAdminLogs();
+        } else {
+          if (statusEl) statusEl.innerHTML = `<span style="color:#f87171;">❌ ${escapeHtml(data.error || 'Password update rejected')}</span>`;
+        }
+      } catch (err) {
+        if (statusEl) statusEl.innerHTML = `<span style="color:#f87171;">❌ Network error: ${escapeHtml(err.message)}</span>`;
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🔒 Update Administrator Password'; }
+      }
+    }
+
+    // Audit Logs Filter & Search Handlers
+    let cachedAdminLogs = [];
+    let currentLogFilter = 'all';
+
+    function filterAdminLogs(category, btn) {
+      currentLogFilter = category;
+      document.querySelectorAll('.admin-log-filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderFilteredAdminLogs();
+    }
+
+    function applyAdminLogSearch() {
+      renderFilteredAdminLogs();
+    }
+
+    function renderFilteredAdminLogs() {
+      const consoleEl = document.getElementById('adminLogConsole');
+      if (!consoleEl) return;
+
+      const query = (document.getElementById('adminLogSearchInput')?.value || '').toLowerCase().trim();
+
+      let filtered = cachedAdminLogs;
+      if (currentLogFilter !== 'all') {
+        filtered = filtered.filter(l => (l.category || l.module || '').toLowerCase() === currentLogFilter.toLowerCase());
+      }
+      if (query) {
+        filtered = filtered.filter(l => {
+          const text = `${l.action} ${l.category || l.module} ${l.details || l.description} ${l.username || l.performedBy}`.toLowerCase();
+          return text.includes(query);
+        });
+      }
+
+      if (filtered.length === 0) {
+        consoleEl.innerHTML = `<div style="color:var(--text-dim); text-align:center; padding:20px;">No matching log events found.</div>`;
+        return;
+      }
+
+      consoleEl.innerHTML = filtered.map(log => {
+        const time = new Date(log.timestamp || log.createdAt || Date.now()).toLocaleTimeString('en-US', { hour12: false });
+        const cat = (log.category || log.module || 'SYS').toLowerCase();
+        const act = log.action || 'EVENT';
+        const user = log.username || log.performedBy || 'system';
+        const desc = escapeHtml(log.details || log.description || '');
+
+        return `
+          <div class="admin-log-item">
+            <span class="admin-log-time">${time}</span>
+            <span class="admin-log-tag ${cat}">[${cat.toUpperCase()}]</span>
+            <strong style="color:var(--text-main); font-size:11px;">${escapeHtml(act)}:</strong>
+            <span class="admin-log-desc">${desc}</span>
+            <span style="color:var(--text-dim); font-size:10px; margin-left:auto; flex-shrink:0;">@${escapeHtml(user)}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function clearAdminAuditLogs(btn) {
+      if (!confirm('Are you sure you want to clear all system audit logs?')) return;
+      if (btn) { btn.disabled = true; btn.textContent = 'Clearing...'; }
+
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'clear_audit_logs' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          cachedAdminLogs = [];
+          renderFilteredAdminLogs();
+          alert('✅ System audit logs cleared successfully.');
+        } else {
+          alert('❌ Failed to clear logs: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('❌ Error: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ Clear'; }
+      }
+    }
+
+    function exportAdminAuditLogs() {
+      if (!cachedAdminLogs || cachedAdminLogs.length === 0) {
+        alert('No audit logs available to export.');
+        return;
+      }
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(cachedAdminLogs, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `PACS_Audit_Logs_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    let adminAutoRefreshTimer = null;
+    function toggleAdminAutoRefresh(enabled) {
+      if (adminAutoRefreshTimer) {
+        clearInterval(adminAutoRefreshTimer);
+        adminAutoRefreshTimer = null;
+      }
+      if (enabled) {
+        adminAutoRefreshTimer = setInterval(() => {
+          const section = document.getElementById('adminControlSection');
+          if (section && section.style.display !== 'none') {
+            loadAdminDiagnostics();
+            loadAdminLogs();
+          }
+        }, 10000);
       }
     }
 
