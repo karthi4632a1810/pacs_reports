@@ -314,7 +314,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       margin: 1,
       width: 140,
       color: {
-        dark: '#034763',
+        dark: '#7f1d1d', // Deep MAPIMS Maroon
         light: '#ffffff'
       }
     });
@@ -322,15 +322,15 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     qrDataUri = '';
   }
 
-  // Modality colors
+  // Modality colors tuned to MAPIMS Crimson & Gold theme
   const modalityColors = {
-    CT: { bg: '#e0f2fe', text: '#0369a1', border: '#7dd3fc', label: 'Computed Tomography (CT)' },
-    MR: { bg: '#f3e8ff', text: '#6b21a8', border: '#d8b4fe', label: 'Magnetic Resonance Imaging (MRI)' },
-    CR: { bg: '#ecfdf5', text: '#047857', border: '#6ee7b7', label: 'Digital Radiography (X-Ray)' },
-    DX: { bg: '#ecfdf5', text: '#047857', border: '#6ee7b7', label: 'Digital Radiography (DX)' },
-    US: { bg: '#fef3c7', text: '#b45309', border: '#fcd34d', label: 'Ultrasound Sonography (USG)' }
+    CT: { bg: '#fff1f2', text: '#991b1b', border: '#fecdd3', label: 'Computed Tomography (CT)' },
+    MR: { bg: '#fef3c7', text: '#92400e', border: '#fde68a', label: 'Magnetic Resonance Imaging (MRI)' },
+    CR: { bg: '#fffbeb', text: '#78350f', border: '#fcd34d', label: 'Digital Radiography (X-Ray)' },
+    DX: { bg: '#fffbeb', text: '#78350f', border: '#fcd34d', label: 'Digital Radiography (DX)' },
+    US: { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa', label: 'Ultrasound Sonography (USG)' }
   };
-  const modStyle = modalityColors[data.modality] || { bg: '#f1f5f9', text: '#334155', border: '#cbd5e1', label: data.modality || 'Diagnostic Imaging' };
+  const modStyle = modalityColors[data.modality] || { bg: '#fffdfa', text: '#78350f', border: '#fde68a', label: data.modality || 'Diagnostic Imaging' };
 
   // Format Findings HTML
   let findingsHtml = '';
@@ -440,17 +440,18 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
     :root {
-      --primary: #0284c7;
-      --primary-dark: #0369a1;
-      --primary-navy: #092e49;
-      --accent-teal: #0d9488;
-      --accent-emerald: #059669;
+      --primary: #991b1b;         /* Deep MAPIMS Crimson */
+      --primary-dark: #7f1d1d;    /* Imperial Maroon */
+      --primary-crimson: #ed0c1a; /* Logo Sacred Flame Red */
+      --accent-gold: #fbb714;     /* Logo Caduceus & Sun Gold */
+      --accent-amber: #d97706;    /* Warm Amber */
+      --accent-honey: #b45309;    /* Deep Honey Gold */
       --surface: #ffffff;
-      --bg-page: #f8fafc;
-      --border-light: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --text-sub: #64748b;
+      --bg-page: #fafaf9;
+      --border-light: #fde68a;
+      --text-main: #1c1917;       /* Warm Charcoal */
+      --text-muted: #57534e;
+      --text-sub: #78716c;
     }
 
     * {
@@ -463,7 +464,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background: #e2e8f0;
+      background: #f5f5f4;
       color: var(--text-main);
       padding: 24px 16px;
       line-height: 1.55;
@@ -475,18 +476,19 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       margin: 0 auto;
       background: #ffffff;
       border-radius: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 10px 30px rgba(127, 29, 29, 0.08);
       overflow: hidden;
-      border: 1px solid var(--border-light);
+      border: 1px solid #fed7aa;
       position: relative;
     }
 
-    /* Hospital Header Banner */
+    /* Hospital Header Banner - MAPIMS Sacred Red & Gold */
     .hospital-header {
-      background: linear-gradient(135deg, #072a44 0%, #0369a1 60%, #0d9488 100%);
+      background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 38%, #991b1b 72%, #b45309 100%);
       color: #ffffff;
       padding: 18px 24px 14px;
       position: relative;
+      border-bottom: 3.5px solid #fbb714;
     }
 
     .header-top {
@@ -511,8 +513,9 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       align-items: center;
       justify-content: center;
       padding: 3px 4px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
       flex-shrink: 0;
+      border: 1.5px solid #fbb714;
     }
 
     .hospital-logo-img {
@@ -521,7 +524,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       object-fit: contain;
       display: block;
     }
-
 
     .hospital-title h1 {
       font-size: 16px;
@@ -534,17 +536,17 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
 
     .hospital-title h2 {
       font-size: 12.5px;
-      font-weight: 600;
-      color: #7dd3fc;
+      font-weight: 700;
+      color: #fde047;
       margin-top: 2px;
       letter-spacing: 0.1px;
     }
 
     .hospital-title p {
       font-size: 10.5px;
-      color: #e0f2fe;
+      color: #fef08a;
       margin-top: 2px;
-      opacity: 0.9;
+      opacity: 0.95;
     }
 
     .header-badges {
@@ -559,37 +561,38 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(251, 183, 20, 0.22);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid #fbb714;
       padding: 3px 9px;
       border-radius: 999px;
       font-size: 10.5px;
       font-weight: 700;
-      color: #ffffff;
+      color: #fef08a;
     }
 
     .badge-official {
-      background: #38bdf8;
-      color: #0c4a6e;
+      background: #fbb714;
+      color: #7f1d1d;
       padding: 3px 8px;
       border-radius: 5px;
       font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.5px;
       text-transform: uppercase;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
 
     /* Sub-header Bar */
     .header-sub-bar {
       margin-top: 12px;
       padding-top: 10px;
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      border-top: 1px solid rgba(251, 183, 20, 0.35);
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-size: 11px;
-      color: #f0f9ff;
+      color: #fef08a;
     }
 
     .sub-bar-item {
@@ -619,14 +622,14 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .patient-card {
       position: relative;
       z-index: 1;
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
+      background: #fffdfa;
+      border: 1px solid #fde68a;
+      border-left: 4.5px solid #b91c1c;
       border-radius: 10px;
       padding: 12px 18px;
       margin-bottom: 16px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 2px 8px rgba(180, 83, 9, 0.05);
     }
-
 
     .patient-grid {
       display: grid;
@@ -642,7 +645,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .meta-label {
       font-size: 10.5px;
       font-weight: 700;
-      color: var(--text-sub);
+      color: #78716c;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 2px;
@@ -660,13 +663,13 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .meta-val.patient-name {
       font-size: 15px;
       font-weight: 800;
-      color: #0369a1;
+      color: #991b1b;
     }
 
     .id-pill {
-      background: #e0f2fe;
-      color: #0284c7;
-      border: 1px solid #bae6fd;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
       padding: 2px 7px;
       border-radius: 6px;
       font-family: 'JetBrains Mono', monospace;
@@ -691,29 +694,29 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .exam-ribbon {
       position: relative;
       z-index: 1;
-      background: linear-gradient(90deg, #f0f9ff 0%, #ffffff 100%);
-      border-left: 4px solid var(--primary);
+      background: linear-gradient(90deg, #fff1f2 0%, #fffbeb 55%, #ffffff 100%);
+      border-left: 4.5px solid #b91c1c;
       border-radius: 0 8px 8px 0;
       padding: 10px 16px;
       margin-bottom: 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      box-shadow: 0 1px 4px rgba(185, 28, 28, 0.04);
     }
-
 
     .exam-title {
       font-size: 16px;
       font-weight: 800;
-      color: #0f172a;
+      color: #7f1d1d;
       letter-spacing: 0.2px;
       text-transform: uppercase;
     }
 
     .exam-modality-desc {
       font-size: 11.5px;
-      font-weight: 600;
-      color: #0284c7;
+      font-weight: 700;
+      color: #b45309;
     }
 
     /* Section Styling */
@@ -725,42 +728,44 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.6px;
-      color: #0369a1;
+      color: #991b1b;
       margin-top: 20px;
       margin-bottom: 10px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1.5px solid #fecdd3;
       padding-bottom: 5px;
     }
 
     .section-title svg {
       width: 17px;
       height: 17px;
-      color: var(--primary);
+      color: #ed0c1a;
     }
 
     /* Callout Boxes (History / Technique) */
     .callout-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 8px;
-      padding: 10px 14px;
-      margin-bottom: 16px;
-      font-size: 12.5px;
-      color: #166534;
-      line-height: 1.5;
-    }
-
-    .technique-box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-left: 3px solid #0284c7;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-left: 3.5px solid #f59e0b;
       border-radius: 4px 8px 8px 4px;
       padding: 10px 14px;
       margin-bottom: 16px;
       font-size: 12.5px;
-      color: #334155;
+      color: #78350f;
       line-height: 1.5;
     }
+
+    .technique-box {
+      background: #fffdfa;
+      border: 1px solid #fed7aa;
+      border-left: 3.5px solid #ea580c;
+      border-radius: 4px 8px 8px 4px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-size: 12.5px;
+      color: #431407;
+      line-height: 1.5;
+    }
+
 
     /* Findings Grid */
     .findings-container {
@@ -772,34 +777,35 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
 
     .finding-card {
       background: #ffffff;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #fed7aa;
+      border-left: 3.5px solid #d97706;
       border-radius: 8px;
       padding: 9px 13px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 1px 4px rgba(217, 119, 6, 0.04);
       page-break-inside: avoid;
     }
 
     .finding-card.plain {
-      border-left: 3px solid #94a3b8;
+      border-left: 3.5px solid #b91c1c;
     }
 
     .finding-tag {
       display: inline-block;
       font-size: 11.5px;
       font-weight: 800;
-      color: #0369a1;
+      color: #991b1b;
       text-transform: uppercase;
       letter-spacing: 0.3px;
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
-      padding: 2px 7px;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      padding: 2px 8px;
       border-radius: 5px;
       margin-bottom: 4px;
     }
 
     .finding-body {
       font-size: 12.5px;
-      color: #1e293b;
+      color: #1c1917;
       line-height: 1.5;
     }
 
@@ -807,32 +813,33 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .hl-abnormal {
       background: #fef2f2;
       color: #991b1b;
-      font-weight: 600;
+      font-weight: 700;
       padding: 1px 4px;
       border-radius: 3px;
     }
 
     .hl-normal {
-      color: #047857;
+      color: #15803d;
       font-weight: 600;
     }
 
     .hl-measurement {
       font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      color: #0284c7;
+      font-weight: 700;
+      color: #b91c1c;
     }
 
     /* ========================================= */
     /* THE HERO DIAGNOSTIC IMPRESSION CALLOUT    */
     /* ========================================= */
     .impression-container {
-      background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
-      border: 2px solid #059669;
+      background: linear-gradient(135deg, #fffbeb 0%, #fff7ed 60%, #fff1f2 100%);
+      border: 2px solid #f59e0b;
+      border-left: 5px solid #b91c1c;
       border-radius: 10px;
       padding: 12px 16px;
       margin: 14px 0;
-      box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08);
+      box-shadow: 0 4px 16px rgba(185, 28, 28, 0.08);
       page-break-inside: avoid;
     }
 
@@ -842,7 +849,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       justify-content: space-between;
       margin-bottom: 8px;
       padding-bottom: 6px;
-      border-bottom: 1px solid rgba(5, 150, 105, 0.25);
+      border-bottom: 1.5px solid #fed7aa;
     }
 
     .impression-title {
@@ -851,7 +858,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       gap: 7px;
       font-size: 13.5px;
       font-weight: 800;
-      color: #065f46;
+      color: #7f1d1d;
       text-transform: uppercase;
       letter-spacing: 0.4px;
     }
@@ -859,18 +866,19 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .impression-title svg {
       width: 18px;
       height: 18px;
-      color: #059669;
+      color: #ed0c1a;
     }
 
     .impression-badge {
-      background: #059669;
+      background: #b91c1c;
       color: #ffffff;
       font-size: 9.5px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 2px 7px;
+      padding: 2px 8px;
       border-radius: 999px;
+      box-shadow: 0 2px 4px rgba(185, 28, 28, 0.25);
     }
 
     .impression-list {
@@ -886,14 +894,14 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       gap: 8px;
       font-size: 12.5px;
       line-height: 1.5;
-      color: #064e3b;
+      color: #451a03;
     }
 
     .impression-bullet {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #059669;
+      background: #ed0c1a;
       margin-top: 5px;
       flex-shrink: 0;
     }
@@ -911,7 +919,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       gap: 16px;
       margin-top: 16px;
       padding-top: 12px;
-      border-top: 1px solid #cbd5e1;
+      border-top: 1.5px solid #fed7aa;
       page-break-inside: avoid;
     }
 
@@ -929,9 +937,9 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: #ecfdf5;
-      color: #059669;
-      border: 1px solid #a7f3d0;
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
       padding: 2px 7px;
       border-radius: 999px;
       font-size: 10px;
@@ -942,38 +950,39 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .verified-icon {
       width: 12px;
       height: 12px;
+      color: #b45309;
     }
 
     .doctor-name {
       font-size: 13.5px;
       font-weight: 800;
-      color: #0f172a;
+      color: #1c1917;
     }
 
     .doctor-designation {
       font-size: 11.5px;
       font-weight: 600;
-      color: #475569;
+      color: #57534e;
       margin-top: 1px;
     }
 
     .doctor-reg {
       font-size: 11px;
       font-weight: 700;
-      color: #0284c7;
+      color: #b91c1c;
       font-family: 'JetBrains Mono', monospace;
       margin-top: 2px;
     }
 
     .doctor-seal-card.resident-seal {
-      border-left: 2px dashed #cbd5e1;
+      border-left: 2px dashed #fed7aa;
       padding-left: 14px;
     }
 
     .resident-title {
       font-size: 10px;
       font-weight: 700;
-      color: var(--text-sub);
+      color: #78716c;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 3px;
@@ -982,7 +991,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .resident-names {
       font-size: 11.5px;
       font-weight: 600;
-      color: #475569;
+      color: #57534e;
     }
 
     .qr-verify-card {
@@ -991,10 +1000,11 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       align-items: center;
       text-align: center;
       flex-shrink: 0;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: #fffdfa;
+      border: 1.5px solid #fde68a;
       border-radius: 10px;
       padding: 8px 12px;
+      box-shadow: 0 2px 6px rgba(180, 83, 9, 0.05);
     }
 
     .qr-img {
@@ -1006,7 +1016,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .qr-label {
       font-size: 9.5px;
       font-weight: 700;
-      color: #475569;
+      color: #92400e;
       text-transform: uppercase;
       letter-spacing: 0.3px;
       margin-top: 3px;
@@ -1016,9 +1026,9 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .report-footer {
       margin-top: 24px;
       padding-top: 14px;
-      border-top: 1px dashed #cbd5e1;
+      border-top: 1px dashed #fed7aa;
       font-size: 11px;
-      color: #64748b;
+      color: #78716c;
       line-height: 1.45;
       display: flex;
       flex-direction: column;
@@ -1034,7 +1044,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: #94a3b8;
+      color: #a8a29e;
       font-size: 10px;
     }
 
@@ -1057,7 +1067,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #0284c7;
+      background: #b91c1c;
       color: #ffffff;
       padding: 8px 16px;
       border-radius: 8px;
@@ -1066,25 +1076,26 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       text-decoration: none;
       cursor: pointer;
       border: none;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+      box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25);
       transition: all 0.2s ease;
     }
 
     .btn-action:hover {
-      background: #0369a1;
+      background: #991b1b;
       transform: translateY(-1px);
     }
 
     .btn-action.secondary {
       background: #ffffff;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
+      color: #1c1917;
+      border: 1px solid #fed7aa;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
 
     .btn-action.secondary:hover {
-      background: #f8fafc;
+      background: #fffdfa;
     }
+
 
     /* Print Media Queries */
     @media print {
@@ -1297,11 +1308,11 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
           </div>
           <div class="meta-item">
             <span class="meta-label">E-Signature Completed</span>
-            <div class="meta-val" style="color: #059669;">${escapeHtml(data.eSignDate || data.studyDateTime || '-')}</div>
+            <div class="meta-val" style="color: #b91c1c; font-weight: 700;">${escapeHtml(data.eSignDate || data.studyDateTime || '-')}</div>
           </div>
           <div class="meta-item">
             <span class="meta-label">Verification Status</span>
-            <div class="meta-val" style="color: #047857; font-weight: 700;">✅ Verified & Authenticated</div>
+            <div class="meta-val" style="color: #b45309; font-weight: 700;">✅ Verified & Authenticated</div>
           </div>
         </div>
       </section>
@@ -1322,7 +1333,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       <!-- Technique (if present) -->
       ${data.technique ? `
         <div class="technique-box">
-          <strong style="color: #0369a1; text-transform: uppercase; font-size: 11.5px; display: block; margin-bottom: 2px;">Protocol & Technique</strong>
+          <strong style="color: #b91c1c; text-transform: uppercase; font-size: 11.5px; display: block; margin-bottom: 2px;">Protocol & Technique</strong>
           ${escapeHtml(data.technique)}
         </div>
       ` : ''}
