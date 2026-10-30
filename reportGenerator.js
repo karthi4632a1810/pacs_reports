@@ -24,6 +24,23 @@ try {
   console.warn('[ReportGen] Could not load logo.png:', e.message);
 }
 
+// Pre-load Noto Sans Tamil font as Base64 Data URI for instant offline Tamil rendering
+let TAMIL_FONT_BASE64 = '';
+try {
+  const fontCandidates = [
+    path.join(__dirname, 'fonts/NotoSansTamil-Regular.ttf'),
+    '/usr/share/fonts/truetype/noto/NotoSansTamil-Regular.ttf'
+  ];
+  for (const candidate of fontCandidates) {
+    if (fs.existsSync(candidate)) {
+      TAMIL_FONT_BASE64 = fs.readFileSync(candidate).toString('base64');
+      break;
+    }
+  }
+} catch (e) {
+  console.warn('[ReportGen] Could not load NotoSansTamil font:', e.message);
+}
+
 
 /**
  * Extract structured clinical data from the raw PACS Final PDF text.
@@ -422,7 +439,16 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diagnostic Report - ${escapeHtml(data.patientName || 'Patient')} (${escapeHtml(data.patientId || studyUid)})</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    ${TAMIL_FONT_BASE64 ? `
+    @font-face {
+      font-family: 'Noto Sans Tamil Local';
+      src: url('data:font/truetype;charset=utf-8;base64,${TAMIL_FONT_BASE64}') format('truetype');
+      font-weight: 400 700;
+      font-style: normal;
+    }
+    ` : ''}
 
     :root {
       --primary: #991b1b;         /* Deep MAPIMS Crimson */
@@ -981,17 +1007,85 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       color: #57534e;
     }
 
+    /* Bilingual WhatsApp Diagnostic Disclaimer Card */
+    .disclaimer-card {
+      background: #ffffff;
+      border: 1px solid #fecaca;
+      border-left: 4.5px solid #db2a2a;
+      border-radius: 8px;
+      padding: 9px 13px 8px;
+      margin-top: 14px;
+      page-break-inside: avoid;
+      box-shadow: 0 1px 4px rgba(219, 42, 42, 0.04);
+    }
+
+    .disclaimer-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 5px;
+    }
+
+    .disclaimer-pill {
+      background: #fee2e2;
+      color: #db2a2a;
+      border: 1px solid #fca5a5;
+      padding: 1.5px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .disclaimer-bullet {
+      color: #982121;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .disclaimer-title {
+      color: #982121;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .disclaimer-en {
+      font-size: 10px;
+      color: #4a576a;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .disclaimer-divider {
+      border: none;
+      border-top: 1px dashed #fca5a5;
+      margin: 6px 0 5px;
+    }
+
+    .disclaimer-ta {
+      font-size: 9.5px;
+      color: #802626;
+      line-height: 1.5;
+      font-family: 'Noto Sans Tamil Local', 'Noto Sans Tamil', 'Plus Jakarta Sans', system-ui, sans-serif;
+      margin: 0;
+    }
+
     /* Disclaimer & Footer */
     .report-footer {
-      margin-top: 24px;
-      padding-top: 14px;
+      margin-top: 14px;
+      padding-top: 10px;
       border-top: 1px dashed #fed7aa;
       font-size: 11px;
       color: #78716c;
       line-height: 1.45;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       page-break-inside: avoid;
     }
 
@@ -1080,12 +1174,12 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       }
       .hospital-header {
         border-radius: 0 !important;
-        padding: 14px 20px 10px !important;
+        padding: 11px 18px 8px !important;
       }
       .hospital-logo {
-        width: 42px !important;
-        height: 50px !important;
-        padding: 2px 3px !important;
+        width: 38px !important;
+        height: 46px !important;
+        padding: 2px !important;
       }
       .hospital-logo-img {
         max-width: 100% !important;
@@ -1097,63 +1191,99 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       }
 
       .hospital-title h1 {
-        font-size: 14px !important;
-      }
-      .hospital-title h2 {
-        font-size: 11.5px !important;
-      }
-      .report-body {
-        padding: 12px 20px 14px !important;
-      }
-      .patient-card {
-        padding: 8px 14px !important;
-        margin-bottom: 10px !important;
-      }
-      .patient-grid {
-        gap: 6px 14px !important;
-      }
-      .meta-label {
-        font-size: 9.5px !important;
-      }
-      .meta-val {
-        font-size: 12px !important;
-      }
-      .exam-ribbon {
-        padding: 6px 12px !important;
-        margin-bottom: 10px !important;
-      }
-      .exam-title {
         font-size: 13.5px !important;
       }
-      .section-title {
-        font-size: 11.5px !important;
-        margin-top: 10px !important;
+      .hospital-title h2 {
+        font-size: 11px !important;
+      }
+      .report-body {
+        padding: 9px 18px 10px !important;
+      }
+      .patient-card {
+        padding: 6px 12px !important;
         margin-bottom: 6px !important;
       }
+      .patient-grid {
+        gap: 4px 12px !important;
+      }
+      .meta-label {
+        font-size: 9px !important;
+      }
+      .meta-val {
+        font-size: 11.5px !important;
+      }
+      .exam-ribbon {
+        padding: 5px 10px !important;
+        margin-bottom: 6px !important;
+      }
+      .exam-title {
+        font-size: 13px !important;
+      }
+      .section-title {
+        font-size: 11px !important;
+        margin-top: 6px !important;
+        margin-bottom: 4px !important;
+      }
       .findings-container {
-        gap: 6px !important;
-        margin-bottom: 10px !important;
+        gap: 4px !important;
+        margin-bottom: 6px !important;
       }
       .finding-card {
-        padding: 6px 10px !important;
+        padding: 4px 8px !important;
       }
       .finding-body {
-        font-size: 11.5px !important;
+        font-size: 11px !important;
       }
       .impression-container {
-        padding: 9px 13px !important;
-        margin: 10px 0 !important;
+        padding: 6px 10px !important;
+        margin: 6px 0 !important;
       }
       .impression-title {
-        font-size: 12.5px !important;
+        font-size: 12px !important;
       }
       .impression-item {
-        font-size: 11.5px !important;
-        gap: 6px !important;
+        font-size: 11px !important;
+        gap: 5px !important;
       }
       .signature-section {
-        margin-top: 10px !important;
-        padding-top: 8px !important;
+        margin-top: 6px !important;
+        padding-top: 4px !important;
+      }
+      .disclaimer-card {
+        padding: 6px 10px 5px !important;
+        margin-top: 8px !important;
+        border-radius: 6px !important;
+        border-left-width: 4px !important;
+      }
+      .disclaimer-head {
+        gap: 5px !important;
+        margin-bottom: 3px !important;
+      }
+      .disclaimer-pill {
+        font-size: 8.5px !important;
+        padding: 1px 5px !important;
+      }
+      .disclaimer-bullet {
+        font-size: 9px !important;
+      }
+      .disclaimer-title {
+        font-size: 9px !important;
+      }
+      .disclaimer-en {
+        font-size: 8.5px !important;
+        line-height: 1.35 !important;
+      }
+      .disclaimer-divider {
+        margin: 4px 0 !important;
+      }
+      .disclaimer-ta {
+        font-size: 8px !important;
+        line-height: 1.38 !important;
+      }
+      .report-footer {
+        margin-top: 6px !important;
+        padding-top: 5px !important;
+        font-size: 9px !important;
       }
       .print-controls {
         display: none !important;
@@ -1333,11 +1463,27 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
         </div>
       </section>
 
-      <!-- Footer & Disclaimer -->
+      <!-- Bilingual WhatsApp Diagnostic Disclaimer Card -->
+      <aside class="disclaimer-card">
+        <div class="disclaimer-head">
+          <span class="disclaimer-pill">DISCLAIMER</span>
+          <span class="disclaimer-bullet">&bull;</span>
+          <span class="disclaimer-title">DIAGNOSTIC NOTICE &amp; LEGAL ADVISORY</span>
+        </div>
+        <p class="disclaimer-en">
+          This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.
+        </p>
+        <div class="disclaimer-divider"></div>
+        <p class="disclaimer-ta">
+          இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது
+        </p>
+      </aside>
+
+      <!-- Footer & Note -->
       <footer class="report-footer">
         <p class="footer-note">${escapeHtml(data.note)}</p>
         <div class="footer-bottom">
-          <span>Melmaruvathur Adhiparasakthi Institute of Medical Sciences & Research</span>
+          <span>Melmaruvathur Adhiparasakthi Institute of Medical Sciences &amp; Research</span>
           <span>DICOM PACS Worklist Hub &bull; Page 1 of 1</span>
         </div>
       </footer>
