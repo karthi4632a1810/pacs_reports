@@ -7889,9 +7889,14 @@
       }
     }
 
-    async function openReportModal(event, studyUid) {
-      if (event) event.stopPropagation();
-      currentReportStudyUid = studyUid;
+    async function openReportModal(event, studyUid, optPatientName) {
+      let targetStudyUid = studyUid;
+      if (typeof event === 'string') {
+        targetStudyUid = event;
+        event = null;
+      }
+      if (event && event.stopPropagation) event.stopPropagation();
+      currentReportStudyUid = targetStudyUid;
       currentReportViewMode = 'modern';
 
       const btnModern = document.getElementById('btnViewModern');
@@ -7905,18 +7910,37 @@
         btnRaw.style.color = 'var(--text-dim)';
       }
 
-      const s = allStudies.find(item => item.studyUid === studyUid) || {};
+      const s = allStudies.find(item => item.studyUid === targetStudyUid) || advSearchResults.find(item => item.studyUid === targetStudyUid) || {};
+      const patientDisplayName = s.patientName || optPatientName || 'Patient';
 
-      document.getElementById('reportPatientTitle').textContent = `Diagnostic Report: ${s.patientName || 'Patient'}`;
+      document.getElementById('reportPatientTitle').textContent = `Diagnostic Report: ${patientDisplayName}`;
       document.getElementById('reportSubTitle').textContent = `${s.study || 'Study'} &bull; ${s.modality || ''} &bull; ${s.studyDate || ''} &bull; Accession: ${s.accessionNumber || '-'}`;
 
       const docText = s.finalizedBy ? `Finalized By: ${s.finalizedBy}` : (s.referringPhysician ? `Ref Doctor: Dr. ${s.referringPhysician}` : '');
       document.getElementById('reportDoctorText').textContent = docText;
 
       const token = localStorage.getItem('pacs_auth_token') || '';
-      const reportUrl = `/api/report/${encodeURIComponent(studyUid)}?format=html&auth_token=${encodeURIComponent(token)}`;
+      const reportUrl = `/api/report/${encodeURIComponent(targetStudyUid)}?format=html&auth_token=${encodeURIComponent(token)}`;
       document.getElementById('reportIframe').src = reportUrl;
-      document.getElementById('reportDownloadBtn').href = `/reports/study/${encodeURIComponent(studyUid)}/report.pdf?download=1`;
+
+      // Patient Name with ID formatted download filename: PatientName_PatientID.pdf
+      const cleanName = (patientDisplayName || '')
+        .trim()
+        .replace(/\^/g, ' ')
+        .replace(/[^\w\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '_');
+      const cleanId = (s.patientId || '').trim().replace(/[^\w-]/g, '');
+      const downloadFilename = (cleanName && cleanId) 
+        ? `${cleanName}_${cleanId}.pdf` 
+        : (cleanName ? `${cleanName}.pdf` : (cleanId ? `Patient_${cleanId}.pdf` : `Report_${targetStudyUid}.pdf`));
+
+      const dlBtn = document.getElementById('reportDownloadBtn');
+      if (dlBtn) {
+        dlBtn.href = `/reports/study/${encodeURIComponent(targetStudyUid)}/${encodeURIComponent(downloadFilename)}?download=1`;
+        dlBtn.setAttribute('download', downloadFilename);
+        dlBtn.setAttribute('title', `Download ${downloadFilename}`);
+      }
 
       // Status badge and WhatsApp button elements
       const badge = document.getElementById('reportStatusBadge');

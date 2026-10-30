@@ -325,6 +325,32 @@ function parseReportFromPdf(rawPdfPath, studyDoc = {}) {
 }
 
 /**
+ * Format standard patient PDF download filename: PatientName_PatientID.pdf
+ */
+function formatReportFilename(patientName, patientId, defaultStudy = 'Document') {
+  let name = (patientName || '')
+    .trim()
+    .replace(/\^/g, ' ')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '_');
+
+  let id = (patientId || '')
+    .trim()
+    .replace(/[^\w-]/g, '');
+
+  if (name && id) {
+    return `${name}_${id}.pdf`;
+  } else if (name) {
+    return `${name}.pdf`;
+  } else if (id) {
+    return `Patient_${id}.pdf`;
+  }
+  const cleanStudy = String(defaultStudy).replace(/[^a-zA-Z0-9_-]/g, '');
+  return `Report_${cleanStudy || 'Patient'}.pdf`;
+}
+
+/**
  * Generate a colourful, hospital-grade HTML template for printing / viewing / PDF export.
  */
 async function generateReportHtml(data, studyUid, publicViewUrl = '', customOptions = null) {
@@ -447,6 +473,8 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       </div>
     `;
   }
+
+  const downloadPdfFilename = formatReportFilename(data.patientName, data.patientId, studyUid);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -1319,7 +1347,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       </svg>
       Print Report
     </button>
-    <a class="btn-action" href="/reports/study/${encodeURIComponent(studyUid)}/report.pdf?download=1" download="MAPIMS_Report_${encodeURIComponent(data.patientId || studyUid)}.pdf">
+    <a class="btn-action" href="/reports/study/${encodeURIComponent(studyUid)}/${encodeURIComponent(downloadPdfFilename)}?download=1" download="${escapeHtml(downloadPdfFilename)}" title="Download ${escapeHtml(downloadPdfFilename)}">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>
@@ -1586,5 +1614,6 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
 module.exports = {
   parseReportFromPdf,
   generateReportHtml,
-  renderModernPdf
+  renderModernPdf,
+  formatReportFilename
 };

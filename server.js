@@ -33,7 +33,7 @@ const {
   deleteUser
 } = require('./auth');
 const settingsManager = require('./settingsManager');
-const { parseReportFromPdf, generateReportHtml, renderModernPdf } = require('./reportGenerator');
+const { parseReportFromPdf, generateReportHtml, renderModernPdf, formatReportFilename } = require('./reportGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 2010;
@@ -672,6 +672,18 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
 
     // 2. If Final PDF is available, generate/serve Modern Colourful UI or PDF
     if (fs.existsSync(localPdfPath)) {
+      // Determine patient-based filename (PatientName_PatientID.pdf)
+      let pName = studyDoc.patientName;
+      let pId = studyDoc.patientId;
+      if (!pName || !pId) {
+        try {
+          const parsed = parseReportFromPdf(localPdfPath, studyDoc);
+          if (!pName) pName = parsed.patientName;
+          if (!pId) pId = parsed.patientId;
+        } catch (e) {}
+      }
+      const downloadFilename = formatReportFilename(pName, pId, safeStudy);
+
       // Interactive HTML format (for in-browser modal viewing)
       if (isHtml) {
         const reportData = parseReportFromPdf(localPdfPath, studyDoc);
@@ -685,7 +697,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
         const stat = fs.statSync(localPdfPath);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Length', stat.size);
-        res.setHeader('Content-Disposition', `inline; filename="Final_${safeStudy}.pdf"`);
+        res.setHeader('Content-Disposition', `inline; filename="${downloadFilename}"`);
         res.setHeader('Accept-Ranges', 'bytes');
         return res.sendFile(localPdfPath);
       }
@@ -698,7 +710,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
           const disposition = isDownload ? 'attachment' : 'inline';
           res.setHeader('Content-Type', 'application/pdf');
           res.setHeader('Content-Length', stat.size);
-          res.setHeader('Content-Disposition', `${disposition}; filename="MAPIMS_Report_${safeStudy}.pdf"`);
+          res.setHeader('Content-Disposition', `${disposition}; filename="${downloadFilename}"`);
           res.setHeader('Accept-Ranges', 'bytes');
           return res.sendFile(pdfFile);
         }
@@ -710,7 +722,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
       const stat = fs.statSync(localPdfPath);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Length', stat.size);
-      res.setHeader('Content-Disposition', `inline; filename="Final_${safeStudy}.pdf"`);
+      res.setHeader('Content-Disposition', `inline; filename="${downloadFilename}"`);
       res.setHeader('Accept-Ranges', 'bytes');
       return res.sendFile(localPdfPath);
     }
@@ -876,11 +888,34 @@ app.get('/reports/:token/:filename', async (req, res) => {
     const stat = fs.statSync(fileToServe);
     console.log(`[REPORT DOWNLOAD] Serving ${path.basename(fileToServe)} (${stat.size} bytes) to UA: ${req.headers['user-agent']} (IP: ${req.ip})`);
 
+    let pName = info.patientName;
+    let pId = info.patientId;
+    if (!pName || !pId) {
+      try {
+        const db = await connectDB().catch(() => null);
+        if (db) {
+          const sDoc = await db.collection('studies').findOne({ studyUid }) || {};
+          if (!pName) pName = sDoc.patientName;
+          if (!pId) pId = sDoc.patientId;
+        }
+      } catch (e) {}
+    }
+    if (!pName || !pId) {
+      try {
+        const parsed = parseReportFromPdf(localPdfPath, info);
+        if (!pName) pName = parsed.patientName;
+        if (!pId) pId = parsed.patientId;
+      } catch (e) {}
+    }
+    const downloadFilename = formatReportFilename(pName, pId, safeStudy);
+    const isDownload = req.query.download === '1' || req.query.download === 'true';
+    const disposition = isDownload ? 'attachment' : 'inline';
+
     res.sendFile(fileToServe, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Length': stat.size,
-        'Content-Disposition': `inline; filename="Final_${safeStudy}.pdf"`,
+        'Content-Disposition': `${disposition}; filename="${downloadFilename}"`,
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'public, max-age=86400'
       }
@@ -920,6 +955,27 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
       console.warn(`[REPORT DOWNLOAD DIRECT] Modern render fallback to raw PDF for ${studyUid}:`, renderErr.message);
     }
 
+    let downloadFilename = req.params.filename;
+    if (!downloadFilename || downloadFilename === 'report.pdf' || downloadFilename.startsWith('Final_') || downloadFilename.startsWith('MAPIMS_Report_')) {
+      let studyDoc = {};
+      try {
+        const db = await connectDB().catch(() => null);
+        if (db) {
+          studyDoc = await db.collection('studies').findOne({ studyUid }) || {};
+        }
+      } catch (e) {}
+      let pName = studyDoc.patientName;
+      let pId = studyDoc.patientId;
+      if (!pName || !pId) {
+        try {
+          const parsed = parseReportFromPdf(localPdfPath, studyDoc);
+          if (!pName) pName = parsed.patientName;
+          if (!pId) pId = parsed.patientId;
+        } catch (e) {}
+      }
+      downloadFilename = formatReportFilename(pName, pId, safeStudy);
+    }
+
     const stat = fs.statSync(fileToServe);
     const isDownload = req.query.download === '1' || req.query.download === 'true';
     const disposition = isDownload ? 'attachment' : 'inline';
@@ -928,7 +984,7 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Length': stat.size,
-        'Content-Disposition': `${disposition}; filename="MAPIMS_Report_${safeStudy}.pdf"`,
+        'Content-Disposition': `${disposition}; filename="${downloadFilename}"`,
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'public, max-age=86400'
       }
