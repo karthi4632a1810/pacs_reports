@@ -41,6 +41,10 @@ try {
   console.warn('[ReportGen] Could not load NotoSansTamil font:', e.message);
 }
 
+let settingsManager = null;
+try {
+  settingsManager = require('./settingsManager');
+} catch (e) {}
 
 /**
  * Extract structured clinical data from the raw PACS Final PDF text.
@@ -323,7 +327,19 @@ function parseReportFromPdf(rawPdfPath, studyDoc = {}) {
 /**
  * Generate a colourful, hospital-grade HTML template for printing / viewing / PDF export.
  */
-async function generateReportHtml(data, studyUid, publicViewUrl = '') {
+async function generateReportHtml(data, studyUid, publicViewUrl = '', customOptions = null) {
+  const globalTpl = settingsManager ? settingsManager.getSettingsSync().reportTemplate : {};
+  const opts = { ...globalTpl, ...(customOptions || {}) };
+
+  const hospitalName = opts.hospitalName || 'Melmaruvathur Adhiparasakthi';
+  const hospitalSubtitle = opts.departmentName || 'Institute of Medical Sciences & Research (MAPIMS)';
+  const primaryColor = opts.primaryColor || '#991b1b';
+  const accentColor = opts.accentColor || '#fbb714';
+  const showDisclaimerCard = opts.showDisclaimerCard !== false;
+  const showQrCode = opts.showQrCode === true;
+  const disclaimerEn = opts.disclaimerEn || 'This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.';
+  const disclaimerTa = opts.disclaimerTa || 'இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது';
+
   // Modality colors tuned to MAPIMS Crimson & Gold theme
   const modalityColors = {
     CT: { bg: '#fff1f2', text: '#991b1b', border: '#fecdd3', label: 'Computed Tomography (CT)' },
@@ -1332,8 +1348,8 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
           </div>
 
           <div class="hospital-title">
-            <h1>Melmaruvathur Adhiparasakthi</h1>
-            <h2>Institute of Medical Sciences & Research (MAPIMS)</h2>
+            <h1>${escapeHtml(hospitalName)}</h1>
+            <h2>${escapeHtml(hospitalSubtitle)}</h2>
             <p>Melmaruvathur - 603319, Chengalpattu Dist, Tamil Nadu • Ph: 044-27528300</p>
           </div>
         </div>
@@ -1463,6 +1479,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
         </div>
       </section>
 
+      ${showDisclaimerCard ? `
       <!-- Bilingual WhatsApp Diagnostic Disclaimer Card -->
       <aside class="disclaimer-card">
         <div class="disclaimer-head">
@@ -1471,13 +1488,14 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
           <span class="disclaimer-title">DIAGNOSTIC NOTICE &amp; LEGAL ADVISORY</span>
         </div>
         <p class="disclaimer-en">
-          This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.
+          ${escapeHtml(disclaimerEn)}
         </p>
         <div class="disclaimer-divider"></div>
         <p class="disclaimer-ta">
-          இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது
+          ${escapeHtml(disclaimerTa)}
         </p>
       </aside>
+      ` : ''}
 
       <!-- Footer & Note -->
       <footer class="report-footer">

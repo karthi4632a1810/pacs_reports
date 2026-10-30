@@ -2459,6 +2459,357 @@
       background: rgba(56, 189, 248, 0.12);
       color: #38bdf8;
     }
+
+    /* ===================================================
+       👑 ADMIN CONTROL CENTER & SETTINGS DASHBOARD STYLES
+       =================================================== */
+    .admin-container {
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 18px 0 40px 0;
+      animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .admin-header-card {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(30, 41, 59, 0.7) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-header-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #f59e0b, #ec4899, #8b5cf6, #38bdf8);
+    }
+    .admin-header-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .admin-header-icon {
+      font-size: 32px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+    }
+    .admin-header-h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.01em;
+    }
+    .admin-badge-super {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .admin-header-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 4px;
+      max-width: 680px;
+      line-height: 1.4;
+    }
+    .admin-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-admin-save {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #0f172a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+      transition: all 0.2s ease;
+    }
+    .btn-admin-save:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+      filter: brightness(1.08);
+    }
+    .btn-admin-reload {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-admin-reload:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Sub-Navigation Tabs */
+    .admin-nav-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .admin-nav-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px 8px 0 0;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid transparent;
+      border-bottom: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .admin-nav-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .admin-nav-tab.active {
+      color: #fbbf24;
+      background: var(--bg-card);
+      border-color: rgba(245, 158, 11, 0.35);
+      border-bottom: 2px solid #fbbf24;
+      box-shadow: 0 -2px 10px rgba(245, 158, 11, 0.1);
+    }
+
+    /* Tab Panes */
+    .admin-tab-pane {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .admin-tab-pane.active {
+      display: block;
+    }
+
+    /* Form Grid Cards */
+    .admin-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .admin-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .admin-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .admin-card-title span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .admin-form-group {
+      margin-bottom: 14px;
+    }
+    .admin-form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 5px;
+    }
+    .admin-form-input, .admin-form-select, .admin-form-textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 9px 12px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+    .admin-form-input:focus, .admin-form-select:focus, .admin-form-textarea:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+    }
+    .admin-form-input.mono, .admin-form-textarea.mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    .admin-form-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .admin-switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .admin-switch-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .admin-switch-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Diagnostic Telemetry Badges */
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .telemetry-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .telemetry-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .telemetry-card-val {
+      font-size: 20px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+    }
+    .telemetry-card-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Table styling for Users */
+    .admin-user-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .admin-user-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .admin-user-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+    .admin-user-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Logs Console Viewer */
+    .admin-log-console {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      height: 380px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+    .admin-log-item {
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      display: flex;
+      gap: 10px;
+    }
+    .admin-log-time {
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .admin-log-tag {
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .admin-log-tag.pacs { color: #38bdf8; }
+    .admin-log-tag.storage { color: #f59e0b; }
+    .admin-log-tag.users { color: #a855f7; }
+    .admin-log-tag.whatsapp { color: #34d399; }
+    .admin-log-tag.system { color: #fbbf24; }
+    .admin-log-desc {
+      color: #e2e8f0;
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
@@ -2678,6 +3029,11 @@
           <span>Refresh</span>
         </button>
 
+        <!-- Quick Admin Settings Gear Button -->
+        <button class="theme-toggle-btn" id="quickAdminGearBtn" onclick="switchMainView('admin')" title="Admin Control Center (Full Settings Control)" style="display: none; color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35);">
+          ⚙️
+        </button>
+
         <!-- Theme Toggle Button -->
         <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark / Light Theme">
           🌓
@@ -2740,6 +3096,11 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           <span>WhatsApp Monitor</span>
           <span class="nav-badge" id="navWhatsAppCount" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border-color: rgba(16, 185, 129, 0.35);">Live</span>
+        </button>
+        <button class="app-nav-tab" id="tabAdminPanelBtn" onclick="switchMainView('admin')" style="display: none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Admin Control</span>
+          <span class="nav-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">Full Control</span>
         </button>
       </div>
       <div class="app-nav-info">
@@ -3622,6 +3983,634 @@
         </div>
       </div>
     </div> <!-- /whatsappMonitorSection -->
+
+    <!-- Section 5: Full Control System Administration & Master Settings -->
+    <div id="adminControlSection" style="display: none;">
+      <div class="admin-container">
+        
+        <!-- Admin Dashboard Header Card -->
+        <div class="admin-header-card">
+          <div class="admin-header-title-wrap">
+            <div class="admin-header-icon">👑</div>
+            <div>
+              <div class="admin-header-h2">
+                PACS Connect Administration &amp; Master Control
+                <span class="admin-badge-super">Super Admin Authorized</span>
+              </div>
+              <div class="admin-header-desc">
+                Full unconstrained operational authority over PACS Core connection, 100 GB storage policies, WhatsApp delivery gateway, diagnostic report templates, and role-based user accounts.
+              </div>
+            </div>
+          </div>
+          <div class="admin-header-actions">
+            <button class="btn-admin-reload" onclick="loadAllAdminSettings(true)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Reload
+            </button>
+            <button class="btn-admin-save" id="btnAdminSaveAll" onclick="saveAllAdminSettings()">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              <span>Save All Settings</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Telemetry Stat Strip -->
+        <div class="telemetry-grid">
+          <div class="telemetry-card">
+            <div class="telemetry-card-head">
+              <span>PACS Server Core</span>
+              <span id="telemetryPacsStatusDot" style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+            </div>
+            <div class="telemetry-card-val" id="telemetryPacsPing">-- ms</div>
+            <div class="telemetry-card-sub" id="telemetryPacsHost">http://192.168.101.224</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-card-head">
+              <span>MongoDB Archive</span>
+              <span id="telemetryMongoStatusDot" style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+            </div>
+            <div class="telemetry-card-val" id="telemetryStudiesCount">--</div>
+            <div class="telemetry-card-sub">Total Ingested Studies</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-card-head">
+              <span>MinIO Object Store</span>
+              <span id="telemetryMinioStatusDot" style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+            </div>
+            <div class="telemetry-card-val" id="telemetryMinioFiles">--</div>
+            <div class="telemetry-card-sub">DICOM Part-10 Slices</div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="telemetry-card-head">
+              <span>Storage Quota</span>
+              <span style="color:#fbbf24; font-size:10px;">WATCHDOG</span>
+            </div>
+            <div class="telemetry-card-val" id="telemetryStorageUsed">-- GB</div>
+            <div class="telemetry-card-sub" id="telemetryStorageCap">of 100 GB Cap</div>
+          </div>
+        </div>
+
+        <!-- Sub-Navigation Category Tabs -->
+        <div class="admin-nav-bar">
+          <button class="admin-nav-tab active" onclick="switchAdminSubtab('pacs')" id="subtabBtnPacs">
+            <span>🏥</span> <span>PACS &amp; Hospital Profile</span>
+          </button>
+          <button class="admin-nav-tab" onclick="switchAdminSubtab('storage')" id="subtabBtnStorage">
+            <span>💾</span> <span>Storage &amp; Quota Watchdog</span>
+          </button>
+          <button class="admin-nav-tab" onclick="switchAdminSubtab('whatsapp')" id="subtabBtnWhatsapp">
+            <span>💬</span> <span>WhatsApp Gateway</span>
+          </button>
+          <button class="admin-nav-tab" onclick="switchAdminSubtab('report')" id="subtabBtnReport">
+            <span>🎨</span> <span>Report &amp; PDF Branding</span>
+          </button>
+          <button class="admin-nav-tab" onclick="switchAdminSubtab('users')" id="subtabBtnUsers">
+            <span>👥</span> <span>User Accounts &amp; RBAC</span>
+          </button>
+          <button class="admin-nav-tab" onclick="switchAdminSubtab('diagnostics')" id="subtabBtnDiagnostics">
+            <span>🩺</span> <span>Diagnostics &amp; Audit Logs</span>
+          </button>
+        </div>
+
+        <!-- SUBTAB 1: PACS & Hospital Profile -->
+        <div class="admin-tab-pane active" id="adminPanePacs">
+          <div class="admin-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🌐</span> PACS Server Connectivity</span>
+                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="testPacsPing()">⚡ Test Ping</button>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">PACS Core Server Host / IP URL</label>
+                <input type="text" class="admin-form-input mono" id="adminPacsHost" placeholder="http://192.168.101.224">
+                <div class="admin-form-hint">Address of the hospital PACS gateway handling DICOM query/retrieve &amp; ZeroFootprint sessions.</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Background Polling Sync Interval (Minutes)</label>
+                <input type="number" class="admin-form-input" id="adminPacsSyncInterval" min="1" max="1440" value="10">
+                <div class="admin-form-hint">How often the background worker queries PACS for newly arrived imaging studies.</div>
+              </div>
+              <div class="admin-switch-row">
+                <div>
+                  <div class="admin-switch-text">Automated Background Study Sync</div>
+                  <div class="admin-switch-sub">Continuously ingest new studies into MongoDB archive</div>
+                </div>
+                <input type="checkbox" id="adminAutoSyncEnabled" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+              </div>
+              <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; color:var(--text-muted);">Sync On-Demand:</span>
+                <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="triggerManualPacsSync(this)">
+                  🔄 Resync Recent Studies (10 Days)
+                </button>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🏥</span> Hospital &amp; Department Identity</span>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Hospital / Institution Official Name</label>
+                <input type="text" class="admin-form-input" id="adminHospitalName" value="MAPIMS Hospital">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Department / Imaging Center</label>
+                <input type="text" class="admin-form-input" id="adminDepartmentName" value="Department of Radiodiagnosis &amp; Imaging">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Emergency Helpdesk / Radiologist Phone</label>
+                <input type="text" class="admin-form-input mono" id="adminEmergencyPhone" value="+91 72005 04251">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Official Postal Address</label>
+                <input type="text" class="admin-form-input" id="adminHospitalAddress" value="Melmaruvathur, Tamil Nadu 603319">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 2: Storage & Quota Watchdog -->
+        <div class="admin-tab-pane" id="adminPaneStorage">
+          <div class="admin-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>⚙️</span> Storage Quota &amp; LRU Eviction Policy</span>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Maximum Total Storage Cap (GB)</label>
+                <input type="number" class="admin-form-input mono" id="adminStorageMaxGb" min="10" max="10000" value="100">
+                <div class="admin-form-hint">Combined limit for MinIO DICOM slices, generated diagnostic reports, and previews.</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">LRU Eviction Headroom Target (%)</label>
+                <input type="number" class="admin-form-input mono" id="adminStorageEvictionTarget" min="50" max="95" value="80">
+                <div class="admin-form-hint">When threshold is exceeded, oldest cached studies are pruned down to this percentage (default: 80% = 80 GB for 100 GB cap).</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Watchdog Scan Frequency (Minutes)</label>
+                <input type="number" class="admin-form-input mono" id="adminStorageWatchdogInterval" min="1" max="60" value="10">
+                <div class="admin-form-hint">Background quota enforcement watchdog cycle interval.</div>
+              </div>
+              <div class="admin-switch-row">
+                <div>
+                  <div class="admin-switch-text">Automated LRU Watchdog Active</div>
+                  <div class="admin-switch-sub">Automatically purge oldest files if quota exceeds cap</div>
+                </div>
+                <input type="checkbox" id="adminAutoPruneEnabled" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>📊</span> Storage Breakdown &amp; Maintenance</span>
+              </div>
+              <div style="margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:6px;">
+                  <span>Storage Utilization</span>
+                  <span id="adminStorageUtilPct" style="color:#10b981; font-family:'JetBrains Mono',monospace;">0%</span>
+                </div>
+                <div style="width:100%; height:12px; background:rgba(255,255,255,0.08); border-radius:6px; overflow:hidden;">
+                  <div id="adminStorageProgressBar" style="width:1%; height:100%; background:#10b981; transition:width 0.3s ease;"></div>
+                </div>
+              </div>
+
+              <div style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:6px; padding:12px; margin-bottom:16px; font-size:12px; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:var(--text-dim);">📦 MinIO Raw DICOM Slices:</span>
+                  <strong id="adminStorageMinioMb" style="color:#e879f9; font-family:'JetBrains Mono',monospace;">0 MB</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:var(--text-dim);">📄 Diagnostic Reports (PDF / DOC):</span>
+                  <strong id="adminStorageReportsMb" style="color:#38bdf8; font-family:'JetBrains Mono',monospace;">0 MB</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:var(--text-dim);">🖼️ Series Previews &amp; Thumbnails:</span>
+                  <strong id="adminStorageThumbsMb" style="color:#fbbf24; font-family:'JetBrains Mono',monospace;">0 MB</strong>
+                </div>
+              </div>
+
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btn-secondary" style="font-size:12px;" onclick="triggerAdminStoragePrune(this)">
+                  🧹 Run LRU Cleanup Now
+                </button>
+                <button class="btn btn-secondary" style="font-size:12px; color:#f87171;" onclick="triggerAdminClearCache(this)">
+                  🗑️ Purge Temp Report Cache
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 3: WhatsApp Gateway -->
+        <div class="admin-tab-pane" id="adminPaneWhatsapp">
+          <div class="admin-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>⚙️</span> Operational Mode &amp; Routing</span>
+              </div>
+              <div class="admin-switch-row" style="background:rgba(245,158,11,0.06); border-color:rgba(245,158,11,0.3);">
+                <div>
+                  <div class="admin-switch-text" style="color:#fbbf24;">Test Safe Mode</div>
+                  <div class="admin-switch-sub">When ON, all patient report dispatches route strictly to the Fixed Test Phone</div>
+                </div>
+                <input type="checkbox" id="adminFullTestMode" checked style="accent-color:#fbbf24; width:20px; height:20px; cursor:pointer;" onchange="toggleAdminTestModeUI(this.checked)">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Fixed Safe Test Phone Number</label>
+                <input type="text" class="admin-form-input mono" id="adminFullFixedPhone" placeholder="9498094815">
+                <div class="admin-form-hint">All outgoing reports in Test Mode will be sent to this WhatsApp number.</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Sample Test Patient ID / UHID</label>
+                <input type="text" class="admin-form-input mono" id="adminFullTestPatientId" placeholder="5038408">
+                <div class="admin-form-hint">Patient study used when executing 1-Click test dispatches.</div>
+              </div>
+              <div class="admin-switch-row">
+                <div>
+                  <div class="admin-switch-text">Auto-Dispatch Finalized Studies</div>
+                  <div class="admin-switch-sub">Instantly send WhatsApp report when radiologist completes and saves study</div>
+                </div>
+                <input type="checkbox" id="adminAutoSendFinalized" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🔑</span> WATI Gateway Credentials &amp; Retries</span>
+                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px; color:#34d399;" onclick="sendAdminFullWhatsAppTest(this)">
+                  📱 Send Test WhatsApp Now
+                </button>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">WATI API Endpoint URL</label>
+                <input type="text" class="admin-form-input mono" id="adminWatiEndpoint" value="https://live-mt-server.wati.io/10190409">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Approved Template Name</label>
+                <input type="text" class="admin-form-input mono" id="adminWatiTemplateName" value="pacs_reports_new">
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">WATI Access Bearer Token</label>
+                <div style="position:relative;">
+                  <input type="password" class="admin-form-input mono" id="adminWatiToken" placeholder="Bearer eyJhbGciOiJIUzI1NiIs..." style="padding-right:40px;">
+                  <button type="button" onclick="togglePasswordVisibility('adminWatiToken')" style="position:absolute; right:8px; top:8px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:13px;">👁️</button>
+                </div>
+                <div class="admin-form-hint">Authentication token provided by the WATI WhatsApp Business account.</div>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Public Report Streaming Base URL</label>
+                <input type="text" class="admin-form-input mono" id="adminPublicUrl" placeholder="https://your-hospital-domain.com or Cloudflare tunnel">
+                <div class="admin-form-hint">Internet-facing URL where patients stream their official PDF report.</div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Auto-Retry Interval (Mins)</label>
+                  <input type="number" class="admin-form-input" id="adminAutoRetryInterval" min="1" max="120" value="15">
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Max Retry Attempts</label>
+                  <input type="number" class="admin-form-input" id="adminMaxAutoRetries" min="1" max="10" value="3">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 4: Report Template & Branding -->
+        <div class="admin-tab-pane" id="adminPaneReport">
+          <div class="admin-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🎨</span> Theme Palette &amp; Seal Branding</span>
+                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="openSampleReportPreview()">
+                  👁️ Live Report Preview
+                </button>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Brand Primary Color</label>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="color" id="adminBrandColorPicker" value="#991b1b" style="width:40px; height:36px; padding:2px; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onchange="document.getElementById('adminBrandColorHex').value = this.value">
+                    <input type="text" class="admin-form-input mono" id="adminBrandColorHex" value="#991b1b" oninput="document.getElementById('adminBrandColorPicker').value = this.value">
+                  </div>
+                  <div class="admin-form-hint">Header borders, badges, card accents.</div>
+                </div>
+                <div class="admin-form-group">
+                  <label class="admin-form-label">Accent / Highlight Color</label>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <input type="color" id="adminAccentColorPicker" value="#fbb714" style="width:40px; height:36px; padding:2px; border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onchange="document.getElementById('adminAccentColorHex').value = this.value">
+                    <input type="text" class="admin-form-input mono" id="adminAccentColorHex" value="#fbb714" oninput="document.getElementById('adminAccentColorPicker').value = this.value">
+                  </div>
+                  <div class="admin-form-hint">Pill badges, verified stamps, highlights.</div>
+                </div>
+              </div>
+
+              <div class="admin-form-group">
+                <label class="admin-form-label">Doctor Consultant Seal Title</label>
+                <input type="text" class="admin-form-input" id="adminRadiologistTitle" value="DR. CONSULTANT RADIOLOGIST, MD (RD)">
+                <div class="admin-form-hint">Default title rendered on digitized verification seal cards.</div>
+              </div>
+
+              <div class="admin-form-group">
+                <label class="admin-form-label">Footer Citation / Legal Note</label>
+                <input type="text" class="admin-form-input" id="adminReportFooterNote" value="For clinical correlation only. Generated by MAPIMS PACS Cloud Connect.">
+              </div>
+
+              <div class="admin-switch-row">
+                <div>
+                  <div class="admin-switch-text">Bilingual WhatsApp Legal Disclaimer Card</div>
+                  <div class="admin-switch-sub">Official English and Tamil legal advisory section at report base</div>
+                </div>
+                <input type="checkbox" id="adminShowDisclaimerCard" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+              </div>
+
+              <div class="admin-switch-row">
+                <div>
+                  <div class="admin-switch-text">Patient Verification QR Code</div>
+                  <div class="admin-switch-sub">Display quick verification QR code on diagnostic reports</div>
+                </div>
+                <input type="checkbox" id="adminShowQrCode" style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>⚖️</span> Bilingual WhatsApp Legal Disclaimer Editor</span>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">English Legal Disclaimer Text</label>
+                <textarea class="admin-form-textarea" id="adminDisclaimerEn" rows="4" style="font-size:12px; line-height:1.5;">This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.</textarea>
+              </div>
+              <div class="admin-form-group">
+                <label class="admin-form-label">Tamil Legal Advisory Text (தமிழ்)</label>
+                <textarea class="admin-form-textarea" id="adminDisclaimerTa" rows="4" style="font-size:12.5px; line-height:1.5; font-family:'Noto Sans Tamil',sans-serif;">இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது</textarea>
+                <div class="admin-form-hint">Rendered with embedded Noto Sans Tamil typography for 100% offline accuracy.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 5: User Accounts & RBAC -->
+        <div class="admin-tab-pane" id="adminPaneUsers">
+          <div class="admin-card" style="margin-bottom:20px;">
+            <div class="admin-card-title">
+              <span><span>👥</span> Hospital Staff &amp; Clinical Accounts (<span id="adminUsersCount">0</span>)</span>
+              <button class="btn btn-primary" style="font-size:12px; padding:6px 14px;" onclick="openCreateUserModal()">
+                ➕ Add New User
+              </button>
+            </div>
+            
+            <div style="overflow-x:auto;">
+              <table class="admin-user-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Email Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTableBody">
+                  <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-dim);">Loading accounts...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Role Permissions Reference Matrix -->
+          <div class="admin-card">
+            <div class="admin-card-title">
+              <span><span>🛡️</span> Role-Based Access Control (RBAC) Permissions Matrix</span>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="admin-user-table" style="font-size:12px;">
+                <thead>
+                  <tr>
+                    <th>Role</th>
+                    <th>Studies Worklist</th>
+                    <th>Web PACS Viewer</th>
+                    <th>Diagnostic Reports</th>
+                    <th>DICOM Download</th>
+                    <th>Storage &amp; Quotas</th>
+                    <th>PACS Administration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong style="color:#fbbf24;">Super Admin</strong></td>
+                    <td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#a855f7;">Radiologist</strong></td>
+                    <td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>❌ No</td><td>❌ No</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#10b981;">Doctor / Physician</strong></td>
+                    <td>✅ Full</td><td>✅ Full</td><td>✅ Full</td><td>❌ No</td><td>❌ No</td><td>❌ No</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#06b6d4;">Technician</strong></td>
+                    <td>✅ Full</td><td>✅ Quality Check</td><td>❌ No</td><td>❌ No</td><td>❌ No</td><td>❌ No</td>
+                  </tr>
+                  <tr>
+                    <td><strong style="color:#94a3b8;">Staff / Reception</strong></td>
+                    <td>✅ Search</td><td>❌ No</td><td>❌ No</td><td>❌ No</td><td>❌ No</td><td>❌ No</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBTAB 6: Diagnostics & Audit Logs -->
+        <div class="admin-tab-pane" id="adminPaneDiagnostics">
+          <div class="admin-grid-2">
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>🩺</span> Live Microservice Health Checks</span>
+                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="loadAdminDiagnostics(true)">
+                  🔄 Refresh Status
+                </button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px solid var(--border-color);">
+                  <span>PACS Server Connection:</span>
+                  <span id="diagPacsBadge" class="admin-badge-super" style="background:rgba(16,185,129,0.15); color:#34d399; border-color:rgba(16,185,129,0.35);">Checking...</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px solid var(--border-color);">
+                  <span>MongoDB Archive Database:</span>
+                  <span id="diagMongoBadge" class="admin-badge-super" style="background:rgba(16,185,129,0.15); color:#34d399; border-color:rgba(16,185,129,0.35);">Checking...</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px solid var(--border-color);">
+                  <span>MinIO S3 Object Store:</span>
+                  <span id="diagMinioBadge" class="admin-badge-super" style="background:rgba(16,185,129,0.15); color:#34d399; border-color:rgba(16,185,129,0.35);">Checking...</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px solid var(--border-color);">
+                  <span>Node.js Process Uptime:</span>
+                  <span id="diagUptimeBadge" style="font-family:'JetBrains Mono',monospace; color:#38bdf8; font-weight:700;">--</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,255,0.02); border-radius:6px; border:1px solid var(--border-color);">
+                  <span>Memory Consumption (RSS / Heap):</span>
+                  <span id="diagMemoryBadge" style="font-family:'JetBrains Mono',monospace; color:#e879f9; font-weight:700;">--</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-title">
+                <span><span>📜</span> Live System Audit &amp; Event Logs</span>
+                <button class="btn btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="loadAdminLogs(true)">
+                  🔄 Refresh Logs
+                </button>
+              </div>
+              <div class="admin-log-console" id="adminLogConsole">
+                <div style="color:var(--text-dim); text-align:center; padding:20px;">Fetching recent system events...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div> <!-- /adminControlSection -->
+
+    <!-- Admin Create User Modal -->
+    <div class="modal-overlay" id="adminCreateUserModal" onclick="if(event.target.id==='adminCreateUserModal') closeCreateUserModal();">
+      <div class="modal-card" style="max-width: 520px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">👤</span>
+            <div>
+              <h3>Create Hospital User Account</h3>
+              <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Provision a new role-based user for PACS Connect</p>
+            </div>
+          </div>
+          <button class="btn-icon" onclick="closeCreateUserModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Username (login handle)</label>
+            <input type="text" class="admin-form-input mono" id="newUsername" placeholder="e.g. dr.suresh">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Password</label>
+            <input type="password" class="admin-form-input mono" id="newPassword" placeholder="Minimum 4 characters">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Full Name &amp; Title</label>
+            <input type="text" class="admin-form-input" id="newName" placeholder="e.g. Dr. Suresh Kumar, MD (RD)">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Role Assignment</label>
+            <select class="admin-form-select" id="newRole">
+              <option value="radiologist">Radiologist (Full Imaging &amp; Reports)</option>
+              <option value="doctor">Doctor / Physician (Clinical Reviews)</option>
+              <option value="technician">Technician (Slice Verification)</option>
+              <option value="staff" selected>Staff / Reception (Inquiry / Search)</option>
+              <option value="super_admin">Super Admin (Full Administrative Authority)</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Department / Unit</label>
+            <input type="text" class="admin-form-input" id="newDepartment" placeholder="e.g. Department of Radiodiagnosis">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Email Address</label>
+            <input type="email" class="admin-form-input" id="newEmail" placeholder="suresh@mapims.com">
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end; gap: 10px;">
+          <button class="btn btn-secondary" onclick="closeCreateUserModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitCreateUser(this)">Create Account</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Edit User Modal -->
+    <div class="modal-overlay" id="adminEditUserModal" onclick="if(event.target.id==='adminEditUserModal') closeEditUserModal();">
+      <div class="modal-card" style="max-width: 520px;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">✏️</span>
+            <div>
+              <h3>Edit User Account: <span id="editUserTitleUsername" style="color: #fbbf24;"></span></h3>
+              <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Update details, role permissions, or reset password</p>
+            </div>
+          </div>
+          <button class="btn-icon" onclick="closeEditUserModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editUserId">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Full Name &amp; Title</label>
+            <input type="text" class="admin-form-input" id="editName">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Role Assignment</label>
+            <select class="admin-form-select" id="editRole">
+              <option value="radiologist">Radiologist (Full Imaging &amp; Reports)</option>
+              <option value="doctor">Doctor / Physician (Clinical Reviews)</option>
+              <option value="technician">Technician (Slice Verification)</option>
+              <option value="staff">Staff / Reception (Inquiry / Search)</option>
+              <option value="super_admin">Super Admin (Full Administrative Authority)</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Department / Unit</label>
+            <input type="text" class="admin-form-input" id="editDepartment">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Email Address</label>
+            <input type="email" class="admin-form-input" id="editEmail">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Reset Password (leave blank to keep unchanged)</label>
+            <input type="password" class="admin-form-input mono" id="editPassword" placeholder="New password (optional)">
+          </div>
+          <div class="admin-switch-row">
+            <div>
+              <div class="admin-switch-text">Account Active</div>
+              <div class="admin-switch-sub">Allow user to log in and access system</div>
+            </div>
+            <input type="checkbox" id="editActive" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
+          </div>
+        </div>
+        <div class="modal-footer" style="justify-content: space-between;">
+          <button class="btn btn-secondary" style="color: #f87171;" id="btnDeleteUserAction" onclick="submitDeleteUser()">Delete Account</button>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-secondary" onclick="closeEditUserModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="submitEditUser(this)">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Report Preview Modal -->
+    <div class="modal-overlay" id="adminReportPreviewModal" onclick="if(event.target.id==='adminReportPreviewModal') closeReportPreviewModal();">
+      <div class="modal-card" style="max-width: 960px; height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 22px;">👁️</span>
+            <div>
+              <h3>Dynamic Report Template Preview</h3>
+              <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Rendered in real-time with your custom colors, disclaimer, and hospital branding</p>
+            </div>
+          </div>
+          <button class="btn-icon" onclick="closeReportPreviewModal()">&times;</button>
+        </div>
+        <div class="modal-body" style="flex: 1; padding: 0; overflow: hidden; background: #000;">
+          <iframe id="adminReportPreviewFrame" style="width: 100%; height: 100%; border: none; background: #fff;"></iframe>
+        </div>
+        <div class="modal-footer" style="justify-content: flex-end;">
+          <button class="btn btn-primary" onclick="closeReportPreviewModal()">Close Preview</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Diagnostic Radiology Report Modal -->
@@ -4228,6 +5217,8 @@
               const urlParams = new URLSearchParams(window.location.search);
               if (urlParams.get('tab') === 'whatsapp' || window.location.hash === '#whatsapp') {
                 setTimeout(() => switchMainView('whatsapp'), 100);
+              } else if (urlParams.get('tab') === 'admin' || window.location.hash === '#admin') {
+                setTimeout(() => switchMainView('admin'), 100);
               }
             } catch (e) {}
             initConfig().then(() => {
@@ -4537,6 +5528,13 @@
         btnPrune.style.display = currentPermissions.canPruneStorage ? 'inline-flex' : 'none';
       }
 
+      // Admin Panel Access: Super Admin or accounts with canManageUsers
+      const canAdmin = currentUser && (currentUser.role === 'super_admin' || currentUser.role === 'admin' || (currentPermissions && currentPermissions.canManageUsers));
+      const tabAdmin = document.getElementById('tabAdminPanelBtn');
+      const quickGear = document.getElementById('quickAdminGearBtn');
+      if (tabAdmin) tabAdmin.style.display = canAdmin ? 'inline-flex' : 'none';
+      if (quickGear) quickGear.style.display = canAdmin ? 'inline-flex' : 'none';
+
       if (allStudies && allStudies.length > 0) {
         renderTable();
       }
@@ -4572,7 +5570,7 @@
     let autoRefreshTimer = null;
     let currentPage = 1;
     let pageSize = 50;
-    let currentMainView = 'worklist'; // 'worklist', 'search', 'analytics'
+    let currentMainView = 'worklist'; // 'worklist', 'search', 'analytics', 'whatsapp', 'admin'
     const seriesCache = {};
     const chartInstances = {};
 
@@ -4581,28 +5579,32 @@
     let advCurrentPage = 1;
     let advPageSize = 50;
 
-    // View Switcher (Worklist vs Search vs Analytics)
+    // View Switcher (Worklist vs Search vs Analytics vs WhatsApp vs Admin)
     function switchMainView(view) {
       currentMainView = view;
       const worklistSec = document.getElementById('worklistSection');
       const advSearchSec = document.getElementById('advancedSearchSection');
       const analyticsSec = document.getElementById('analyticsSection');
       const whatsappSec = document.getElementById('whatsappMonitorSection');
+      const adminSec = document.getElementById('adminControlSection');
 
       const tabWorklistBtn = document.getElementById('tabWorklistBtn');
       const tabAdvSearchBtn = document.getElementById('tabAdvSearchBtn');
       const tabAnalyticsBtn = document.getElementById('tabAnalyticsBtn');
       const tabWhatsAppMonitorBtn = document.getElementById('tabWhatsAppMonitorBtn');
+      const tabAdminPanelBtn = document.getElementById('tabAdminPanelBtn');
 
       if (tabWorklistBtn) tabWorklistBtn.classList.remove('active');
       if (tabAdvSearchBtn) tabAdvSearchBtn.classList.remove('active');
       if (tabAnalyticsBtn) tabAnalyticsBtn.classList.remove('active');
       if (tabWhatsAppMonitorBtn) tabWhatsAppMonitorBtn.classList.remove('active');
+      if (tabAdminPanelBtn) tabAdminPanelBtn.classList.remove('active');
 
       if (worklistSec) worklistSec.style.display = 'none';
       if (advSearchSec) advSearchSec.style.display = 'none';
       if (analyticsSec) analyticsSec.style.display = 'none';
       if (whatsappSec) whatsappSec.style.display = 'none';
+      if (adminSec) adminSec.style.display = 'none';
 
       if (view === 'worklist') {
         if (worklistSec) worklistSec.style.display = 'block';
@@ -4624,6 +5626,13 @@
         if (whatsappSec) whatsappSec.style.display = 'block';
         if (tabWhatsAppMonitorBtn) tabWhatsAppMonitorBtn.classList.add('active');
         loadWhatsAppLogs(true);
+      } else if (view === 'admin') {
+        if (adminSec) adminSec.style.display = 'block';
+        if (tabAdminPanelBtn) tabAdminPanelBtn.classList.add('active');
+        loadAllAdminSettings();
+        loadAdminDiagnostics();
+        loadAdminUsers();
+        loadAdminLogs();
       }
     }
 
@@ -8193,6 +9202,726 @@
     function escapeHtml(text) {
       if (!text) return '';
       return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ========================================================
+    // 👑 FULL CONTROL ADMIN PANEL DASHBOARD CONTROLLER
+    // ========================================================
+
+    let currentAdminSettings = null;
+    let adminUsersList = [];
+
+    function switchAdminSubtab(subtab) {
+      const tabs = ['pacs', 'storage', 'whatsapp', 'report', 'users', 'diagnostics'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`subtabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const pane = document.getElementById(`adminPane${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) btn.classList.remove('active');
+        if (pane) pane.classList.remove('active');
+      });
+
+      const activeBtn = document.getElementById(`subtabBtn${subtab.charAt(0).toUpperCase() + subtab.slice(1)}`);
+      const activePane = document.getElementById(`adminPane${subtab.charAt(0).toUpperCase() + subtab.slice(1)}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      if (activePane) activePane.classList.add('active');
+
+      if (subtab === 'diagnostics') {
+        loadAdminDiagnostics();
+        loadAdminLogs();
+      } else if (subtab === 'users') {
+        loadAdminUsers();
+      } else if (subtab === 'storage') {
+        loadAdminDiagnostics();
+      }
+    }
+
+    function togglePasswordVisibility(fieldId) {
+      const input = document.getElementById(fieldId);
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function loadAllAdminSettings(notify = false) {
+      try {
+        const res = await fetch('/api/admin/all-settings');
+        if (!res.ok) {
+          if (res.status === 401 || res.status === 403) {
+            console.warn('[Admin] Insufficient administrative privileges');
+            return;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        if (data && data.success && data.settings) {
+          currentAdminSettings = data.settings;
+          populateAdminForm(data.settings);
+          if (notify) {
+            alert('✅ Admin settings successfully refreshed from database.');
+          }
+        }
+      } catch (err) {
+        console.error('[Admin] Failed to load settings:', err);
+        if (notify) alert('❌ Error loading admin settings: ' + err.message);
+      }
+    }
+
+    function populateAdminForm(cfg) {
+      if (!cfg) return;
+
+      // PACS & Hospital
+      if (cfg.pacs) {
+        if (document.getElementById('adminPacsHost')) document.getElementById('adminPacsHost').value = cfg.pacs.pacsHost || '';
+        if (document.getElementById('adminPacsSyncInterval')) document.getElementById('adminPacsSyncInterval').value = cfg.pacs.syncIntervalMinutes || 10;
+        if (document.getElementById('adminAutoSyncEnabled')) document.getElementById('adminAutoSyncEnabled').checked = cfg.pacs.autoSyncEnabled !== false;
+        if (document.getElementById('adminHospitalName')) document.getElementById('adminHospitalName').value = cfg.pacs.hospitalName || 'MAPIMS Hospital';
+        if (document.getElementById('adminDepartmentName')) document.getElementById('adminDepartmentName').value = cfg.pacs.departmentName || 'Department of Radiodiagnosis & Imaging';
+        if (document.getElementById('adminEmergencyPhone')) document.getElementById('adminEmergencyPhone').value = cfg.pacs.emergencyPhone || '+91 72005 04251';
+        if (document.getElementById('adminHospitalAddress')) document.getElementById('adminHospitalAddress').value = cfg.pacs.hospitalAddress || 'Melmaruvathur, Tamil Nadu 603319';
+      }
+
+      // Storage & Quotas
+      if (cfg.storage) {
+        if (document.getElementById('adminStorageMaxGb')) document.getElementById('adminStorageMaxGb').value = cfg.storage.maxCacheGb || 100;
+        if (document.getElementById('adminStorageEvictionTarget')) document.getElementById('adminStorageEvictionTarget').value = cfg.storage.evictionTargetPercent || cfg.storage.evictionTargetPct || 80;
+        if (document.getElementById('adminStorageWatchdogInterval')) document.getElementById('adminStorageWatchdogInterval').value = cfg.storage.watchdogIntervalMinutes || 10;
+        if (document.getElementById('adminAutoPruneEnabled')) document.getElementById('adminAutoPruneEnabled').checked = cfg.storage.autoPruneEnabled !== false;
+      }
+
+      // WhatsApp Gateway
+      if (cfg.whatsapp) {
+        const isTest = cfg.whatsapp.testMode !== false;
+        if (document.getElementById('adminFullTestMode')) {
+          document.getElementById('adminFullTestMode').checked = isTest;
+          toggleAdminTestModeUI(isTest);
+        }
+        if (document.getElementById('adminFullFixedPhone')) document.getElementById('adminFullFixedPhone').value = cfg.whatsapp.fixedTestPhone || '7200504251';
+        if (document.getElementById('adminFullTestPatientId')) document.getElementById('adminFullTestPatientId').value = cfg.whatsapp.testPatientId || '4867768';
+        if (document.getElementById('adminAutoSendFinalized')) document.getElementById('adminAutoSendFinalized').checked = cfg.whatsapp.autoSendFinalized !== false;
+        if (document.getElementById('adminWatiEndpoint')) document.getElementById('adminWatiEndpoint').value = cfg.whatsapp.apiEndpoint || cfg.whatsapp.endpoint || '';
+        if (document.getElementById('adminWatiTemplateName')) document.getElementById('adminWatiTemplateName').value = cfg.whatsapp.templateName || 'pacs_reports_new';
+        if (document.getElementById('adminWatiToken')) document.getElementById('adminWatiToken').value = cfg.whatsapp.watiAccessToken || cfg.whatsapp.bearerToken || '';
+        if (document.getElementById('adminPublicUrl')) document.getElementById('adminPublicUrl').value = cfg.whatsapp.publicUrl || '';
+        if (document.getElementById('adminAutoRetryInterval')) document.getElementById('adminAutoRetryInterval').value = cfg.whatsapp.autoRetryIntervalMinutes || 15;
+        if (document.getElementById('adminMaxAutoRetries')) document.getElementById('adminMaxAutoRetries').value = cfg.whatsapp.maxAutoRetries || 3;
+      }
+
+      // Report & PDF Branding
+      const rep = cfg.report || cfg.reportTemplate;
+      if (rep) {
+        const prim = rep.primaryColor || '#991b1b';
+        const acc = rep.accentColor || '#fbb714';
+        if (document.getElementById('adminBrandColorPicker')) document.getElementById('adminBrandColorPicker').value = prim;
+        if (document.getElementById('adminBrandColorHex')) document.getElementById('adminBrandColorHex').value = prim;
+        if (document.getElementById('adminAccentColorPicker')) document.getElementById('adminAccentColorPicker').value = acc;
+        if (document.getElementById('adminAccentColorHex')) document.getElementById('adminAccentColorHex').value = acc;
+        if (document.getElementById('adminRadiologistTitle')) document.getElementById('adminRadiologistTitle').value = rep.radiologistTitle || 'DR. CONSULTANT RADIOLOGIST, MD (RD)';
+        if (document.getElementById('adminReportFooterNote')) document.getElementById('adminReportFooterNote').value = rep.footerNote || 'For clinical correlation only. Generated by MAPIMS PACS Cloud Connect.';
+        if (document.getElementById('adminShowDisclaimerCard')) document.getElementById('adminShowDisclaimerCard').checked = rep.showDisclaimerCard !== false;
+        if (document.getElementById('adminShowQrCode')) document.getElementById('adminShowQrCode').checked = rep.showQrCode === true;
+        if (document.getElementById('adminDisclaimerEn')) document.getElementById('adminDisclaimerEn').value = rep.disclaimerEn || '';
+        if (document.getElementById('adminDisclaimerTa')) document.getElementById('adminDisclaimerTa').value = rep.disclaimerTa || '';
+      }
+    }
+
+    async function saveAllAdminSettings() {
+      const btn = document.getElementById('btnAdminSaveAll');
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>⏳ Saving...</span>`;
+      }
+
+      try {
+        const payload = {
+          pacs: {
+            pacsHost: document.getElementById('adminPacsHost')?.value.trim() || 'http://192.168.101.224',
+            syncIntervalMinutes: parseInt(document.getElementById('adminPacsSyncInterval')?.value, 10) || 10,
+            autoSyncEnabled: document.getElementById('adminAutoSyncEnabled')?.checked !== false,
+            hospitalName: document.getElementById('adminHospitalName')?.value.trim() || 'MAPIMS Hospital',
+            departmentName: document.getElementById('adminDepartmentName')?.value.trim() || 'Department of Radiodiagnosis & Imaging',
+            emergencyPhone: document.getElementById('adminEmergencyPhone')?.value.trim() || '+91 72005 04251',
+            hospitalAddress: document.getElementById('adminHospitalAddress')?.value.trim() || 'Melmaruvathur, Tamil Nadu 603319'
+          },
+          storage: {
+            maxCacheGb: parseFloat(document.getElementById('adminStorageMaxGb')?.value) || 100,
+            evictionTargetPercent: parseInt(document.getElementById('adminStorageEvictionTarget')?.value, 10) || 80,
+            watchdogIntervalMinutes: parseInt(document.getElementById('adminStorageWatchdogInterval')?.value, 10) || 10,
+            autoPruneEnabled: document.getElementById('adminAutoPruneEnabled')?.checked !== false
+          },
+          whatsapp: {
+            testMode: document.getElementById('adminFullTestMode')?.checked !== false,
+            fixedTestPhone: document.getElementById('adminFullFixedPhone')?.value.trim() || '7200504251',
+            testPatientId: document.getElementById('adminFullTestPatientId')?.value.trim() || '4867768',
+            autoSendFinalized: document.getElementById('adminAutoSendFinalized')?.checked !== false,
+            endpoint: document.getElementById('adminWatiEndpoint')?.value.trim() || '',
+            templateName: document.getElementById('adminWatiTemplateName')?.value.trim() || 'pacs_reports_new',
+            bearerToken: document.getElementById('adminWatiToken')?.value.trim() || '',
+            publicUrl: document.getElementById('adminPublicUrl')?.value.trim() || '',
+            autoRetryIntervalMinutes: parseInt(document.getElementById('adminAutoRetryInterval')?.value, 10) || 15,
+            maxAutoRetries: parseInt(document.getElementById('adminMaxAutoRetries')?.value, 10) || 3
+          },
+          report: {
+            primaryColor: document.getElementById('adminBrandColorHex')?.value.trim() || '#991b1b',
+            accentColor: document.getElementById('adminAccentColorHex')?.value.trim() || '#fbb714',
+            radiologistTitle: document.getElementById('adminRadiologistTitle')?.value.trim() || 'DR. CONSULTANT RADIOLOGIST, MD (RD)',
+            footerNote: document.getElementById('adminReportFooterNote')?.value.trim() || '',
+            showDisclaimerCard: document.getElementById('adminShowDisclaimerCard')?.checked !== false,
+            showQrCode: document.getElementById('adminShowQrCode')?.checked === true,
+            disclaimerEn: document.getElementById('adminDisclaimerEn')?.value || '',
+            disclaimerTa: document.getElementById('adminDisclaimerTa')?.value || ''
+          }
+        };
+
+        const res = await fetch('/api/admin/all-settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          currentAdminSettings = data.settings;
+          if (pacsConfig) {
+            pacsConfig.pacsHost = payload.pacs.pacsHost;
+          }
+          if (typeof fetchWhatsAppConfig === 'function') {
+            fetchWhatsAppConfig();
+          }
+          loadAdminDiagnostics();
+          loadAdminLogs();
+
+          if (btn) {
+            btn.innerHTML = `<span>✅ Saved!</span>`;
+            setTimeout(() => {
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+            }, 1800);
+          }
+          alert('✅ All settings saved to database & applied live to runtime without restart!');
+        } else {
+          throw new Error(data.error || 'Server rejected settings update');
+        }
+      } catch (err) {
+        console.error('[Admin] Error saving settings:', err);
+        alert('❌ Error saving settings: ' + err.message);
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    async function loadAdminDiagnostics(notify = false) {
+      try {
+        const res = await fetch('/api/admin/diagnostics');
+        if (!res.ok) return;
+        const diag = await res.json();
+        if (!diag || !diag.success) return;
+
+        // Telemetry Strip
+        const pPing = document.getElementById('telemetryPacsPing');
+        const pHost = document.getElementById('telemetryPacsHost');
+        const pDot = document.getElementById('telemetryPacsStatusDot');
+        if (pPing) pPing.textContent = diag.pacs?.online ? `${diag.pacs.pingMs || 0} ms` : 'OFFLINE';
+        if (pHost) pHost.textContent = diag.pacs?.host || '--';
+        if (pDot) pDot.style.background = diag.pacs?.online ? '#10b981' : '#ef4444';
+
+        const mCount = document.getElementById('telemetryStudiesCount');
+        const mDot = document.getElementById('telemetryMongoStatusDot');
+        if (mCount) mCount.textContent = (diag.mongo?.totalStudies || 0).toLocaleString();
+        if (mDot) mDot.style.background = diag.mongo?.online ? '#10b981' : '#ef4444';
+
+        const miFiles = document.getElementById('telemetryMinioFiles');
+        const miDot = document.getElementById('telemetryMinioStatusDot');
+        if (miFiles) miFiles.textContent = (diag.minio?.totalFiles || 0).toLocaleString();
+        if (miDot) miDot.style.background = diag.minio?.online ? '#10b981' : '#ef4444';
+
+        const sUsed = document.getElementById('telemetryStorageUsed');
+        const sCap = document.getElementById('telemetryStorageCap');
+        if (sUsed) sUsed.textContent = `${(diag.storage?.totalUsedGb || 0).toFixed(2)} GB`;
+        if (sCap) sCap.textContent = `of ${diag.storage?.maxCapGb || 100} GB Cap`;
+
+        // Storage Breakdown Pane
+        const uPct = document.getElementById('adminStorageUtilPct');
+        const pBar = document.getElementById('adminStorageProgressBar');
+        const pct = Math.min(100, Math.max(0, diag.storage?.utilizationPercent || 0));
+        if (uPct) {
+          uPct.textContent = `${pct}%`;
+          uPct.style.color = pct > 90 ? '#ef4444' : pct > 75 ? '#fbbf24' : '#10b981';
+        }
+        if (pBar) {
+          pBar.style.width = `${Math.max(1, pct)}%`;
+          pBar.style.background = pct > 90 ? '#ef4444' : pct > 75 ? '#fbbf24' : '#10b981';
+        }
+
+        const miMb = document.getElementById('adminStorageMinioMb');
+        const repMb = document.getElementById('adminStorageReportsMb');
+        const thMb = document.getElementById('adminStorageThumbsMb');
+        if (miMb) miMb.textContent = `${(diag.storage?.minioUsedMb || 0).toFixed(1)} MB`;
+        if (repMb) repMb.textContent = `${(diag.storage?.reportsUsedMb || 0).toFixed(1)} MB`;
+        if (thMb) thMb.textContent = `${(diag.storage?.thumbsUsedMb || 0).toFixed(1)} MB`;
+
+        // Diagnostics Pane Badges
+        const bPacs = document.getElementById('diagPacsBadge');
+        if (bPacs) {
+          bPacs.textContent = diag.pacs?.online ? `CONNECTED (${diag.pacs.pingMs || 0} ms)` : 'OFFLINE / UNREACHABLE';
+          bPacs.style.color = diag.pacs?.online ? '#34d399' : '#f87171';
+        }
+        const bMongo = document.getElementById('diagMongoBadge');
+        if (bMongo) {
+          bMongo.textContent = diag.mongo?.online ? `ONLINE (${(diag.mongo.totalStudies || 0).toLocaleString()} studies, ${diag.mongo.todayStudies || 0} today)` : 'DISCONNECTED';
+          bMongo.style.color = diag.mongo?.online ? '#34d399' : '#f87171';
+        }
+        const bMinio = document.getElementById('diagMinioBadge');
+        if (bMinio) {
+          bMinio.textContent = diag.minio?.online ? `ONLINE (${(diag.minio.totalFiles || 0).toLocaleString()} DICOM slices)` : 'OFFLINE / NOT INITIALIZED';
+          bMinio.style.color = diag.minio?.online ? '#34d399' : '#f87171';
+        }
+        const bUptime = document.getElementById('diagUptimeBadge');
+        if (bUptime) {
+          const upSec = diag.system?.uptimeSeconds || 0;
+          const hrs = Math.floor(upSec / 3600);
+          const mins = Math.floor((upSec % 3600) / 60);
+          bUptime.textContent = `${hrs}h ${mins}m (${upSec}s)`;
+        }
+        const bMem = document.getElementById('diagMemoryBadge');
+        if (bMem) {
+          bMem.textContent = `${diag.system?.rssMb || 0} MB RSS / ${diag.system?.heapUsedMb || 0} MB Heap`;
+        }
+
+        if (notify) alert('✅ Live system telemetry and microservices refreshed.');
+      } catch (e) {
+        console.error('[Admin] Diagnostics error:', e);
+      }
+    }
+
+    async function testPacsPing() {
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'test_pacs_ping' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`⚡ PACS Ping Result:\n• Status: ${data.online ? 'ONLINE' : 'UNREACHABLE'}\n• HTTP Code: ${data.status}\n• Roundtrip Latency: ${data.pingMs} ms`);
+          loadAdminDiagnostics();
+        } else {
+          alert('❌ PACS Ping Failed: ' + (data.error || 'Server could not reach PACS host'));
+        }
+      } catch (err) {
+        alert('❌ Error pinging PACS: ' + err.message);
+      }
+    }
+
+    async function triggerManualPacsSync(btn) {
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Syncing...'; }
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_pacs' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`✅ Manual PACS Sync Complete!\n${data.message}`);
+          loadAdminDiagnostics();
+          loadAdminLogs();
+        } else {
+          alert('❌ Sync failed: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('❌ Error running sync: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🔄 Resync Recent Studies (10 Days)'; }
+      }
+    }
+
+    async function triggerAdminStoragePrune(btn) {
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Pruning...'; }
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'prune_storage' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`✅ Storage LRU Quota Enforced!\n• Pruned Oldest Studies: ${data.result?.pruned ? 'Yes' : 'No (Already within safe quota)'}\n• Total Usage: ${data.result?.totalGb || '0.00'} GB / ${data.result?.maxCapGb || 100} GB`);
+          loadAdminDiagnostics();
+          loadAdminLogs();
+        } else {
+          alert('❌ Storage prune note: ' + (data.error || 'Failed'));
+        }
+      } catch (err) {
+        alert('❌ Error during prune: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🧹 Run LRU Cleanup Now'; }
+      }
+    }
+
+    async function triggerAdminClearCache(btn) {
+      if (!confirm('Are you sure you want to purge cached temporary PDF and preview files? All regenerated reports will download fresh on demand.')) return;
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Purging...'; }
+      try {
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'clear_cache' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`✅ Cache Purged!\n${data.message}`);
+          loadAdminDiagnostics();
+          loadAdminLogs();
+        } else {
+          alert('❌ Purge error: ' + (data.error || 'Failed'));
+        }
+      } catch (err) {
+        alert('❌ Error during cache purge: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '🗑️ Purge Temp Report Cache'; }
+      }
+    }
+
+    function toggleAdminTestModeUI(isTest) {
+      const phoneInput = document.getElementById('adminFullFixedPhone');
+      if (phoneInput) {
+        phoneInput.style.borderColor = isTest ? '#fbbf24' : 'var(--border-color)';
+      }
+    }
+
+    async function sendAdminFullWhatsAppTest(btn) {
+      const phone = document.getElementById('adminFullFixedPhone')?.value.trim() || '7200504251';
+      const patientId = document.getElementById('adminFullTestPatientId')?.value.trim() || '4867768';
+      if (!phone) return alert('Please enter a valid recipient phone number.');
+
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending...'; }
+      try {
+        const res = await fetch('/api/admin/whatsapp-test-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, patientId })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          alert(`✅ WhatsApp Test Dispatch Successful!\n• Delivered to: ${data.phone || phone}\n• Status: ${data.message || 'Queued / Dispatched via WATI Gateway'}\n• Message ID: ${data.metaMessageId || 'OK'}`);
+          loadAdminLogs();
+        } else {
+          alert(`❌ Test dispatch failed: ${data.error || 'Server error'}`);
+        }
+      } catch (err) {
+        alert('❌ Network error sending WhatsApp test: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '📱 Send Test WhatsApp Now'; }
+      }
+    }
+
+    async function openSampleReportPreview() {
+      const modal = document.getElementById('adminReportPreviewModal');
+      const frame = document.getElementById('adminReportPreviewFrame');
+      if (modal) modal.style.display = 'flex';
+      if (frame) frame.srcdoc = '<div style="color:#64748b; font-family:sans-serif; text-align:center; padding:50px;">Generating dynamic report template preview...</div>';
+
+      try {
+        const customBranding = {
+          hospitalName: document.getElementById('adminHospitalName')?.value.trim() || 'MAPIMS Hospital',
+          departmentName: document.getElementById('adminDepartmentName')?.value.trim() || 'Department of Radiodiagnosis & Imaging',
+          primaryColor: document.getElementById('adminBrandColorHex')?.value.trim() || '#991b1b',
+          accentColor: document.getElementById('adminAccentColorHex')?.value.trim() || '#fbb714',
+          radiologistTitle: document.getElementById('adminRadiologistTitle')?.value.trim() || 'DR. CONSULTANT RADIOLOGIST, MD (RD)',
+          footerNote: document.getElementById('adminReportFooterNote')?.value.trim() || '',
+          showDisclaimerCard: document.getElementById('adminShowDisclaimerCard')?.checked !== false,
+          showQrCode: document.getElementById('adminShowQrCode')?.checked === true,
+          disclaimerEn: document.getElementById('adminDisclaimerEn')?.value || '',
+          disclaimerTa: document.getElementById('adminDisclaimerTa')?.value || ''
+        };
+
+        const res = await fetch('/api/admin/actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'preview_report', payload: customBranding })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success && data.html) {
+          if (frame) frame.srcdoc = data.html;
+        } else {
+          if (frame) frame.srcdoc = `<div style="color:#ef4444; font-family:sans-serif; padding:30px;">Failed to generate preview: ${escapeHtml(data.error || 'Server error')}</div>`;
+        }
+      } catch (err) {
+        if (frame) frame.srcdoc = `<div style="color:#ef4444; font-family:sans-serif; padding:30px;">Preview network error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function closeReportPreviewModal() {
+      const modal = document.getElementById('adminReportPreviewModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    // ========================================================
+    // 👥 USER MANAGEMENT & RBAC CONTROLLER
+    // ========================================================
+
+    async function loadAdminUsers() {
+      const tbody = document.getElementById('adminUsersTableBody');
+      const countEl = document.getElementById('adminUsersCount');
+      if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-dim);">Loading user accounts...</td></tr>`;
+
+      try {
+        const res = await fetch('/api/admin/users');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.users)) {
+          adminUsersList = data.users;
+          if (countEl) countEl.textContent = data.users.length;
+          renderAdminUsersTable(data.users);
+        }
+      } catch (err) {
+        console.error('[Admin] Failed to load users:', err);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:#f87171;">Failed to load users: ${escapeHtml(err.message)}</td></tr>`;
+      }
+    }
+
+    function renderAdminUsersTable(users) {
+      const tbody = document.getElementById('adminUsersTableBody');
+      if (!tbody) return;
+      if (!users || users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-dim);">No user accounts found.</td></tr>`;
+        return;
+      }
+
+      const roleBadges = {
+        super_admin: { label: 'SUPER ADMIN', bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', border: 'rgba(245,158,11,0.4)' },
+        radiologist: { label: 'RADIOLOGIST', bg: 'rgba(168,85,247,0.15)', color: '#c084fc', border: 'rgba(168,85,247,0.4)' },
+        doctor: { label: 'DOCTOR', bg: 'rgba(16,185,129,0.15)', color: '#34d399', border: 'rgba(16,185,129,0.4)' },
+        technician: { label: 'TECHNICIAN', bg: 'rgba(6,182,212,0.15)', color: '#22d3ee', border: 'rgba(6,182,212,0.4)' },
+        staff: { label: 'STAFF', bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', border: 'rgba(148,163,184,0.4)' }
+      };
+
+      tbody.innerHTML = users.map(u => {
+        const rb = roleBadges[u.role] || roleBadges.staff;
+        const isActive = u.active !== false;
+        return `
+          <tr>
+            <td><strong style="color:var(--text-main); font-family:'JetBrains Mono',monospace;">${escapeHtml(u.username)}</strong></td>
+            <td>${escapeHtml(u.name || u.displayName || '--')}</td>
+            <td>
+              <span class="admin-badge-super" style="background:${rb.bg}; color:${rb.color}; border-color:${rb.border};">
+                ${rb.label}
+              </span>
+            </td>
+            <td>${escapeHtml(u.department || 'Hospital')}</td>
+            <td style="font-size:12px; color:var(--text-dim);">${escapeHtml(u.email || '--')}</td>
+            <td>
+              <span style="display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; color:${isActive ? '#34d399' : '#f87171'};">
+                <span style="width:7px; height:7px; border-radius:50%; background:${isActive ? '#10b981' : '#ef4444'};"></span>
+                ${isActive ? 'Active' : 'Disabled'}
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-secondary" style="font-size:11px; padding:3px 8px;" onclick="openEditUserModal('${u._id}')">
+                  ✏️ Edit
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openCreateUserModal() {
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('newName').value = '';
+      document.getElementById('newRole').value = 'staff';
+      document.getElementById('newDepartment').value = 'Department of Radiodiagnosis';
+      document.getElementById('newEmail').value = '';
+      const m = document.getElementById('adminCreateUserModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeCreateUserModal() {
+      const m = document.getElementById('adminCreateUserModal');
+      if (m) m.style.display = 'none';
+    }
+
+    async function submitCreateUser(btn) {
+      const username = document.getElementById('newUsername')?.value.trim();
+      const password = document.getElementById('newPassword')?.value.trim();
+      const name = document.getElementById('newName')?.value.trim();
+      const role = document.getElementById('newRole')?.value;
+      const department = document.getElementById('newDepartment')?.value.trim();
+      const email = document.getElementById('newEmail')?.value.trim();
+
+      if (!username || username.length < 3) return alert('Username must be at least 3 characters.');
+      if (!password || password.length < 4) return alert('Password must be at least 4 characters.');
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
+      try {
+        const res = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, name, role, department, email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeCreateUserModal();
+          loadAdminUsers();
+          loadAdminLogs();
+          alert(`✅ User account '${data.user?.username}' created successfully.`);
+        } else {
+          alert('❌ Failed to create user: ' + (data.error || 'Server rejected creation'));
+        }
+      } catch (err) {
+        alert('❌ Network error: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
+      }
+    }
+
+    function openEditUserModal(userId) {
+      const u = adminUsersList.find(x => String(x._id) === String(userId));
+      if (!u) return alert('User not found in local cache');
+
+      document.getElementById('editUserId').value = u._id;
+      document.getElementById('editUserTitleUsername').textContent = u.username;
+      document.getElementById('editName').value = u.name || u.displayName || '';
+      document.getElementById('editRole').value = u.role || 'staff';
+      document.getElementById('editDepartment').value = u.department || '';
+      document.getElementById('editEmail').value = u.email || '';
+      document.getElementById('editPassword').value = '';
+      document.getElementById('editActive').checked = u.active !== false;
+
+      // Protected accounts pacs/admin cannot be deleted
+      const delBtn = document.getElementById('btnDeleteUserAction');
+      if (delBtn) {
+        delBtn.style.display = (u.username === 'pacs' || u.username === 'admin') ? 'none' : 'inline-block';
+      }
+
+      const m = document.getElementById('adminEditUserModal');
+      if (m) m.style.display = 'flex';
+    }
+
+    function closeEditUserModal() {
+      const m = document.getElementById('adminEditUserModal');
+      if (m) m.style.display = 'none';
+    }
+
+    async function submitEditUser(btn) {
+      const id = document.getElementById('editUserId')?.value;
+      if (!id) return;
+
+      const payload = {
+        name: document.getElementById('editName')?.value.trim(),
+        role: document.getElementById('editRole')?.value,
+        department: document.getElementById('editDepartment')?.value.trim(),
+        email: document.getElementById('editEmail')?.value.trim(),
+        active: document.getElementById('editActive')?.checked !== false
+      };
+
+      const pwd = document.getElementById('editPassword')?.value.trim();
+      if (pwd) {
+        if (pwd.length < 4) return alert('New password must be at least 4 characters.');
+        payload.password = pwd;
+      }
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeEditUserModal();
+          loadAdminUsers();
+          loadAdminLogs();
+          alert(`✅ Account '${data.user?.username}' updated successfully.`);
+        } else {
+          alert('❌ Failed to update account: ' + (data.error || 'Server error'));
+        }
+      } catch (err) {
+        alert('❌ Error updating account: ' + err.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+      }
+    }
+
+    async function submitDeleteUser() {
+      const id = document.getElementById('editUserId')?.value;
+      const u = adminUsersList.find(x => String(x._id) === String(id));
+      const uName = u ? u.username : 'this user';
+
+      if (!confirm(`Are you certain you want to permanently delete user account '${uName}'?`)) return;
+
+      try {
+        const res = await fetch(`/api/admin/users/${id}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          closeEditUserModal();
+          loadAdminUsers();
+          loadAdminLogs();
+          alert(`✅ Account '${uName}' deleted successfully.`);
+        } else {
+          alert('❌ Cannot delete user: ' + (data.error || 'Server rejected deletion'));
+        }
+      } catch (err) {
+        alert('❌ Error deleting user: ' + err.message);
+      }
+    }
+
+    // ========================================================
+    // 📜 AUDIT & EVENT LOGS CONTROLLER
+    // ========================================================
+
+    async function loadAdminLogs(notify = false) {
+      const consoleEl = document.getElementById('adminLogConsole');
+      if (!consoleEl) return;
+
+      try {
+        const res = await fetch('/api/admin/logs?limit=60');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data && data.success && Array.isArray(data.logs)) {
+          if (data.logs.length === 0) {
+            consoleEl.innerHTML = `<div style="color:var(--text-dim); text-align:center; padding:20px;">No audit events recorded yet.</div>`;
+            return;
+          }
+
+          consoleEl.innerHTML = data.logs.map(log => {
+            const time = new Date(log.timestamp || Date.now()).toLocaleTimeString('en-US', { hour12: false });
+            const mod = (log.module || 'SYS').toUpperCase();
+            const act = log.action || 'EVENT';
+            const user = log.performedBy || 'system';
+            const desc = escapeHtml(log.description || '');
+
+            let modColor = '#38bdf8';
+            if (mod === 'PACS') modColor = '#f59e0b';
+            if (mod === 'STORAGE') modColor = '#a855f7';
+            if (mod === 'USERS') modColor = '#10b981';
+            if (mod === 'WHATSAPP') modColor = '#34d399';
+
+            return `
+              <div class="admin-log-line">
+                <span class="admin-log-time">${time}</span>
+                <span class="admin-log-module" style="color:${modColor};">[${mod}]</span>
+                <span class="admin-log-action">${act}:</span>
+                <span class="admin-log-desc">${desc}</span>
+                <span style="color:var(--text-dim); font-size:10px; margin-left:auto;">by @${escapeHtml(user)}</span>
+              </div>
+            `;
+          }).join('');
+
+          if (notify) alert('✅ Live system audit log stream refreshed.');
+        }
+      } catch (err) {
+        console.error('[Admin] Failed to load logs:', err);
+      }
     }
 
     // Startup with Role-Based Authentication

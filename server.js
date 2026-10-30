@@ -26,13 +26,18 @@ const {
   initAuth,
   authenticateUser,
   requireAuth,
-  optionalAuth
+  optionalAuth,
+  listUsers,
+  createUser,
+  updateUser,
+  deleteUser
 } = require('./auth');
+const settingsManager = require('./settingsManager');
 const { parseReportFromPdf, generateReportHtml, renderModernPdf } = require('./reportGenerator');
 
 const app = express();
 const PORT = process.env.PORT || 2010;
-const PACS_HOST = process.env.PACS_HOST || 'http://192.168.101.224';
+let PACS_HOST = process.env.PACS_HOST || 'http://192.168.101.224';
 
 // Local storage configuration
 const STORAGE_DIR = process.env.STORAGE_DIR || path.join(__dirname, 'storage');
@@ -40,8 +45,17 @@ const DICOM_DIR = path.join(STORAGE_DIR, 'dicom');
 const THUMB_DIR = path.join(STORAGE_DIR, 'thumbnails');
 const REPORT_DIR = path.join(STORAGE_DIR, 'reports');
 
-const MAX_CACHE_GB = parseFloat(process.env.MAX_CACHE_GB) || 100;
-const MAX_CACHE_BYTES = MAX_CACHE_GB * 1024 * 1024 * 1024;
+let MAX_CACHE_GB = parseFloat(process.env.MAX_CACHE_GB) || 100;
+let MAX_CACHE_BYTES = MAX_CACHE_GB * 1024 * 1024 * 1024;
+
+// Initialize settings on startup
+settingsManager.initSettings().then(cfg => {
+  if (cfg.pacs?.pacsHost) PACS_HOST = cfg.pacs.pacsHost;
+  if (cfg.storage?.maxCacheGb) {
+    MAX_CACHE_GB = parseFloat(cfg.storage.maxCacheGb) || 100;
+    MAX_CACHE_BYTES = MAX_CACHE_GB * 1024 * 1024 * 1024;
+  }
+}).catch(() => {});
 
 // Ensure storage directories exist
 [STORAGE_DIR, DICOM_DIR, THUMB_DIR, REPORT_DIR].forEach(dir => {
@@ -1442,6 +1456,197 @@ app.post('/api/admin/whatsapp-test-send', requireAuth(), async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ========================================================
+// 🎛️ FULL CONTROL SYSTEM ADMINISTRATION & SETTINGS API
+// ========================================================
+
+// 1. Get all system settings across PACS, Storage, WhatsApp, and Report Template
+app.get('/api/admin/all-settings', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const settings = await settingsManager.getSettings();
+    res.json({ success: true, settings });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. Update system settings (Full or partial)
+app.post('/api/admin/all-settings', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const newSettings = req.body || {};
+    const updated = await settingsManager.updateSettings(newSettings, req.user?.username || 'admin');
+
+    // Reactively update in-memory runtime variables
+    if (updated.pacs?.pacsHost) {
+      PACS_HOST = updated.pacs.pacsHost;
+    }
+    if (updated.storage?.maxCacheGb) {
+      MAX_CACHE_GB = parseFloat(updated.storage.maxCacheGb) || 100;
+      MAX_CACHE_BYTES = MAX_CACHE_GB * 1024 * 1024 * 1024;
+    }
+
+    res.json({ success: true, message: 'Settings successfully saved and applied to runtime.', settings: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. Live System Telemetry & Diagnostics
+app.get('/api/admin/diagnostics', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const minioStats = await getMinioStats().catch(() => ({}));
+    const diagnostics = await settingsManager.getSystemDiagnostics({ minioStats });
+    res.json(diagnostics);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. Live System Audit Logs
+app.get('/api/admin/logs', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const limit = Math.min(200, parseInt(req.query.limit, 10) || 50);
+    const logs = await settingsManager.getRecentAuditLogs(limit);
+    res.json({ success: true, logs });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. System Administrative Actions (Sync, Clear Cache, Ping, Test Dispatch, Preview)
+app.post('/api/admin/actions', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const { action, payload } = req.body || {};
+    if (!action) return res.status(400).json({ success: false, error: 'Action parameter is required.' });
+
+    const username = req.user?.username || 'admin';
+
+    if (action === 'sync_pacs') {
+      const dFrom = payload?.from || new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
+      const dTo = payload?.to || new Date().toISOString().split('T')[0];
+      
+      const targetUrl = `${PACS_HOST}/api_pacs.asp?from=${encodeURIComponent(dFrom)}&to=${encodeURIComponent(dTo)}&limit=5000`;
+      const pResp = await fetch(targetUrl);
+      if (!pResp.ok) throw new Error(`PACS returned HTTP ${pResp.status}`);
+      const pJson = await pResp.json();
+      let syncResult = { upsertedCount: 0, modifiedCount: 0 };
+      if (pJson && pJson.success && Array.isArray(pJson.data)) {
+        syncResult = await upsertStudies(pJson.data);
+      }
+      await settingsManager.logAudit('PACS_SYNC', 'pacs', `Manual sync executed for ${dFrom} to ${dTo} (${syncResult.upsertedCount} new, ${syncResult.modifiedCount} updated)`, username);
+      return res.json({ success: true, message: `Sync completed: +${syncResult.upsertedCount} new, ${syncResult.modifiedCount} updated.`, syncResult });
+    }
+
+    if (action === 'clear_cache') {
+      let freed = 0;
+      const rf = await fsp.readdir(REPORT_DIR).catch(() => []);
+      for (const f of rf) {
+        const fp = path.join(REPORT_DIR, f);
+        const st = await fsp.stat(fp).catch(() => null);
+        if (st) {
+          await fsp.rm(fp, { force: true });
+          freed += st.size;
+        }
+      }
+      await settingsManager.logAudit('CACHE_PURGE', 'storage', `Manual cache purge freed ${(freed / (1024*1024)).toFixed(2)} MB`, username);
+      return res.json({ success: true, message: `Temporary report cache cleared (${(freed / (1024*1024)).toFixed(2)} MB freed).`, bytesFreed: freed });
+    }
+
+    if (action === 'test_pacs_ping') {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const start = Date.now();
+      const pResp = await fetch(`${PACS_HOST}/api_session_keepalive.asp`, { signal: controller.signal });
+      clearTimeout(timeout);
+      const pingMs = Date.now() - start;
+      return res.json({ success: true, online: pResp.ok || pResp.status === 200 || pResp.status === 401, status: pResp.status, pingMs });
+    }
+
+    if (action === 'prune_storage') {
+      const result = await enforceStorageQuota();
+      await settingsManager.logAudit('STORAGE_PRUNE', 'storage', `Manual LRU pruning executed. Pruned: ${result.pruned}`, username);
+      return res.json({ success: true, result });
+    }
+
+    if (action === 'preview_report') {
+      const sampleData = {
+        patientName: 'KAVITHA R (SAMPLE PREVIEW)',
+        ageSex: '42 Y / FEMALE',
+        patientId: '4867768',
+        referringPhysician: 'Dr. Duty Medical Officer',
+        studyDateTime: new Date().toLocaleDateString('en-GB') + ' 10:30 AM',
+        studyName: 'CT SCAN OF BRAIN (PLAIN)',
+        modality: 'CT',
+        accessionNumber: 'ACC-PREVIEW-99',
+        eSignDate: new Date().toLocaleDateString('en-GB') + ' 11:15 AM',
+        reportTitle: 'CT SCAN OF BRAIN (PLAIN STUDY)',
+        clinicalHistory: 'Patient presented with headache and dizziness for clinical evaluation.',
+        technique: 'Non-contrast contiguous axial sections of the brain obtained from skull base to vertex.',
+        findings: [
+          { title: 'Cerebral Parenchyma', content: 'No focal mass lesion, area of acute territorial infarction or intracranial hemorrhage noted.', isSubhead: true },
+          { title: 'Ventricular System', content: 'Ventricular system, basal cisterns and cortical sulci appear within normal physiological limits for age.', isSubhead: true },
+          { title: 'Bony Calvarium', content: 'Calvarial bones intact. Visualized paranasal sinuses and mastoid air cells appear clear.', isSubhead: true }
+        ],
+        impression: [
+          'NO ACUTE INTRACRANIAL PARENCHYMAL ABNORMALITY DETECTED.',
+          'PHYSIOLOGICALLY AGE-APPROPRIATE STUDY.'
+        ],
+        radiologists: [
+          { name: 'Dr. MAPIMS Consultant Radiologist', designation: 'Consultant Radiologist', regNo: 'TNMC Reg. No: 98765', verified: true }
+        ],
+        note: 'Note: Sample report preview rendered dynamically using Admin Panel custom styling.'
+      };
+
+      const html = await generateReportHtml(sampleData, 'SAMPLE-PREVIEW', '', payload || {});
+      return res.json({ success: true, html });
+    }
+
+    return res.status(400).json({ success: false, error: `Unknown action: ${action}` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 6. User Management (CRUD)
+app.get('/api/admin/users', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const users = await listUsers();
+    res.json({ success: true, users });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/admin/users', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const user = await createUser(req.body || {});
+    await settingsManager.logAudit('USER_CREATED', 'users', `Created user account '${user.username}' with role '${user.role}'`, req.user?.username);
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/admin/users/:id', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const user = await updateUser(req.params.id, req.body || {});
+    await settingsManager.logAudit('USER_UPDATED', 'users', `Updated user account '${user.username}'`, req.user?.username);
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', requireAuth('canManageUsers'), async (req, res) => {
+  try {
+    const result = await deleteUser(req.params.id, req.user?.username);
+    await settingsManager.logAudit('USER_DELETED', 'users', `Deleted user account '${result.deletedUsername}'`, req.user?.username);
+    res.json({ success: true, message: `User '${result.deletedUsername}' deleted successfully.` });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
   }
 });
 

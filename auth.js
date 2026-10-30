@@ -420,6 +420,113 @@ function optionalAuth(req, res, next) {
   next();
 }
 
+// User Management CRUD Helpers
+async function listUsers() {
+  if (!authDb) {
+    return DEFAULT_USERS.map((u, i) => ({
+      _id: `default_${i}`,
+      username: u.username,
+      name: u.name,
+      role: u.role,
+      department: u.department,
+      email: u.email,
+      active: true,
+      isSystemDefault: true
+    }));
+  }
+  return await authDb.collection('users')
+    .find({}, { projection: { passwordHash: 0, passwordSalt: 0 } })
+    .sort({ createdAt: -1 })
+    .toArray();
+}
+
+async function createUser({ username, password, name, role, department, email }) {
+  if (!username || !password) throw new Error('Username and password are required');
+  const cleanUser = String(username).trim().toLowerCase();
+  if (cleanUser.length < 3) throw new Error('Username must be at least 3 characters');
+  if (!ROLE_PERMISSIONS[role]) throw new Error(`Invalid role '${role}'`);
+
+  if (!authDb) throw new Error('Database connection not available');
+
+  const existing = await authDb.collection('users').findOne({ username: cleanUser });
+  if (existing) throw new Error(`User '${cleanUser}' already exists`);
+
+  const { hash, salt } = hashPassword(password);
+  const doc = {
+    username: cleanUser,
+    displayName: username,
+    name: name || username,
+    role: role || 'staff',
+    department: department || 'General',
+    email: email || `${cleanUser}@mapims.com`,
+    passwordHash: hash,
+    passwordSalt: salt,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    active: true,
+    isSystemDefault: false
+  };
+
+  const res = await authDb.collection('users').insertOne(doc);
+  return { ...doc, _id: res.insertedId, passwordHash: undefined, passwordSalt: undefined };
+}
+
+async function updateUser(idOrUsername, { name, role, department, email, active, password }) {
+  if (!authDb) throw new Error('Database connection not available');
+
+  const { ObjectId } = require('mongodb');
+  let filter = { username: String(idOrUsername).toLowerCase() };
+  if (ObjectId.isValid(idOrUsername)) {
+    filter = { $or: [{ _id: new ObjectId(idOrUsername) }, filter] };
+  }
+
+  const existing = await authDb.collection('users').findOne(filter);
+  if (!existing) throw new Error('User not found');
+
+  const updateFields = { updatedAt: new Date() };
+  if (name !== undefined) updateFields.name = name;
+  if (role !== undefined) {
+    if (!ROLE_PERMISSIONS[role]) throw new Error(`Invalid role '${role}'`);
+    updateFields.role = role;
+  }
+  if (department !== undefined) updateFields.department = department;
+  if (email !== undefined) updateFields.email = email;
+  if (active !== undefined) updateFields.active = !!active;
+
+  if (password && String(password).trim().length > 0) {
+    const { hash, salt } = hashPassword(String(password).trim());
+    updateFields.passwordHash = hash;
+    updateFields.passwordSalt = salt;
+  }
+
+  await authDb.collection('users').updateOne(filter, { $set: updateFields });
+  return await authDb.collection('users').findOne(filter, { projection: { passwordHash: 0, passwordSalt: 0 } });
+}
+
+async function deleteUser(idOrUsername, currentUsername) {
+  if (!authDb) throw new Error('Database connection not available');
+
+  const { ObjectId } = require('mongodb');
+  let filter = { username: String(idOrUsername).toLowerCase() };
+  if (ObjectId.isValid(idOrUsername)) {
+    filter = { $or: [{ _id: new ObjectId(idOrUsername) }, filter] };
+  }
+
+  const user = await authDb.collection('users').findOne(filter);
+  if (!user) throw new Error('User not found');
+
+  if (user.username.toLowerCase() === 'pacs' || user.username.toLowerCase() === 'admin') {
+    throw new Error('Default root system administrator account cannot be deleted');
+  }
+
+  if (currentUsername && user.username.toLowerCase() === String(currentUsername).toLowerCase()) {
+    throw new Error('You cannot delete your own currently logged-in account');
+  }
+
+  await authDb.collection('users').deleteOne(filter);
+  return { success: true, deletedUsername: user.username };
+}
+
 module.exports = {
   ROLES,
   ROLE_PERMISSIONS,
@@ -431,5 +538,9 @@ module.exports = {
   requireAuth,
   optionalAuth,
   hashPassword,
-  verifyPassword
+  verifyPassword,
+  listUsers,
+  createUser,
+  updateUser,
+  deleteUser
 };
