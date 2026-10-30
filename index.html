@@ -7971,7 +7971,7 @@
         const checkData = await res.json();
 
         // If backend provided enriched patient info or filename, ensure download button uses it
-        if (checkData.downloadFilename && dlBtn) {
+        if (checkData.downloadFilename && (checkData.patientName || checkData.patientId) && dlBtn) {
           dlBtn.href = `/reports/study/${encodeURIComponent(targetStudyUid)}/${encodeURIComponent(checkData.downloadFilename)}?download=1`;
           dlBtn.setAttribute('download', checkData.downloadFilename);
           dlBtn.setAttribute('title', `Download ${checkData.downloadFilename}`);

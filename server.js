@@ -557,6 +557,14 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
       }
     } catch (_) {}
 
+    if ((!patientName || !patientId) && fs.existsSync(localPdfPath)) {
+      try {
+        const parsed = parseReportFromPdf(localPdfPath, {});
+        if (!patientName) patientName = parsed.patientName || '';
+        if (!patientId) patientId = parsed.patientId || '';
+      } catch (_) {}
+    }
+
     const downloadFilename = formatReportFilename(patientName, patientId, studyUid);
     
     // 1. Check local cache for Final PDF
