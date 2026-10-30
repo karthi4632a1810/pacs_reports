@@ -40,7 +40,7 @@ const DICOM_DIR = path.join(STORAGE_DIR, 'dicom');
 const THUMB_DIR = path.join(STORAGE_DIR, 'thumbnails');
 const REPORT_DIR = path.join(STORAGE_DIR, 'reports');
 
-const MAX_CACHE_GB = parseFloat(process.env.MAX_CACHE_GB) || 25;
+const MAX_CACHE_GB = parseFloat(process.env.MAX_CACHE_GB) || 100;
 const MAX_CACHE_BYTES = MAX_CACHE_GB * 1024 * 1024 * 1024;
 
 // Ensure storage directories exist
@@ -81,8 +81,8 @@ async function getDirSize(dirPath) {
   return totalSize;
 }
 
-// Unified Bounded 25 GB Storage Watchdog across MinIO DICOM & Local Reports/Thumbnails
-async function enforce25GbStorageQuota() {
+// Unified Bounded Storage Watchdog across MinIO DICOM & Local Reports/Thumbnails
+async function enforceStorageQuota() {
   try {
     const minioStats = await getMinioStats();
     const minioBytes = minioStats.totalBytes || 0;
@@ -101,9 +101,9 @@ async function enforce25GbStorageQuota() {
       };
     }
 
-    console.log(`[25GB Storage Watchdog] Storage exceeded ${MAX_CACHE_GB} GB (${(totalUsedBytes / (1024**3)).toFixed(2)} GB). Enforcing quota...`);
+    console.log(`[${MAX_CACHE_GB}GB Storage Watchdog] Storage exceeded ${MAX_CACHE_GB} GB (${(totalUsedBytes / (1024**3)).toFixed(2)} GB). Enforcing quota...`);
 
-    // Target: prune down to 80% of 25 GB (20 GB) to leave operational headroom
+    // Target: prune down to 80% of MAX_CACHE_GB (80 GB for 100 GB cap) to leave operational headroom
     const targetBytes = MAX_CACHE_BYTES * 0.8;
     const bytesNeededToFree = totalUsedBytes - targetBytes;
 
@@ -132,7 +132,7 @@ async function enforce25GbStorageQuota() {
       totalFreed += minioFreed.bytesFreed || 0;
     }
 
-    console.log(`[25GB Storage Watchdog] Enforced quota. Total freed: ${(totalFreed / (1024**3)).toFixed(2)} GB.`);
+    console.log(`[${MAX_CACHE_GB}GB Storage Watchdog] Enforced quota. Total freed: ${(totalFreed / (1024**3)).toFixed(2)} GB.`);
     return {
       pruned: true,
       bytesFreed: totalFreed,
@@ -141,13 +141,16 @@ async function enforce25GbStorageQuota() {
       maxCapGb: MAX_CACHE_GB,
     };
   } catch (err) {
-    console.error('[25GB Storage Watchdog Error]:', err.message);
+    console.error(`[${MAX_CACHE_GB}GB Storage Watchdog Error]:`, err.message);
     return { error: err.message };
   }
 }
 
+// Backward-compatible alias
+const enforce25GbStorageQuota = enforceStorageQuota;
+
 // Run storage watchdog check every 10 minutes
-setInterval(enforce25GbStorageQuota, 10 * 60 * 1000);
+setInterval(enforceStorageQuota, 10 * 60 * 1000);
 
 // ==========================================
 // Role-Based Authentication & User Endpoints
@@ -239,8 +242,7 @@ app.get('/api/config', async (req, res) => {
   });
 });
 
-// Cache stats endpoint
-// Unified 25 GB Cache & Quota stats endpoint
+// Unified Storage Cache & Quota stats endpoint
 app.get('/api/cache/stats', async (req, res) => {
   try {
     const minioStats = await getMinioStats();
@@ -258,7 +260,7 @@ app.get('/api/cache/stats', async (req, res) => {
       limits: {
         maxCacheGb: MAX_CACHE_GB,
         maxCacheBytes: MAX_CACHE_BYTES,
-        quotaRule: '25 GB Max Combined Storage (DICOM + Reports + Previews)'
+        quotaRule: `${MAX_CACHE_GB} GB Max Combined Storage (DICOM + Reports + Previews)`
       },
       usage: {
         minioDicomBytes: minioBytes,
@@ -311,7 +313,7 @@ app.get('/api/storage/quota', async (req, res) => {
         thumbnailMb: parseFloat((thumbBytes / (1024**2)).toFixed(2)),
       },
       quotaPolicy: {
-        enforcement: 'Automated LRU Watchdog + MinIO 25GiB Hard Quota',
+        enforcement: `Automated LRU Watchdog + MinIO ${MAX_CACHE_GB}GiB Hard Quota`,
         evictionTargetPct: 80
       }
     });

@@ -32,8 +32,8 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin123}
       - MINIO_BUCKET=${MINIO_BUCKET:-pacs-dicom}
       - STORAGE_DIR=/app/storage
-      - MAX_STORAGE_GB=${MAX_STORAGE_GB:-25}
-      - MAX_CACHE_GB=${MAX_CACHE_GB:-25}
+      - MAX_STORAGE_GB=${MAX_STORAGE_GB:-100}
+      - MAX_CACHE_GB=${MAX_CACHE_GB:-100}
       - JWT_SECRET=${JWT_SECRET:-mapims-pacs-connect-secret-jwt-key-2026}
       - WATI_API_TOKEN=${WATI_API_TOKEN}
       - WATI_TEMPLATE_ID=${WATI_TEMPLATE_ID}

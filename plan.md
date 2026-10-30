@@ -152,17 +152,17 @@
   - Background async caching and streaming of DICOM slices (`.dcm`).
   - MinIO REST endpoints: `GET /api/minio/stats`, `GET /api/study/:studyUid/minio`, `POST /api/study/:studyUid/cache-minio`, `GET /api/study/:studyUid/dicom/:ser/:inst`.
 - [x] Frontend UI integration:
-  - Header badges for **Storage Quota (25 GB Max)**, **MongoDB (Port 3009)**, and **MinIO S3 (Port 4009)**.
-  - Dedicated MinIO modal with live storage metrics, S3 endpoint copy, and 1-click launch to MinIO Web Console on port 5009.
-  - Dedicated **25 GB Storage Quota Modal** with real-time utilization progress bar, breakdown (DICOM vs Reports vs Thumbnails), and manual LRU cleanup trigger.
-- [x] Dual-Tier 25 GB Quota Enforcement:
-  - **MinIO Hard Bucket Quota**: 25 GiB hard limit configured on `pacs-dicom` bucket (`mc quota set myminio/pacs-dicom --size 25GiB`).
-  - **Automated LRU Watchdog**: Background watchdog running every 10 minutes monitors combined storage across MinIO DICOM files, diagnostic reports, and thumbnails. If total storage approaches 25 GB, oldest studies and cached files are automatically evicted down to 20 GB (80%).
+  - Header badges for **Storage Quota (100 GB Max)**, **MongoDB (Port 3010)**, and **MinIO S3 (Port 4010)**.
+  - Dedicated MinIO modal with live storage metrics, S3 endpoint copy, and 1-click launch to MinIO Web Console on port 5010.
+  - Dedicated **100 GB Storage Quota Modal** with real-time utilization progress bar, breakdown (DICOM vs Reports vs Thumbnails), and manual LRU cleanup trigger.
+- [x] Dual-Tier 100 GB Quota Enforcement:
+  - **MinIO Hard Bucket Quota**: 100 GiB hard limit configured on `pacs-dicom` bucket (`mc quota set myminio/pacs-dicom --size 100GiB`).
+  - **Automated LRU Watchdog**: Background watchdog running every 10 minutes monitors combined storage across MinIO DICOM files, diagnostic reports, and thumbnails. If total storage approaches 100 GB, oldest studies and cached files are automatically evicted down to 80 GB (80%).
 
 ---
 
 ## 6. Success & Verification Metrics
-1. **Strict 25 GB Quota Enforcement**: Total storage across DICOM files (MinIO), diagnostic reports, and thumbnails never exceeds 25 GB.
+1. **Strict 100 GB Quota Enforcement**: Total storage across DICOM files (MinIO), diagnostic reports, and thumbnails never exceeds 100 GB.
 2. **Microservices Port Separation**:
    - Frontend SPA: `http://localhost:1009` (LAN: `http://192.168.101.130:1009`)
    - Backend API: `http://localhost:2009` (LAN: `http://192.168.101.130:2009`)

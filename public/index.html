@@ -2624,7 +2624,7 @@
                 </span>
                 <div class="service-menu-text">
                   <span class="service-menu-label">Cache Storage</span>
-                  <span class="service-menu-val" id="cacheBadgeText">Storage: 25 GB Max</span>
+                  <span class="service-menu-val" id="cacheBadgeText">Storage: 100 GB Max</span>
                 </div>
               </div>
 
@@ -3893,15 +3893,15 @@
     </div>
   </div>
 
-  <!-- 25 GB Storage Quota & LRU Watchdog Modal -->
+  <!-- 100 GB Storage Quota & LRU Watchdog Modal -->
   <div class="modal-overlay" id="storageModal" onclick="closeStorageModalOnOverlay(event)">
     <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 22px;">🛡️</span>
           <div>
-            <h3>25 GB Max Storage Quota &amp; LRU Watchdog</h3>
-            <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Strict 25 GB Combined Cap &bull; DICOM (MinIO) + Reports + Previews</p>
+            <h3>100 GB Max Storage Quota &amp; LRU Watchdog</h3>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">Strict 100 GB Combined Cap &bull; DICOM (MinIO) + Reports + Previews</p>
           </div>
         </div>
         <button class="btn-icon" onclick="closeStorageModal()">&times;</button>
@@ -3921,7 +3921,7 @@
         <div class="meta-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
           <div class="meta-item">
             <div class="meta-title">Maximum Allowed Storage</div>
-            <div class="meta-val" style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">25.00 GB</div>
+            <div class="meta-val" id="quotaMaxGb" style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">100.00 GB</div>
           </div>
           <div class="meta-item">
             <div class="meta-title">Total Currently Used</div>
@@ -3929,7 +3929,7 @@
           </div>
           <div class="meta-item">
             <div class="meta-title">Free Quota Remaining</div>
-            <div class="meta-val" id="quotaRemainingGb" style="color: #34d399; font-family: 'JetBrains Mono', monospace;">24.97 GB</div>
+            <div class="meta-val" id="quotaRemainingGb" style="color: #34d399; font-family: 'JetBrains Mono', monospace;">99.97 GB</div>
           </div>
           <div class="meta-item">
             <div class="meta-title">Safety Status</div>
@@ -3956,10 +3956,10 @@
         </div>
 
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 12px 14px;">
-          <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 4px;">Automated 25 GB Quota Enforcement:</div>
+          <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 4px;">Automated 100 GB Quota Enforcement:</div>
           <ul style="font-size: 12px; color: var(--text-muted); margin: 0; padding-left: 18px; line-height: 1.6;">
-            <li><strong>MinIO Hard Quota</strong>: Bucket <code>pacs-dicom</code> has a kernel-level 25 GiB hard quota.</li>
-            <li><strong>LRU Eviction Watchdog</strong>: Scans every 10 minutes. If combined DICOM + report usage exceeds 25 GB, oldest studies are automatically pruned down to 20 GB (80%).</li>
+            <li><strong>MinIO Hard Quota</strong>: Bucket <code>pacs-dicom</code> has a kernel-level 100 GiB hard quota.</li>
+            <li><strong>LRU Eviction Watchdog</strong>: Scans every 10 minutes. If combined DICOM + report usage exceeds 100 GB, oldest studies are automatically pruned down to 80 GB (80%).</li>
             <li><strong>Host Protection</strong>: Local server disk is guaranteed never to run out of space.</li>
           </ul>
         </div>
@@ -4688,6 +4688,8 @@
             if (badgeEl) {
               badgeEl.textContent = `Storage: ${data.usage.totalGb} GB / ${data.limits.maxCacheGb} GB Max`;
             }
+            const qMax = document.getElementById('quotaMaxGb');
+            if (qMax && data.limits?.maxCacheGb) qMax.textContent = `${Number(data.limits.maxCacheGb).toFixed(2)} GB`;
             const qUsed = document.getElementById('quotaUsedGb');
             if (qUsed) qUsed.textContent = `${data.usage.totalGb} GB`;
             const qRem = document.getElementById('quotaRemainingGb');
@@ -6192,7 +6194,7 @@
         const res = await fetch('/api/storage/prune', { method: 'POST' });
         const data = await res.json();
         if (data.success) {
-          alert(`Storage Cleanup Done!\nPruned: ${data.pruned ? 'Yes' : 'No (Already within safe quota)'}\nTotal Used: ${data.totalGb || '0.00'} GB / 25 GB`);
+          alert(`Storage Cleanup Done!\nPruned: ${data.pruned ? 'Yes' : 'No (Already within safe quota)'}\nTotal Used: ${data.totalGb || '0.00'} GB / ${data.maxCapGb || 100} GB`);
           updateCacheStats();
         } else {
           alert('Prune note: ' + (data.error || 'Done'));
