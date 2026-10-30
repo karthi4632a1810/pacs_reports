@@ -6905,7 +6905,7 @@
       const token = localStorage.getItem('pacs_auth_token') || '';
       const reportUrl = `/api/report/${encodeURIComponent(studyUid)}?format=html&auth_token=${encodeURIComponent(token)}`;
       document.getElementById('reportIframe').src = reportUrl;
-      document.getElementById('reportDownloadBtn').href = `/api/report/${encodeURIComponent(studyUid)}?download=1&auth_token=${encodeURIComponent(token)}`;
+      document.getElementById('reportDownloadBtn').href = `/reports/study/${encodeURIComponent(studyUid)}/report.pdf?download=1`;
 
       // Status badge and WhatsApp button elements
       const badge = document.getElementById('reportStatusBadge');

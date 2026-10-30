@@ -628,8 +628,10 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
     const { studyUid } = req.params;
     const safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
     const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
-    const isHtml = req.query.format === 'html' || req.headers.accept?.includes('text/html');
+    const isDownload = req.query.download === '1' || req.query.download === 'true';
     const isRaw = req.query.raw === '1';
+    // Only return HTML if explicitly requested via ?format=html AND not requesting a PDF download
+    const isHtml = req.query.format === 'html' && !isDownload;
 
     // 1. Ensure raw PDF report is cached locally from PACS if not already present
     if (!fs.existsSync(localPdfPath)) {
@@ -677,7 +679,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
         const pdfFile = await renderModernPdf(studyUid, studyDoc);
         if (fs.existsSync(pdfFile) && fs.statSync(pdfFile).size > 1000) {
           const stat = fs.statSync(pdfFile);
-          const disposition = req.query.download === '1' ? 'attachment' : 'inline';
+          const disposition = isDownload ? 'attachment' : 'inline';
           res.setHeader('Content-Type', 'application/pdf');
           res.setHeader('Content-Length', stat.size);
           res.setHeader('Content-Disposition', `${disposition}; filename="MAPIMS_Report_${safeStudy}.pdf"`);
@@ -903,18 +905,20 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
     }
 
     const stat = fs.statSync(fileToServe);
-    console.log(`[REPORT DOWNLOAD DIRECT] Serving ${path.basename(fileToServe)} (${stat.size} bytes) to UA: ${req.headers['user-agent']}`);
+    const isDownload = req.query.download === '1' || req.query.download === 'true';
+    const disposition = isDownload ? 'attachment' : 'inline';
 
     res.sendFile(fileToServe, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Length': stat.size,
-        'Content-Disposition': `inline; filename="Final_${safeStudy}.pdf"`,
+        'Content-Disposition': `${disposition}; filename="MAPIMS_Report_${safeStudy}.pdf"`,
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'public, max-age=86400'
       }
     });
   } catch (err) {
+    console.error('[REPORT DOWNLOAD DIRECT ERROR]', err);
     res.status(500).send('Error serving report PDF');
   }
 });

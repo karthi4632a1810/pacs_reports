@@ -1303,7 +1303,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       </svg>
       Print Report
     </button>
-    <a class="btn-action" href="/api/report/${encodeURIComponent(studyUid)}?download=1" download="MAPIMS_Report_${encodeURIComponent(data.patientId || studyUid)}.pdf">
+    <a class="btn-action" href="/reports/study/${encodeURIComponent(studyUid)}/report.pdf?download=1" download="MAPIMS_Report_${encodeURIComponent(data.patientId || studyUid)}.pdf">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>
