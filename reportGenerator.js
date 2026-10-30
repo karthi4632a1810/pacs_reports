@@ -8,21 +8,31 @@ const REPORT_DIR = path.join(__dirname, 'storage/reports');
 
 // Pre-load official hospital logo as Base64 Data URI for instant zero-latency embedding
 let LOGO_DATA_URI = '';
-try {
+function getLogoDataUri() {
+  if (LOGO_DATA_URI) return LOGO_DATA_URI;
   const logoCandidates = [
     path.join(__dirname, 'logo.png'),
-    path.join(__dirname, 'public/logo.png')
+    path.join(__dirname, 'public/logo.png'),
+    path.join(__dirname, '../logo.png'),
+    '/app/logo.png',
+    '/app/public/logo.png',
+    '/usr/share/nginx/html/logo.png'
   ];
   for (const candidate of logoCandidates) {
-    if (fs.existsSync(candidate)) {
-      const logoBuf = fs.readFileSync(candidate);
-      LOGO_DATA_URI = `data:image/png;base64,${logoBuf.toString('base64')}`;
-      break;
+    try {
+      if (fs.existsSync(candidate)) {
+        const logoBuf = fs.readFileSync(candidate);
+        LOGO_DATA_URI = `data:image/png;base64,${logoBuf.toString('base64')}`;
+        console.log(`[ReportGen] Loaded hospital logo from ${candidate} (${logoBuf.length} bytes)`);
+        return LOGO_DATA_URI;
+      }
+    } catch (e) {
+      console.warn(`[ReportGen] Could not read logo at ${candidate}:`, e.message);
     }
   }
-} catch (e) {
-  console.warn('[ReportGen] Could not load logo.png:', e.message);
+  return '';
 }
+getLogoDataUri();
 
 // Pre-load Noto Sans Tamil font as Base64 Data URI for instant offline Tamil rendering
 let TAMIL_FONT_BASE64 = '';
@@ -365,6 +375,8 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
   const showQrCode = opts.showQrCode === true;
   const disclaimerEn = opts.disclaimerEn || 'This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.';
   const disclaimerTa = opts.disclaimerTa || 'இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது';
+
+  const currentLogo = getLogoDataUri() || LOGO_DATA_URI;
 
   // Modality colors tuned to MAPIMS Crimson & Gold theme
   const modalityColors = {
@@ -1363,8 +1375,8 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       <div class="header-top">
         <div class="hospital-brand">
           <div class="hospital-logo">
-            ${LOGO_DATA_URI ? `
-              <img src="${LOGO_DATA_URI}" alt="MAPIMS Logo" class="hospital-logo-img">
+            ${currentLogo ? `
+              <img src="${currentLogo}" alt="MAPIMS Logo" class="hospital-logo-img">
             ` : `
               <!-- Medical Cross Emblem -->
               <svg width="38" height="38" viewBox="0 0 48 48" fill="none">
@@ -1403,7 +1415,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
     </header>
 
     <div class="report-body">
-      ${LOGO_DATA_URI ? `<img src="${LOGO_DATA_URI}" alt="" class="report-watermark" aria-hidden="true">` : ''}
+      ${currentLogo ? `<img src="${currentLogo}" alt="" class="report-watermark" aria-hidden="true">` : ''}
       <!-- Patient Information Grid -->
       <section class="patient-card">
         <div class="patient-grid">
