@@ -307,21 +307,6 @@ function parseReportFromPdf(rawPdfPath, studyDoc = {}) {
  * Generate a colourful, hospital-grade HTML template for printing / viewing / PDF export.
  */
 async function generateReportHtml(data, studyUid, publicViewUrl = '') {
-  const qrTarget = publicViewUrl || `https://mapims.org/reports/verify/${studyUid}`;
-  let qrDataUri = '';
-  try {
-    qrDataUri = await QRCode.toDataURL(qrTarget, {
-      margin: 1,
-      width: 140,
-      color: {
-        dark: '#7f1d1d', // Deep MAPIMS Maroon
-        light: '#ffffff'
-      }
-    });
-  } catch (e) {
-    qrDataUri = '';
-  }
-
   // Modality colors tuned to MAPIMS Crimson & Gold theme
   const modalityColors = {
     CT: { bg: '#fff1f2', text: '#991b1b', border: '#fecdd3', label: 'Computed Tomography (CT)' },
@@ -926,6 +911,8 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
     .doctors-wrap {
       display: flex;
       flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
       gap: 20px;
     }
 
@@ -992,34 +979,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
       font-size: 11.5px;
       font-weight: 600;
       color: #57534e;
-    }
-
-    .qr-verify-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      flex-shrink: 0;
-      background: #fffdfa;
-      border: 1.5px solid #fde68a;
-      border-radius: 10px;
-      padding: 8px 12px;
-      box-shadow: 0 2px 6px rgba(180, 83, 9, 0.05);
-    }
-
-    .qr-img {
-      width: 80px;
-      height: 80px;
-      display: block;
-    }
-
-    .qr-label {
-      font-size: 9.5px;
-      font-weight: 700;
-      color: #92400e;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      margin-top: 3px;
     }
 
     /* Disclaimer & Footer */
@@ -1196,10 +1155,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
         margin-top: 10px !important;
         padding-top: 8px !important;
       }
-      .qr-img {
-        width: 64px !important;
-        height: 64px !important;
-      }
       .print-controls {
         display: none !important;
       }
@@ -1371,14 +1326,10 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '') {
         </ul>
       </section>
 
-      <!-- Signature & Digital Authenticity Verification Block -->
+      <!-- Signature & Authenticity Block -->
       <section class="signature-section">
         <div class="doctors-wrap">
           ${doctorsHtml}
-        </div>
-        <div class="qr-verify-card">
-          ${qrDataUri ? `<img class="qr-img" src="${qrDataUri}" alt="Report Authenticity QR Code" />` : ''}
-          <span class="qr-label">Scan to Verify</span>
         </div>
       </section>
 
