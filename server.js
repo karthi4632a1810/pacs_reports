@@ -36,7 +36,7 @@ const settingsManager = require('./settingsManager');
 const { parseReportFromPdf, generateReportHtml, renderModernPdf, formatReportFilename } = require('./reportGenerator');
 
 const app = express();
-const PORT = process.env.PORT || 2010;
+const PORT = process.env.PORT || 2012;
 let PACS_HOST = process.env.PACS_HOST || 'http://103.102.85.3';
 
 // Local storage configuration
@@ -2887,12 +2887,12 @@ app.get('*', (req, res) => {
 app.listen(PORT, '0.0.0.0', async () => {
   console.log(`===================================================`);
   console.log(` MAPIMS PACS Connect Gateway is running!`);
-  console.log(` Frontend (Nginx)  : http://localhost:${process.env.FRONTEND_PORT || 1010}`);
+  console.log(` Frontend (Nginx)  : http://localhost:${process.env.FRONTEND_PORT || 1012}`);
   console.log(` Backend API       : http://localhost:${PORT}`);
   console.log(` PACS Host         : ${PACS_HOST}`);
-  console.log(` MongoDB Local     : mongodb://localhost:${process.env.MONGO_PORT || 3010}/pacs_db`);
-  console.log(` MinIO DICOM S3    : http://localhost:${process.env.MINIO_API_PORT || 4010} (Bucket: ${BUCKET_NAME})`);
-  console.log(` MinIO Console     : http://localhost:${process.env.MINIO_CONSOLE_PORT || 5010}`);
+  console.log(` MongoDB Local     : mongodb://localhost:${process.env.MONGO_PORT || 3012}/pacs_db`);
+  console.log(` MinIO DICOM S3    : http://localhost:${process.env.MINIO_API_PORT || 4012} (Bucket: ${BUCKET_NAME})`);
+  console.log(` MinIO Console     : http://localhost:${process.env.MINIO_CONSOLE_PORT || 5012}`);
   console.log(`===================================================`);
   
   // Establish initial connections

@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:3010/pacs_db';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:3012/pacs_db';
 const DB_NAME = 'pacs_db';
 
 let client = null;
@@ -250,7 +250,7 @@ async function updatePatientProfiles(patientIds) {
 // Fetch MongoDB Stats for Compass & Dashboard
 async function getMongoStats() {
   const database = await connectDB();
-  const mongoPort = process.env.MONGO_PORT || 3010;
+  const mongoPort = process.env.MONGO_PORT || 3012;
   if (!database) {
     return {
       connected: false,

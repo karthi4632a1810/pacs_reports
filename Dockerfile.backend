@@ -22,13 +22,13 @@ COPY public ./public
 
 # Environment variables
 ENV NODE_ENV=production
-ENV PORT=2010
+ENV PORT=2012
 ENV PACS_HOST=http://103.102.85.3
 
-EXPOSE 2010
+EXPOSE 2012
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:2010/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:2012/health || exit 1
 
 CMD ["node", "server.js"]
