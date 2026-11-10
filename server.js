@@ -37,7 +37,7 @@ const { parseReportFromPdf, generateReportHtml, renderModernPdf, formatReportFil
 
 const app = express();
 const PORT = process.env.PORT || 2010;
-let PACS_HOST = process.env.PACS_HOST || 'http://192.168.101.224';
+let PACS_HOST = process.env.PACS_HOST || 'http://103.102.85.3';
 
 // Local storage configuration
 const STORAGE_DIR = process.env.STORAGE_DIR || path.join(__dirname, 'storage');

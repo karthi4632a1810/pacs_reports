@@ -17,7 +17,7 @@ COPY public ./public
 # Environment variables
 ENV NODE_ENV=production
 ENV PORT=2010
-ENV PACS_HOST=http://192.168.101.224
+ENV PACS_HOST=http://103.102.85.3
 
 EXPOSE 2010
 

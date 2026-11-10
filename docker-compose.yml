@@ -22,7 +22,7 @@ services:
       - "${BACKEND_PORT:-2010}:2010"
     environment:
       - PORT=2010
-      - PACS_HOST=${PACS_HOST:-http://192.168.101.224}
+      - PACS_HOST=${PACS_HOST:-http://103.102.85.3}
       - NODE_ENV=production
       - MONGODB_URI=mongodb://pacs-mongo:27017/pacs_db
       - MINIO_ENDPOINT=pacs-minio

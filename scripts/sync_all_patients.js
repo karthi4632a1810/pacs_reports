@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { upsertStudies, getMongoStats, connectDB } = require('../db');
 
-const PACS_HOST = process.env.PACS_HOST || 'http://192.168.101.224';
+const PACS_HOST = process.env.PACS_HOST || 'http://103.102.85.3';
 
 function formatDate(d) {
   const year = d.getFullYear();

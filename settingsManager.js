@@ -16,7 +16,7 @@ const logBuffer = [];
 function getDefaultSettings() {
   return {
     pacs: {
-      pacsHost: process.env.PACS_HOST || 'http://192.168.101.224',
+      pacsHost: process.env.PACS_HOST || 'http://103.102.85.3',
       hospitalName: 'MAPIMS Hospital',
       departmentName: 'Department of Radiodiagnosis & Imaging',
       emergencyPhone: '+91 72005 04251',
