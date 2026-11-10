@@ -33,7 +33,7 @@ function getDefaultSettings() {
       watchdogIntervalMinutes: 10,
       autoPruneEnabled: true,
       minioEndpoint: process.env.MINIO_ENDPOINT || 'pacs-minio',
-      minioPort: parseInt(process.env.MINIO_PORT, 10) || 4012,
+      minioPort: parseInt(process.env.MINIO_PORT, 10) || 4020,
       minioBucket: process.env.MINIO_BUCKET || 'pacs-dicom',
       minioUseSSL: process.env.MINIO_USE_SSL === 'true',
       minioAccessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',

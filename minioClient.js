@@ -1,7 +1,7 @@
 const Minio = require('minio');
 
 const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || '127.0.0.1';
-const MINIO_PORT = parseInt(process.env.MINIO_PORT || '4012', 10);
+const MINIO_PORT = parseInt(process.env.MINIO_PORT || '4020', 10);
 const MINIO_USE_SSL = process.env.MINIO_USE_SSL === 'true';
 const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || 'minioadmin';
 const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY || 'minioadmin123';

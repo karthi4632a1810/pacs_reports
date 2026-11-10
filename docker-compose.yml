@@ -1,5 +1,5 @@
 services:
-  # 1. Frontend Web App (Nginx SPA + Reverse Proxy) - Port 1012
+  # 1. Frontend Web App (Nginx SPA + Reverse Proxy) - Port 1020
   pacs-frontend:
     build:
       context: .
@@ -7,11 +7,11 @@ services:
     container_name: pacs-frontend-app
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-1012}:80"
+      - "${FRONTEND_PORT:-1020}:80"
     depends_on:
       - pacs-backend
 
-  # 2. Backend Gateway & DICOM Processing Server - Port 2012
+  # 2. Backend Gateway & DICOM Processing Server - Port 2020
   pacs-backend:
     build:
       context: .
@@ -19,14 +19,14 @@ services:
     container_name: pacs-backend-app
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-2012}:2012"
+      - "${BACKEND_PORT:-2020}:2020"
     environment:
-      - PORT=2012
+      - PORT=2020
       - PACS_HOST=${PACS_HOST:-http://103.102.85.3}
       - NODE_ENV=production
       - MONGODB_URI=mongodb://pacs-mongo:27017/pacs_db
       - MINIO_ENDPOINT=pacs-minio
-      - MINIO_PORT=${MINIO_API_PORT:-4012}
+      - MINIO_PORT=${MINIO_API_PORT:-4020}
       - MINIO_USE_SSL=false
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin123}
@@ -47,19 +47,19 @@ services:
       pacs-minio:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2012/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:2020/health"]
       interval: 15s
       timeout: 5s
       retries: 3
 
-  # 3. Local MongoDB Database (Compass on Port 3012)
+  # 3. Local MongoDB Database (Compass on Port 3020)
   pacs-mongo:
     image: mongo:7
     container_name: pacs-mongo-db
     restart: unless-stopped
     command: mongod --wiredTigerCacheSizeGB 1 --bind_ip_all
     ports:
-      - "${MONGO_PORT:-3012}:27017"
+      - "${MONGO_PORT:-3020}:27017"
     volumes:
       - ./storage/mongo:/data/db
     healthcheck:
@@ -68,16 +68,16 @@ services:
       timeout: 5s
       retries: 5
 
-  # 4. MinIO Object Storage for DICOM Files (API 4012 / Console 5012)
+  # 4. MinIO Object Storage for DICOM Files (API 4020 / Console 5020)
   # Uses Chainguard's maintained public image since upstream minio/minio was archived
   pacs-minio:
     image: cgr.dev/chainguard/minio:latest
     container_name: pacs-minio-storage
     restart: unless-stopped
-    command: server /data --address :4012 --console-address :5012
+    command: server /data --address :4020 --console-address :5020
     ports:
-      - "${MINIO_API_PORT:-4012}:4012"
-      - "${MINIO_CONSOLE_PORT:-5012}:5012"
+      - "${MINIO_API_PORT:-4020}:4020"
+      - "${MINIO_CONSOLE_PORT:-5020}:5020"
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin123
