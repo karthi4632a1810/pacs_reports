@@ -15,7 +15,7 @@ RUN apk add --no-cache curl poppler-utils chromium font-noto font-noto-cjk nss f
  && (curl -fsSL "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${CF_ARCH}" -o /usr/local/bin/cloudflared && chmod +x /usr/local/bin/cloudflared || echo "[INFO] cloudflared download skipped")
 
 # Copy application source code
-COPY server.js db.js minioClient.js auth.js reportGenerator.js settingsManager.js logo.png ./
+COPY server.js db.js minioClient.js auth.js reportGenerator.js reportsApi.js settingsManager.js logo.png ./
 COPY scripts ./scripts
 COPY fonts ./fonts
 COPY public ./public

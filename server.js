@@ -34,8 +34,10 @@ const {
 } = require('./auth');
 const settingsManager = require('./settingsManager');
 const { parseReportFromPdf, generateReportHtml, renderModernPdf, formatReportFilename } = require('./reportGenerator');
+const { registerReportsRoutes } = require('./reportsApi');
 
 const app = express();
+app.set('trust proxy', true);
 const PORT = process.env.PORT || 2020;
 let PACS_HOST = process.env.PACS_HOST || 'http://103.102.85.3';
 
@@ -64,7 +66,12 @@ settingsManager.initSettings().then(cfg => {
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Disposition', 'Content-Length', 'Content-Type']
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -2877,6 +2884,18 @@ app.get('/api/study/:studyUid/dicom/:seriesNumber/:instanceNumber', async (req, 
   } catch (err) {
     res.status(500).send(`Error retrieving DICOM instance: ${err.message}`);
   }
+});
+
+// Public Cross-Origin Reports API (/api/reports)
+registerReportsRoutes(app, {
+  port: PORT,
+  getPacsHost: () => settingsManager.getSettingsSync()?.pacs?.pacsHost || PACS_HOST,
+  connectDB,
+  upsertStudies,
+  reportDir: REPORT_DIR,
+  renderModernPdf,
+  parseReportFromPdf,
+  formatReportFilename
 });
 
 // Serve frontend for all other routes

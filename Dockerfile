@@ -10,7 +10,7 @@ RUN apk add --no-cache poppler-utils chromium font-noto font-noto-cjk nss freety
  && npm install --omit=dev
 
 # Copy application source
-COPY server.js db.js minioClient.js auth.js reportGenerator.js ./
+COPY server.js db.js minioClient.js auth.js reportGenerator.js reportsApi.js settingsManager.js ./
 COPY scripts ./scripts
 COPY public ./public
 
