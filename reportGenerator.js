@@ -34,6 +34,34 @@ function getLogoDataUri() {
 }
 getLogoDataUri();
 
+// Pre-load official NABL logo as Base64 Data URI for instant zero-latency embedding
+let NABL_DATA_URI = '';
+function getNablDataUri() {
+  if (NABL_DATA_URI) return NABL_DATA_URI;
+  const nablCandidates = [
+    path.join(__dirname, 'nabl.png'),
+    path.join(__dirname, 'public/nabl.png'),
+    path.join(__dirname, '../nabl.png'),
+    '/app/nabl.png',
+    '/app/public/nabl.png',
+    '/home/itmapims/KARTHI APPS/OP lab reports/server/src/assets/nabl.png'
+  ];
+  for (const candidate of nablCandidates) {
+    try {
+      if (fs.existsSync(candidate)) {
+        const nablBuf = fs.readFileSync(candidate);
+        NABL_DATA_URI = `data:image/png;base64,${nablBuf.toString('base64')}`;
+        console.log(`[ReportGen] Loaded NABL logo from ${candidate} (${nablBuf.length} bytes)`);
+        return NABL_DATA_URI;
+      }
+    } catch (e) {
+      console.warn(`[ReportGen] Could not read NABL logo at ${candidate}:`, e.message);
+    }
+  }
+  return '';
+}
+getNablDataUri();
+
 // Pre-load Noto Sans Tamil font as Base64 Data URI for instant offline Tamil rendering
 let TAMIL_FONT_BASE64 = '';
 try {
@@ -373,10 +401,11 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
   const accentColor = opts.accentColor || '#fbb714';
   const showDisclaimerCard = opts.showDisclaimerCard !== false;
   const showQrCode = opts.showQrCode === true;
-  const disclaimerEn = opts.disclaimerEn || 'This is a digitally generated diagnostic summary for information only and is not a legal document. The signed report issued by the authorised consultant is final and shall prevail. Please consult your treating doctor for interpretation. This WhatsApp copy is not valid for legal, insurance or other claims.';
+  const disclaimerEn = opts.disclaimerEn || 'CONFIDENTIAL MEDICAL DOCUMENT: This diagnostic imaging report and associated clinical impressions are prepared solely for the designated patient and referring medical practitioner. The interpretations are based on radio-pathological imaging findings at the time of examination and must be clinically correlated with patient symptoms, physical examination, laboratory investigations, and clinical history. Not valid for medico-legal purposes unless countersigned by an authorized medical authority.';
   const disclaimerTa = opts.disclaimerTa || 'இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது';
 
   const currentLogo = getLogoDataUri() || LOGO_DATA_URI;
+  const currentNabl = getNablDataUri() || NABL_DATA_URI;
 
   // Modality colors tuned to MAPIMS Crimson & Gold theme
   const modalityColors = {
@@ -624,7 +653,25 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       flex-shrink: 0;
     }
 
-    .badge-nabh {
+    .badge-nabl-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      padding: 2px 6px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+
+    .badge-nabl-img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .badge-nabh,
+    .badge-nabl {
       display: inline-flex;
       align-items: center;
       gap: 4px;
@@ -1241,6 +1288,9 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
         max-width: 100% !important;
         max-height: 100% !important;
       }
+      .badge-nabl-img {
+        height: 32px !important;
+      }
       .report-watermark {
         opacity: 0.032 !important;
         width: 250px !important;
@@ -1394,12 +1444,18 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
           </div>
         </div>
         <div class="header-badges">
-          <div class="badge-nabh">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-            NABH ACCREDITED
-          </div>
+          ${currentNabl ? `
+            <div class="badge-nabl-wrap" title="NABL Accredited">
+              <img src="${currentNabl}" alt="NABL Accredited" class="badge-nabl-img">
+            </div>
+          ` : `
+            <div class="badge-nabl">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              NABL ACCREDITED
+            </div>
+          `}
           <div class="badge-official">Department of Radio-Diagnosis</div>
         </div>
       </div>
@@ -1407,9 +1463,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       <div class="header-sub-bar">
         <div class="sub-bar-item">
           <span>Official Diagnostic Radio-Imaging Center</span>
-        </div>
-        <div class="sub-bar-item">
-          <span>Ref ID: MAPIMS-RAD-${escapeHtml(studyUid)}</span>
         </div>
       </div>
     </header>
@@ -1440,20 +1493,13 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
             <div class="meta-val"><span class="modality-pill">${escapeHtml(data.modality || 'RAD')}</span> &bull; ${escapeHtml(modStyle.label)}</div>
           </div>
           <div class="meta-item">
-            <span class="meta-label">Accession No.</span>
-            <div class="meta-val">${escapeHtml(data.accessionNumber || studyUid)}</div>
-          </div>
-          <div class="meta-item">
             <span class="meta-label">Study Date & Time</span>
             <div class="meta-val">${escapeHtml(data.studyDateTime || '-')}</div>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">E-Signature Completed</span>
-            <div class="meta-val" style="color: #b91c1c; font-weight: 700;">${escapeHtml(data.eSignDate || data.studyDateTime || '-')}</div>
-          </div>
-          <div class="meta-item">
-            <span class="meta-label">Verification Status</span>
-            <div class="meta-val" style="color: #b45309; font-weight: 700;">✅ Verified & Authenticated</div>
+            ${data.eSignDate && data.eSignDate !== data.studyDateTime ? `
+              <div style="font-size: 11px; color: #b91c1c; font-weight: 700; margin-top: 2px;">
+                Verified: ${escapeHtml(data.eSignDate)}
+              </div>
+            ` : ''}
           </div>
         </div>
       </section>
