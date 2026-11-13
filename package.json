@@ -7,6 +7,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "sync:mongo": "node scripts/sync_all_patients.js",
+    "reports:regenerate": "node scripts/regenerate_reports.js",
+    "reports:clean": "node scripts/regenerate_reports.js --clean",
     "push:vps": "python3 scripts/push_to_vps.py",
     "deploy:vps": "python3 scripts/push_to_vps.py"
   },
