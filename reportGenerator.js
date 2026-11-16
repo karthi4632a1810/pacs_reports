@@ -401,6 +401,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
   const accentColor = opts.accentColor || '#fbb714';
   const showDisclaimerCard = opts.showDisclaimerCard !== false;
   const showQrCode = opts.showQrCode === true;
+  const showSignatureSection = opts.showSignatureSection === true;
   const disclaimerEn = opts.disclaimerEn || 'CONFIDENTIAL MEDICAL DOCUMENT: This diagnostic imaging report and associated clinical impressions are prepared solely for the designated patient and referring medical practitioner. The interpretations are based on radio-pathological imaging findings at the time of examination and must be clinically correlated with patient symptoms, physical examination, laboratory investigations, and clinical history. Not valid for medico-legal purposes unless countersigned by an authorized medical authority.';
   const disclaimerTa = opts.disclaimerTa || 'இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது';
 
@@ -1495,11 +1496,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
           <div class="meta-item">
             <span class="meta-label">Study Date & Time</span>
             <div class="meta-val">${escapeHtml(data.studyDateTime || '-')}</div>
-            ${data.eSignDate && data.eSignDate !== data.studyDateTime ? `
-              <div style="font-size: 11px; color: #b91c1c; font-weight: 700; margin-top: 2px;">
-                Verified: ${escapeHtml(data.eSignDate)}
-              </div>
-            ` : ''}
           </div>
         </div>
       </section>
@@ -1507,7 +1503,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       <!-- Examination Banner -->
       <div class="exam-ribbon">
         <div class="exam-title">${escapeHtml(data.reportTitle || data.studyName || 'DIAGNOSTIC RADIOLOGY REPORT')}</div>
-        <div class="exam-modality-desc">${escapeHtml(data.studyName || '')}</div>
       </div>
 
       <!-- Clinical History (if present) -->
@@ -1558,12 +1553,14 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
         </ul>
       </section>
 
+      ${showSignatureSection ? `
       <!-- Signature & Authenticity Block -->
       <section class="signature-section">
         <div class="doctors-wrap">
           ${doctorsHtml}
         </div>
       </section>
+      ` : ''}
 
       ${showDisclaimerCard ? `
       <!-- Bilingual WhatsApp Diagnostic Disclaimer Card -->
