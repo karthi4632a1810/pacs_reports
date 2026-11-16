@@ -401,7 +401,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
   const accentColor = opts.accentColor || '#fbb714';
   const showDisclaimerCard = opts.showDisclaimerCard !== false;
   const showQrCode = opts.showQrCode === true;
-  const showSignatureSection = opts.showSignatureSection === true;
+  const showSignatureSection = opts.showSignatureSection !== false;
   const disclaimerEn = opts.disclaimerEn || 'CONFIDENTIAL MEDICAL DOCUMENT: This diagnostic imaging report and associated clinical impressions are prepared solely for the designated patient and referring medical practitioner. The interpretations are based on radio-pathological imaging findings at the time of examination and must be clinically correlated with patient symptoms, physical examination, laboratory investigations, and clinical history. Not valid for medico-legal purposes unless countersigned by an authorized medical authority.';
   const disclaimerTa = opts.disclaimerTa || 'இது கணினி மூலம் உருவாக்கப்பட்ட பரிசோதனை அறிக்கைச் சுருக்கம்; தகவலுக்காக மட்டுமே வாட்ஸ்அப் மூலம் அனுப்பப்படுகிறது. இது சட்டப்பூர்வ ஆவணம் அல்ல. அங்கீகரிக்கப்பட்ட மருத்துவரால் கையொப்பமிடப்பட்ட அறிக்கையே இறுதியானது. முடிவுகளை உங்கள் சிகிச்சை மருத்துவரிடம் கலந்தாலோசித்து அறிந்து கொள்ளவும். இந்த டிஜிட்டல் பிரதியை சட்ட, காப்பீடு அல்லது வேறு எந்த கோரிக்கைகளுக்கும் பயன்படுத்த இயலாது';
 
@@ -481,12 +481,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
   if (data.radiologists && data.radiologists.length > 0) {
     doctorsHtml = data.radiologists.map(doc => `
       <div class="doctor-seal-card">
-        <div class="doctor-badge">
-          <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          Digitally E-Signed
-        </div>
         <div class="doctor-name">${escapeHtml(doc.name)}</div>
         <div class="doctor-designation">${escapeHtml(doc.designation)}</div>
         ${doc.regNo ? `<div class="doctor-reg">${escapeHtml(doc.regNo)}</div>` : ''}
@@ -495,12 +489,6 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
   } else {
     doctorsHtml = `
       <div class="doctor-seal-card">
-        <div class="doctor-badge">
-          <svg class="verified-icon" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-          </svg>
-          Digitally Verified
-        </div>
         <div class="doctor-name">Department of Radio-Diagnosis</div>
         <div class="doctor-designation">MAPIMS Hospital & Research Institute</div>
       </div>
