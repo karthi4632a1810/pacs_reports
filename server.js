@@ -1336,7 +1336,7 @@ app.get('/api/admin/whatsapp-config', requireAuth(), async (req, res) => {
   }
 });
 
-// Update WhatsApp Admin Configuration (Toggle Test Mode, Fixed Test Number, Test Patient ID, Auto-Retry)
+// Update WhatsApp Admin Configuration (Toggle Test Mode, Fixed Test Number, Test Patient ID, Auto-Retry, Templates, Endpoints)
 app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req, res) => {
   try {
     const {
@@ -1345,14 +1345,20 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
       testPatientId,
       autoRetryEnabled,
       autoRetryIntervalMinutes,
-      maxAutoRetries
+      maxAutoRetries,
+      templateName,
+      apiEndpoint,
+      watiAccessToken,
+      publicUrl,
+      autoSendFinalized
     } = req.body || {};
 
-    if (typeof testMode !== 'boolean' || !fixedTestPhone) {
-      return res.status(400).json({ success: false, error: 'testMode (boolean) and fixedTestPhone (string) are required.' });
+    if (testMode !== undefined && typeof testMode !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'testMode must be a boolean.' });
     }
-    const cleanPhone = String(fixedTestPhone).replace(/[^0-9]/g, '');
-    if (cleanPhone.length < 10) {
+
+    const cleanPhone = fixedTestPhone ? String(fixedTestPhone).replace(/[^0-9]/g, '') : null;
+    if (cleanPhone && cleanPhone.length < 10) {
       return res.status(400).json({ success: false, error: 'Fixed test phone must be at least 10 digits.' });
     }
     const cleanPatientId = testPatientId ? String(testPatientId).trim() : '';
@@ -1363,17 +1369,21 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
     }
 
     const updateDoc = {
-      testMode,
-      fixedTestPhone: cleanPhone,
-      autoRetryEnabled: autoRetryEnabled !== false,
-      autoRetryIntervalMinutes: Math.max(1, parseInt(autoRetryIntervalMinutes, 10) || 15),
-      maxAutoRetries: Math.max(1, parseInt(maxAutoRetries, 10) || 3),
       updatedAt: new Date(),
       updatedBy: req.user?.username || 'admin'
     };
-    if (cleanPatientId) {
-      updateDoc.testPatientId = cleanPatientId;
-    }
+
+    if (testMode !== undefined) updateDoc.testMode = testMode;
+    if (cleanPhone) updateDoc.fixedTestPhone = cleanPhone;
+    if (cleanPatientId) updateDoc.testPatientId = cleanPatientId;
+    if (autoRetryEnabled !== undefined) updateDoc.autoRetryEnabled = Boolean(autoRetryEnabled);
+    if (autoRetryIntervalMinutes !== undefined) updateDoc.autoRetryIntervalMinutes = Math.max(1, parseInt(autoRetryIntervalMinutes, 10) || 15);
+    if (maxAutoRetries !== undefined) updateDoc.maxAutoRetries = Math.max(1, parseInt(maxAutoRetries, 10) || 3);
+    if (templateName) updateDoc.templateName = String(templateName).trim();
+    if (apiEndpoint) updateDoc.apiEndpoint = String(apiEndpoint).trim();
+    if (watiAccessToken) updateDoc.watiAccessToken = String(watiAccessToken).trim();
+    if (publicUrl !== undefined) updateDoc.publicUrl = String(publicUrl).trim();
+    if (autoSendFinalized !== undefined) updateDoc.autoSendFinalized = Boolean(autoSendFinalized);
 
     await db.collection('settings').updateOne(
       { _id: 'whatsapp_config' },
@@ -1381,18 +1391,94 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
       { upsert: true }
     );
 
+    // Also update settingsManager if available
+    try {
+      if (typeof settingsManager !== 'undefined' && settingsManager.updateSettings) {
+        await settingsManager.updateSettings({ whatsapp: updateDoc }, req.user?.username || 'admin');
+      }
+    } catch (e) {}
+
+    const saved = await db.collection('settings').findOne({ _id: 'whatsapp_config' });
+
     res.json({
       success: true,
       message: 'WhatsApp configuration updated successfully',
-      config: {
-        testMode,
-        fixedTestPhone: cleanPhone,
-        testPatientId: cleanPatientId || undefined,
-        autoRetryEnabled: updateDoc.autoRetryEnabled,
-        autoRetryIntervalMinutes: updateDoc.autoRetryIntervalMinutes,
-        maxAutoRetries: updateDoc.maxAutoRetries
-      }
+      config: saved
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Fetch approved WhatsApp templates from WATI API
+app.get('/api/admin/wati-templates', requireAuth(), async (req, res) => {
+  try {
+    const db = await connectDB().catch(() => null);
+    let endpoint = process.env.API_ENDPOINT || 'https://live-mt-server.wati.io/10190409';
+    let token = process.env.WATI_ACCESS_TOKEN || '';
+    if (db) {
+      const saved = await db.collection('settings').findOne({ _id: 'whatsapp_config' });
+      if (saved?.apiEndpoint) endpoint = saved.apiEndpoint;
+      if (saved?.watiAccessToken) token = saved.watiAccessToken;
+    }
+    if (!token) {
+      return res.json({
+        success: true,
+        templates: [
+          { elementName: 'pacs_reports_new', status: 'APPROVED', category: 'UTILITY' },
+          { elementName: 'pacs_report', status: 'APPROVED', category: 'UTILITY' }
+        ]
+      });
+    }
+    const cleanEndpoint = endpoint.replace(/\/+$/, '');
+    const https = require('https');
+    const targetUrl = new URL(`${cleanEndpoint}/api/v1/getMessageTemplates`);
+    const options = {
+      hostname: targetUrl.hostname,
+      path: targetUrl.pathname + targetUrl.search,
+      method: 'GET',
+      headers: {
+        'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`
+      }
+    };
+    const watiReq = https.request(options, (watiRes) => {
+      let data = '';
+      watiRes.on('data', chunk => data += chunk);
+      watiRes.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const list = json?.messageTemplates || json || [];
+          const approved = list.filter(t => t.status === 'APPROVED');
+          res.json({ success: true, templates: approved.length > 0 ? approved : list });
+        } catch (e) {
+          res.json({
+            success: true,
+            templates: [{ elementName: 'pacs_reports_new', status: 'APPROVED', category: 'UTILITY' }]
+          });
+        }
+      });
+    });
+    watiReq.on('error', () => {
+      res.json({
+        success: true,
+        templates: [{ elementName: 'pacs_reports_new', status: 'APPROVED', category: 'UTILITY' }]
+      });
+    });
+    watiReq.setTimeout(5000, () => { watiReq.destroy(); });
+    watiReq.end();
+  } catch (err) {
+    res.json({
+      success: true,
+      templates: [{ elementName: 'pacs_reports_new', status: 'APPROVED', category: 'UTILITY' }]
+    });
+  }
+});
+
+// Run auto-retry worker on demand
+app.post('/api/whatsapp/run-auto-retry', requireAuth('canViewReports'), async (req, res) => {
+  try {
+    await runAutoRetryWorker();
+    res.json({ success: true, message: 'Auto-retry background worker executed successfully.' });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -2241,18 +2327,22 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
         end.setDate(end.getDate() - 1);
         end.setHours(23, 59, 59, 999);
         query.dispatchedAt = { $gte: start, $lte: end };
-      } else if (dateRange === '7days') {
+      } else if (dateRange === '7days' || dateRange === 'last7days') {
         start.setDate(start.getDate() - 7);
         start.setHours(0, 0, 0, 0);
         query.dispatchedAt = { $gte: start };
-      } else if (dateRange === '30days') {
+      } else if (dateRange === '30days' || dateRange === '1month' || dateRange === 'last1month') {
         start.setDate(start.getDate() - 30);
         start.setHours(0, 0, 0, 0);
         query.dispatchedAt = { $gte: start };
       } else if (dateRange === 'thisMonth') {
         start = new Date(now.getFullYear(), now.getMonth(), 1);
         query.dispatchedAt = { $gte: start };
-      } else if (dateRange === 'custom') {
+      } else if (dateRange === '1year' || dateRange === '365days' || dateRange === 'last1year') {
+        start.setDate(start.getDate() - 365);
+        start.setHours(0, 0, 0, 0);
+        query.dispatchedAt = { $gte: start };
+      } else if (dateRange === 'custom' || (startDate && endDate)) {
         const dateFilter = {};
         if (startDate) {
           const s = new Date(startDate);
@@ -2267,6 +2357,21 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
         if (Object.keys(dateFilter).length > 0) {
           query.dispatchedAt = dateFilter;
         }
+      }
+    } else if (startDate || endDate) {
+      const dateFilter = {};
+      if (startDate) {
+        const s = new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        if (!isNaN(s.getTime())) dateFilter.$gte = s;
+      }
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        if (!isNaN(e.getTime())) dateFilter.$lte = e;
+      }
+      if (Object.keys(dateFilter).length > 0) {
+        query.dispatchedAt = dateFilter;
       }
     }
 
@@ -2308,17 +2413,28 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
         deliveredAt: 1,
         readAt: 1,
         testMode: 1,
-        retryCount: 1
+        retryCount: 1,
+        lastError: 1,
+        messageId: 1,
+        patientId: 1,
+        patientName: 1,
+        studyUid: 1,
+        studyName: 1,
+        studyDate: 1,
+        phone: 1,
+        originalPhone: 1
       })
       .toArray();
 
-    // Calculate status breakdown from all matching logs
+    // Calculate status breakdown & patient metrics from all matching logs
     let sentCount = 0;
     let deliveredCount = 0;
     let readCount = 0;
     let failedCount = 0;
     let testCount = 0;
     let liveCount = 0;
+
+    const patientMap = new Map();
 
     // Modality breakdown map
     const modalityMap = {};
@@ -2345,6 +2461,46 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
 
       if (item.testMode) testCount++;
       else liveCount++;
+
+      // Track unique patients & their test counts
+      const pKey = String(item.patientId || item.phone || 'UNKNOWN').trim();
+      if (!patientMap.has(pKey)) {
+        patientMap.set(pKey, {
+          patientId: item.patientId || '',
+          patientName: item.patientName || 'Patient',
+          phone: item.phone || '',
+          testsCount: 0,
+          modalities: new Set(),
+          tests: [],
+          lastDispatchedAt: null
+        });
+      }
+      const pData = patientMap.get(pKey);
+      pData.testsCount++;
+      if (item.modality) pData.modalities.add(item.modality.toUpperCase().trim());
+      if ((!pData.patientName || pData.patientName === 'Patient') && item.patientName) {
+        pData.patientName = item.patientName;
+      }
+      if (!pData.phone && item.phone) pData.phone = item.phone;
+      if (!pData.lastDispatchedAt || (item.dispatchedAt && new Date(item.dispatchedAt) > new Date(pData.lastDispatchedAt))) {
+        pData.lastDispatchedAt = item.dispatchedAt;
+      }
+      pData.tests.push({
+        _id: String(item._id || item.messageId),
+        messageId: item.messageId || '',
+        studyUid: item.studyUid || '',
+        studyName: item.studyName || 'Diagnostic Examination',
+        studyDate: item.studyDate || '',
+        modality: (item.modality || 'DOC').toUpperCase(),
+        status: st,
+        dispatchedAt: item.dispatchedAt,
+        deliveredAt: item.deliveredAt,
+        readAt: item.readAt,
+        testMode: !!item.testMode,
+        phone: item.phone || '',
+        retryCount: item.retryCount || 0,
+        lastError: item.lastError || ''
+      });
 
       // Modality
       const mod = (item.modality || 'OTHER').toUpperCase().trim();
@@ -2400,9 +2556,34 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
     const isTestMode = configDoc?.testMode !== false;
 
     const totalMatching = allMatchingLogs.length;
+    const totalPatients = patientMap.size;
+    const totalTests = totalMatching;
     const successfulDelivery = deliveredCount + readCount;
     const deliveryRate = totalMatching > 0 ? Math.round((successfulDelivery / totalMatching) * 100) : 100;
     const readRate = totalMatching > 0 ? Math.round((readCount / totalMatching) * 100) : 0;
+
+    // Generate patient list with overall status and test groupings
+    const patientList = Array.from(patientMap.values()).map(p => {
+      let overallStatus = 'READ';
+      const hasFailed = p.tests.some(t => t.status === 'FAILED');
+      const hasSent = p.tests.some(t => t.status === 'SENT');
+      const hasDelivered = p.tests.some(t => t.status === 'DELIVERED');
+      if (hasFailed) overallStatus = 'FAILED';
+      else if (hasSent) overallStatus = 'SENT';
+      else if (hasDelivered) overallStatus = 'DELIVERED';
+      else overallStatus = 'READ';
+
+      return {
+        patientId: p.patientId,
+        patientName: p.patientName,
+        phone: p.phone,
+        testsCount: p.testsCount,
+        modalities: Array.from(p.modalities),
+        overallStatus,
+        lastDispatchedAt: p.lastDispatchedAt,
+        tests: p.tests.sort((a, b) => new Date(b.dispatchedAt || 0) - new Date(a.dispatchedAt || 0))
+      };
+    }).sort((a, b) => new Date(b.lastDispatchedAt || 0) - new Date(a.lastDispatchedAt || 0));
 
     res.json({
       success: true,
@@ -2413,6 +2594,8 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
       totalPages: isExportAll ? 1 : Math.ceil(totalCount / limitNum) || 1,
       stats: {
         total: totalMatching,
+        totalTests,
+        totalPatients,
         delivered: deliveredCount,
         read: readCount,
         sent: sentCount,
@@ -2427,7 +2610,9 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
         autoRetryEnabled: configDoc?.autoRetryEnabled !== false,
         autoRetryIntervalMinutes: parseInt(configDoc?.autoRetryIntervalMinutes, 10) || 15,
         maxAutoRetries: parseInt(configDoc?.maxAutoRetries, 10) || 3,
-        publicUrl: publicReportBaseUrl || configDoc?.publicUrl || ''
+        publicUrl: publicReportBaseUrl || configDoc?.publicUrl || '',
+        templateName: configDoc?.templateName || process.env.WATI_TEMPLATE_ID || 'pacs_reports_new',
+        autoSendFinalized: configDoc?.autoSendFinalized !== false
       },
       analytics: {
         statusBreakdown: {
@@ -2435,6 +2620,12 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
           delivered: deliveredCount,
           read: readCount,
           failed: failedCount
+        },
+        patientBreakdown: {
+          totalPatients,
+          totalTests,
+          avgTestsPerPatient: totalPatients > 0 ? (totalTests / totalPatients).toFixed(1) : '1.0',
+          patients: patientList
         },
         modalityBreakdown,
         timeline,

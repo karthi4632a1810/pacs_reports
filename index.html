@@ -2707,6 +2707,129 @@
       box-shadow: 0 1px 4px rgba(2, 132, 199, 0.4);
     }
 
+    /* WhatsApp Date Range Presets Pills */
+    .wm-date-pill {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-dim);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .wm-date-pill:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .wm-date-pill.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    /* WhatsApp 3-Way View Switcher Tabs */
+    .wm-view-tab {
+      background: transparent;
+      color: var(--text-dim);
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .wm-view-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .wm-view-tab.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+    .wm-view-tab.active .wm-tab-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    /* WhatsApp Patient Group View & Accordion */
+    .wm-patient-group-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .wm-patient-group-card:hover {
+      border-color: rgba(56, 189, 248, 0.35);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .wm-patient-header {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      background: rgba(0, 0, 0, 0.1);
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+    .wm-patient-header:hover {
+      background: rgba(56, 189, 248, 0.05);
+    }
+    .wm-patient-tests-drawer {
+      border-top: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .wm-nested-tests-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .wm-nested-tests-table th {
+      padding: 9px 14px;
+      text-align: left;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .wm-nested-tests-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* WhatsApp Settings Modal Tabs */
+    .wm-settings-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .wm-settings-tab-btn:hover {
+      color: var(--text-main);
+    }
+    .wm-settings-tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+    }
+
     /* WhatsApp Visual Status Progression Pipeline */
     .pipeline-stepper {
       display: inline-flex;
@@ -4315,6 +4438,31 @@
         </div>
       </div>
 
+      <!-- Top Date Presets Bar -->
+      <div class="wm-date-presets-bar" style="margin-bottom: 16px; padding: 12px 18px; border-radius: var(--radius-md); background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span style="font-size: 11.5px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px; margin-right: 4px;">
+            <span>📅</span> <span>Date Filter:</span>
+          </span>
+          <button class="wm-date-pill active" id="wmPresetAll" onclick="selectWmDatePreset('all', this)">All Time</button>
+          <button class="wm-date-pill" id="wmPresetToday" onclick="selectWmDatePreset('today', this)">Today</button>
+          <button class="wm-date-pill" id="wmPresetYesterday" onclick="selectWmDatePreset('yesterday', this)">Yesterday</button>
+          <button class="wm-date-pill" id="wmPreset7Days" onclick="selectWmDatePreset('7days', this)">Last 7 Days</button>
+          <button class="wm-date-pill" id="wmPreset1Month" onclick="selectWmDatePreset('1month', this)">Last 1 Month</button>
+          <button class="wm-date-pill" id="wmPreset1Year" onclick="selectWmDatePreset('1year', this)">Last 1 Year</button>
+          <button class="wm-date-pill" id="wmPresetCustom" onclick="selectWmDatePreset('custom', this)">📅 Custom Range</button>
+        </div>
+
+        <!-- Inline Custom Date Range Pickers -->
+        <div id="wmTopCustomDateRow" style="display: none; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 11.5px; font-weight: 600; color: var(--text-dim);">From:</span>
+          <input type="date" id="wmTopStartDateInput" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 11.5px;">
+          <span style="font-size: 11.5px; font-weight: 600; color: var(--text-dim);">To:</span>
+          <input type="date" id="wmTopEndDateInput" style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 11.5px;">
+          <button class="btn btn-primary" onclick="applyWmTopCustomDate()" style="padding: 5px 12px; font-size: 11.5px; font-weight: 600;">Apply Range</button>
+        </div>
+      </div>
+
       <!-- Top Visual Graphics & 3D Chart Analytics Dashboard -->
       <div id="wmAnalyticsPanel" style="margin-bottom: 20px;">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
@@ -4376,28 +4524,44 @@
         </div>
       </div>
 
-      <!-- WhatsApp KPI Metric Cards -->
-      <div class="analytics-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 16px;">
-        <div class="analytics-card" style="border-left: 3px solid #38bdf8;">
-          <div class="a-card-title">Total Dispatched</div>
-          <div class="a-card-val" id="wmKpiTotal" style="color: var(--text-main);">0</div>
-          <div class="a-card-sub" id="wmKpiTotalSub">All patient notifications</div>
+      <!-- WhatsApp KPI Metric Cards (6-Card Analytics Grid) -->
+      <div class="analytics-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 16px;">
+        <!-- Card 1: Total Patients -->
+        <div class="analytics-card" style="border-left: 3px solid #818cf8;">
+          <div class="a-card-title">Total Patients</div>
+          <div class="a-card-val" id="wmKpiPatients" style="color: #a5b4fc;">0</div>
+          <div class="a-card-sub" id="wmKpiPatientsSub">Unique UHID / Patient records</div>
         </div>
+
+        <!-- Card 2: Total Tests -->
+        <div class="analytics-card" style="border-left: 3px solid #38bdf8;">
+          <div class="a-card-title">Total Tests Performed</div>
+          <div class="a-card-val" id="wmKpiTotal" style="color: var(--text-main);">0</div>
+          <div class="a-card-sub" id="wmKpiTotalSub">CT, MR, CR, DX, US examinations</div>
+        </div>
+
+        <!-- Card 3: WhatsApp Sent -->
+        <div class="analytics-card" style="border-left: 3px solid #f59e0b;">
+          <div class="a-card-title">WhatsApp Sent (✓)</div>
+          <div class="a-card-val" id="wmKpiSent" style="color: #fbbf24;">0</div>
+          <div class="a-card-sub" id="wmKpiSentSub">In transit / awaiting device delivery</div>
+        </div>
+
+        <!-- Card 4: WhatsApp Delivered -->
         <div class="analytics-card" style="border-left: 3px solid #10b981;">
-          <div class="a-card-title">Delivered (✓✓)</div>
+          <div class="a-card-title">WhatsApp Delivered (✓✓)</div>
           <div class="a-card-val" id="wmKpiDelivered" style="color: #34d399;">0</div>
           <div class="a-card-sub" id="wmKpiDeliveredRate">0% delivery rate</div>
         </div>
+
+        <!-- Card 5: WhatsApp Read -->
         <div class="analytics-card" style="border-left: 3px solid #06b6d4;">
-          <div class="a-card-title">Read / Opened (👁️)</div>
+          <div class="a-card-title">WhatsApp Read (👁️)</div>
           <div class="a-card-val" id="wmKpiRead" style="color: #22d3ee;">0</div>
           <div class="a-card-sub" id="wmKpiReadRate">0% read confirmation</div>
         </div>
-        <div class="analytics-card" style="border-left: 3px solid #f59e0b;">
-          <div class="a-card-title">In Transit / Sent (✓)</div>
-          <div class="a-card-val" id="wmKpiSent" style="color: #fbbf24;">0</div>
-          <div class="a-card-sub">Awaiting device delivery</div>
-        </div>
+
+        <!-- Card 6: Failed / Blocked -->
         <div class="analytics-card" style="border-left: 3px solid #ef4444;">
           <div class="a-card-title">Failed / Blocked</div>
           <div class="a-card-val" id="wmKpiFailed" style="color: #f87171;">0</div>
@@ -4405,91 +4569,83 @@
         </div>
       </div>
 
-      <!-- Advanced Multi-Dimension Filter Bar -->
-      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;">
-        <!-- Filter Row 1: Search, Status Pills, Modality, Date Preset, Route Mode -->
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+      <!-- 3-Way Segmented View Switcher & Filter Toolbar -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 18px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <!-- 3-Way View Tabs -->
+          <div class="wm-view-switcher" style="display: inline-flex; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color); gap: 4px;">
+            <button class="wm-view-tab active" id="wmTabTests" onclick="setWmViewMode('tests')">
+              <span>📋</span> <span>Test-wise View</span>
+              <span class="wm-tab-badge" id="wmTabBadgeTests">0</span>
+            </button>
+            <button class="wm-view-tab" id="wmTabPatients" onclick="setWmViewMode('patients')">
+              <span>👤</span> <span>Patient-wise View</span>
+              <span class="wm-tab-badge" id="wmTabBadgePatients">0</span>
+            </button>
+            <button class="wm-view-tab" id="wmTabGroups" onclick="setWmViewMode('groups')">
+              <span>🗂️</span> <span>Patient Group with All Tests</span>
+              <span class="wm-tab-badge" id="wmTabBadgeGroups">0</span>
+            </button>
+          </div>
+
+          <!-- Quick Filters: Status Pills & Mode Dropdown -->
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <!-- Status Filter Pills -->
+            <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.25); padding: 3px; border-radius: 6px; border: 1px solid var(--border-color);">
+              <button class="wm-filter-pill active" onclick="setWmStatusFilter('ALL', this)">All</button>
+              <button class="wm-filter-pill" onclick="setWmStatusFilter('SENT', this)">Sent</button>
+              <button class="wm-filter-pill" onclick="setWmStatusFilter('DELIVERED', this)">Delivered</button>
+              <button class="wm-filter-pill" onclick="setWmStatusFilter('READ', this)">Read</button>
+              <button class="wm-filter-pill" onclick="setWmStatusFilter('FAILED', this)">Failed</button>
+            </div>
+
+            <!-- Modality Filter Dropdown -->
+            <select id="wmModalityFilterSelect" onchange="setWmModalityFilter(this.value)" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; font-size: 12px;">
+              <option value="ALL">All Modalities</option>
+              <option value="CT">CT - Computed Tomography</option>
+              <option value="MR">MR - Magnetic Resonance</option>
+              <option value="CR">CR - Computed Radiography</option>
+              <option value="DX">DX - Digital Radiography</option>
+              <option value="US">US - Ultrasound</option>
+              <option value="OT">OT - Other</option>
+            </select>
+
+            <!-- Mode Filter Dropdown -->
+            <select id="wmModeFilterSelect" onchange="setWmModeFilter(this.value)" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; font-size: 12px;">
+              <option value="ALL">All Modes</option>
+              <option value="TEST">🧪 Test Route</option>
+              <option value="LIVE">🚀 Live Patient</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Filter Sub-row: Search Bar & Bulk Row Selection -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
           <!-- Universal Search Input -->
           <div style="position: relative; flex: 1; min-width: 260px; max-width: 440px;">
             <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-dim);" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="wmSearchInput" oninput="handleWmSearchInput(this.value)" placeholder="Search Patient ID, Name, Mobile (+91...), Study UID..." style="width: 100%; box-sizing: border-box; padding: 7px 12px 7px 32px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 12.5px;">
           </div>
 
-          <!-- Status Filter Pills -->
-          <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.25); padding: 3px; border-radius: 6px; border: 1px solid var(--border-color);">
-            <button class="wm-filter-pill active" onclick="setWmStatusFilter('ALL', this)">All</button>
-            <button class="wm-filter-pill" onclick="setWmStatusFilter('SENT', this)">Sent</button>
-            <button class="wm-filter-pill" onclick="setWmStatusFilter('DELIVERED', this)">Delivered</button>
-            <button class="wm-filter-pill" onclick="setWmStatusFilter('READ', this)">Read</button>
-            <button class="wm-filter-pill" onclick="setWmStatusFilter('FAILED', this)">Failed</button>
-          </div>
-
-          <!-- Modality Filter Dropdown -->
-          <select id="wmModalityFilterSelect" onchange="setWmModalityFilter(this.value)" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; font-size: 12px;">
-            <option value="ALL">All Modalities</option>
-            <option value="CT">CT - Computed Tomography</option>
-            <option value="MR">MR - Magnetic Resonance</option>
-            <option value="CR">CR - Computed Radiography</option>
-            <option value="DX">DX - Digital Radiography</option>
-            <option value="US">US - Ultrasound</option>
-            <option value="OT">OT - Other</option>
-          </select>
-
-          <!-- Date Preset Dropdown -->
-          <select id="wmDateFilterSelect" onchange="setWmDateFilter(this.value)" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; font-size: 12px;">
-            <option value="all">All Dates</option>
-            <option value="today">Today</option>
-            <option value="yesterday">Yesterday</option>
-            <option value="7days">Last 7 Days</option>
-            <option value="30days">Last 30 Days</option>
-            <option value="thisMonth">This Month</option>
-            <option value="custom">📅 Custom Date Range...</option>
-          </select>
-
-          <!-- Mode Filter Dropdown -->
-          <select id="wmModeFilterSelect" onchange="setWmModeFilter(this.value)" style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 6px 10px; font-size: 12px;">
-            <option value="ALL">All Modes</option>
-            <option value="TEST">🧪 Test Route Only</option>
-            <option value="LIVE">🚀 Live Patient Direct</option>
-          </select>
-        </div>
-
-        <!-- Filter Row 2: Custom Date Pickers & Bulk Range Selector -->
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.05);">
-          <!-- Custom Date Range Inputs (Conditionally visible) -->
-          <div id="wmCustomDateRow" style="display: none; align-items: center; gap: 8px;">
-            <span style="font-size: 11.5px; font-weight: 600; color: var(--text-dim);">From:</span>
-            <input type="date" id="wmStartDateInput" onchange="applyWmCustomDate()" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 11.5px;">
-            <span style="font-size: 11.5px; font-weight: 600; color: var(--text-dim);">To:</span>
-            <input type="date" id="wmEndDateInput" onchange="applyWmCustomDate()" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 11.5px;">
-            <button class="btn btn-secondary" onclick="applyWmCustomDate()" style="padding: 4px 8px; font-size: 11px;">Apply Date</button>
-          </div>
-
-          <!-- Bulk Selection by Range Input (e.g. 1-10, 31-46) -->
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- Bulk Selection by Range Input (only for test-wise view) -->
+          <div id="wmRangeSelectWrap" style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 11.5px; font-weight: 600; color: var(--text-dim); display: flex; align-items: center; gap: 4px;">
               <span>☑️</span> <span>Select Rows:</span>
             </span>
-            <input type="text" id="wmRangeInput" placeholder="e.g. 1-10, 15, 20-30" style="width: 170px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 11.5px; font-family: 'JetBrains Mono', monospace;" onkeydown="if(event.key==='Enter') applyWmRangeSelection()">
-            <button class="btn btn-secondary" onclick="applyWmRangeSelection()" style="padding: 4px 10px; font-size: 11.5px;" title="Parse and select specified rows">
-              Apply
-            </button>
-            <button class="btn btn-secondary" onclick="clearWmSelection()" style="padding: 4px 8px; font-size: 11.5px; color: var(--text-muted);" title="Clear selected rows">
-              Reset
-            </button>
+            <input type="text" id="wmRangeInput" placeholder="e.g. 1-10, 15, 20-30" style="width: 160px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 11.5px; font-family: 'JetBrains Mono', monospace;" onkeydown="if(event.key==='Enter') applyWmRangeSelection()">
+            <button class="btn btn-secondary" onclick="applyWmRangeSelection()" style="padding: 4px 10px; font-size: 11.5px;" title="Select specified rows">Apply</button>
+            <button class="btn btn-secondary" onclick="clearWmSelection()" style="padding: 4px 8px; font-size: 11.5px; color: var(--text-muted);" title="Reset row selection">Reset</button>
           </div>
 
-          <!-- Reset All Filters Button -->
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <button class="btn btn-secondary" onclick="resetWmFilters()" style="padding: 4px 10px; font-size: 11.5px; color: var(--text-muted);">
-              🔄 Reset Filters
-            </button>
-          </div>
+          <!-- Reset Filters Button -->
+          <button class="btn btn-secondary" onclick="resetWmFilters()" style="padding: 4px 10px; font-size: 11.5px; color: var(--text-muted);">
+            🔄 Reset Filters
+          </button>
         </div>
       </div>
 
-      <!-- Main Dispatches Table Container -->
-      <div class="table-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; position: relative;">
+      <!-- VIEW CONTAINER 1: Test-wise Dispatches Table -->
+      <div id="wmViewTestsContainer" class="table-container" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; position: relative;">
         <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
           <thead>
             <tr style="background: rgba(0, 0, 0, 0.25); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -4521,6 +4677,45 @@
             <span id="wmCurrentPageNum" style="padding: 4px 10px; font-size: 11.5px; color: var(--text-main); font-weight: 600;">Page 1</span>
             <button class="btn btn-secondary" id="btnWmNextPage" onclick="changeWmPage(1)" style="padding: 4px 10px; font-size: 11.5px;">Next</button>
           </div>
+        </div>
+      </div>
+
+      <!-- VIEW CONTAINER 2: Patient-wise Aggregated Table -->
+      <div id="wmViewPatientsContainer" class="table-container" style="display: none; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; position: relative;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left;">
+          <thead>
+            <tr style="background: rgba(0, 0, 0, 0.25); border-bottom: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <th style="width: 40px; text-align: center; padding: 12px 8px;">#</th>
+              <th style="padding: 12px 14px;">Patient Details (UHID)</th>
+              <th style="padding: 12px 14px;">Recipient Mobile</th>
+              <th style="padding: 12px 14px;">Total Tests Performed</th>
+              <th style="padding: 12px 14px;">Overall WhatsApp Status</th>
+              <th style="padding: 12px 14px;">Last Activity Date</th>
+              <th style="padding: 12px 14px; text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wmPatientTableBody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+        <div style="padding: 10px 16px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.15); font-size: 11.5px; color: var(--text-muted);" id="wmPatientPaginationInfo">
+          Showing 0 patients
+        </div>
+      </div>
+
+      <!-- VIEW CONTAINER 3: Patient Group with All Tests (Accordion Cards) -->
+      <div id="wmViewGroupsContainer" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 6px 12px; background: rgba(0,0,0,0.15); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <div style="font-size: 12px; color: var(--text-muted);">
+            Displaying each patient with all associated imaging studies, modality breakdown, and per-test WhatsApp progression.
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" onclick="expandAllPatientGroups(true)" style="padding: 3px 8px; font-size: 11px;">Expand All</button>
+            <button class="btn btn-secondary" onclick="expandAllPatientGroups(false)" style="padding: 3px 8px; font-size: 11px;">Collapse All</button>
+          </div>
+        </div>
+        <div id="wmGroupsListContainer">
+          <!-- Accordion cards populated dynamically -->
         </div>
       </div>
 
@@ -5773,143 +5968,228 @@
     </div>
   </div>
 
-  <!-- WhatsApp Business (WATI) & Test Mode Admin Modal -->
+  <!-- WhatsApp Business (WATI) & Advanced Settings Control Modal -->
   <div class="modal-overlay" id="whatsappModal" onclick="closeWhatsAppModalOnOverlay(event)">
-    <div class="modal-card" style="max-width: 680px;">
+    <div class="modal-card" style="max-width: 740px; max-height: 90vh; display: flex; flex-direction: column;">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 24px;">📲</span>
+          <span style="font-size: 24px;">⚙️</span>
           <div>
-            <h3>WhatsApp Gateway &amp; Test Mode Control</h3>
-            <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">WATI Business API &bull; Sandbox Routing &bull; Strict Final PDF Guard</p>
+            <h3>WhatsApp Gateway &amp; Advanced Settings Control</h3>
+            <p style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">WATI Business API &bull; Dynamic Templates &bull; Auto-Retry Worker &bull; Strict Final PDF Guard</p>
           </div>
         </div>
         <button class="btn-icon" onclick="closeWhatsAppModal()">&times;</button>
       </div>
-      <div class="modal-body">
-        <!-- Test Mode Banner / Switcher -->
-        <div id="whatsappModeBanner" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35);">
-          <div style="flex: 1; padding-right: 12px;">
-            <div style="font-weight: 700; color: #fbbf24; font-size: 13px; display: flex; align-items: center; gap: 8px;">
-              <span id="whatsappModeIcon">🧪</span>
-              <span id="whatsappModeTitle">TEST MODE ACTIVE (SAFE SANDBOX)</span>
-            </div>
-            <div id="whatsappModeDesc" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
-              All report notifications are safely diverted to the <strong>Fixed Test Number</strong> configured below. Real patients will never receive any messages while Test Mode is ON.
-            </div>
-          </div>
-          <div style="display: flex; gap: 6px; align-items: center;">
-            <button id="btnModeTest" onclick="setWhatsAppMode(true)" class="btn btn-secondary" style="padding: 7px 12px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-              <span>🧪</span> Test Mode
-            </button>
-            <button id="btnModeLive" onclick="setWhatsAppMode(false)" class="btn btn-secondary" style="padding: 7px 12px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-              <span>🚀</span> Live Mode
-            </button>
-          </div>
-        </div>
 
-        <!-- Configuration Settings Grid -->
-        <div class="meta-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div class="meta-item">
-            <div class="meta-title">Fixed Test WhatsApp Mobile Number</div>
-            <div style="margin-top: 6px;">
-              <input type="text" id="adminFixedTestPhone" placeholder="e.g. 7200504251" style="width: 100%; box-sizing: border-box; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 13px;">
-            </div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Destination mobile number for all test dispatches.</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-title">Test Patient ID (Real Final PDF)</div>
-            <div style="margin-top: 6px;">
-              <input type="text" id="adminTestPatientId" placeholder="e.g. 4867768" style="width: 100%; box-sizing: border-box; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 13px;">
-            </div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Patient whose finalized PDF report will be verified and sent.</div>
-          </div>
-        </div>
+      <!-- Settings Navigation Subtabs -->
+      <div style="display: flex; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.15); padding: 0 16px;">
+        <button class="wm-settings-tab-btn active" id="wmSetTabRoutingBtn" onclick="switchWmSettingsTab('routing')">
+          🧪 Safe Mode &amp; Routing
+        </button>
+        <button class="wm-settings-tab-btn" id="wmSetTabRetryBtn" onclick="switchWmSettingsTab('retry')">
+          🔄 Auto-Retry Engine
+        </button>
+        <button class="wm-settings-tab-btn" id="wmSetTabWatiBtn" onclick="switchWmSettingsTab('wati')">
+          🔑 WATI &amp; Templates
+        </button>
+        <button class="wm-settings-tab-btn" id="wmSetTabTestBtn" onclick="switchWmSettingsTab('test')">
+          ⚡ Receipts &amp; Test Dispatch
+        </button>
+      </div>
 
-        <!-- Automated Retry Background Engine Settings -->
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div style="font-size: 12px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
-              <span>🔄 Automatic Retry Engine (Background Worker):</span>
+      <div class="modal-body" style="overflow-y: auto; padding: 18px 22px;">
+        <!-- TAB 1: Safe Mode & Routing -->
+        <div id="wmSetTabRouting" style="display: block;">
+          <!-- Test Mode Banner / Switcher -->
+          <div id="whatsappModeBanner" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: var(--radius-sm); margin-bottom: 16px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35);">
+            <div style="flex: 1; padding-right: 12px;">
+              <div style="font-weight: 700; color: #fbbf24; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                <span id="whatsappModeIcon">🧪</span>
+                <span id="whatsappModeTitle">TEST MODE ACTIVE (SAFE SANDBOX)</span>
+              </div>
+              <div id="whatsappModeDesc" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+                All report notifications are safely diverted to the <strong>Fixed Test Number</strong> configured below. Real patients will never receive any messages while Test Mode is ON.
+              </div>
             </div>
-            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer; color: #34d399;">
-              <input type="checkbox" id="adminAutoRetryEnabled" checked style="cursor: pointer; accent-color: #10b981;">
-              <span>Auto-Retry Enabled</span>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button id="btnModeTest" onclick="setWhatsAppMode(true)" class="btn btn-secondary" style="padding: 7px 12px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <span>🧪</span> Test Mode
+              </button>
+              <button id="btnModeLive" onclick="setWhatsAppMode(false)" class="btn btn-secondary" style="padding: 7px 12px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <span>🚀</span> Live Mode
+              </button>
+            </div>
+          </div>
+
+          <div class="meta-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+            <div class="meta-item">
+              <div class="meta-title">Fixed Safe Test WhatsApp Mobile Number</div>
+              <div style="margin-top: 6px;">
+                <input type="text" id="adminFixedTestPhone" placeholder="e.g. 9498094815" style="width: 100%; box-sizing: border-box; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Destination phone number receiving all test alerts in sandbox.</div>
+            </div>
+            <div class="meta-item">
+              <div class="meta-title">Default Test Patient ID (Real Final PDF)</div>
+              <div style="margin-top: 6px;">
+                <input type="text" id="adminTestPatientId" placeholder="e.g. 5038408" style="width: 100%; box-sizing: border-box; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 13px;">
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Patient whose finalized PDF report will be verified and dispatched.</div>
+            </div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 14px; margin-bottom: 14px;">
+            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <div>
+                <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main);">Auto-Send Finalized Reports to WhatsApp</div>
+                <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 2px;">When checked, finalized radiology reports approved by doctors are automatically dispatched via WhatsApp.</div>
+              </div>
+              <input type="checkbox" id="adminAutoSendFinalized" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
             </label>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
+        </div>
+
+        <!-- TAB 2: Auto-Retry Engine -->
+        <div id="wmSetTabRetry" style="display: none;">
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div style="font-size: 13px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                <span>🔄 Background Auto-Retry Engine:</span>
+              </div>
+              <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; cursor: pointer; color: #34d399;">
+                <input type="checkbox" id="adminAutoRetryEnabled" checked style="cursor: pointer; accent-color: #10b981;">
+                <span>Auto-Retry Active</span>
+              </label>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+              <div>
+                <span style="color: var(--text-dim); font-size: 11px;">Retry Scan Interval:</span>
+                <select id="adminAutoRetryInterval" style="width: 100%; margin-top: 4px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px 8px; color: var(--text-main); font-size: 12px;">
+                  <option value="5">Every 5 Minutes</option>
+                  <option value="10">Every 10 Minutes</option>
+                  <option value="15" selected>Every 15 Minutes</option>
+                  <option value="30">Every 30 Minutes</option>
+                  <option value="60">Every 1 Hour</option>
+                </select>
+              </div>
+              <div>
+                <span style="color: var(--text-dim); font-size: 11px;">Max Retries per Failed Report:</span>
+                <select id="adminMaxAutoRetries" style="width: 100%; margin-top: 4px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; padding: 6px 8px; color: var(--text-main); font-size: 12px;">
+                  <option value="1">1 Attempt</option>
+                  <option value="2">2 Attempts</option>
+                  <option value="3" selected>3 Attempts (Standard)</option>
+                  <option value="5">5 Attempts (Aggressive)</option>
+                </select>
+              </div>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 10px; line-height: 1.5;">
+              Automatically scans for failed or undelivered dispatches, re-verifies the <code>Final_*.pdf</code> from PACS storage, refreshes authentication tokens, and re-dispatches with exponential backoff.
+            </div>
+          </div>
+
+          <!-- Manual Trigger Worker Button -->
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <span style="color: var(--text-dim); font-size: 11px;">Retry Scan Interval:</span>
-              <select id="adminAutoRetryInterval" style="width: 100%; margin-top: 4px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 12px;">
-                <option value="5">Every 5 Minutes</option>
-                <option value="10">Every 10 Minutes</option>
-                <option value="15" selected>Every 15 Minutes</option>
-                <option value="30">Every 30 Minutes</option>
-                <option value="60">Every 1 Hour</option>
-              </select>
+              <div style="font-size: 12.5px; font-weight: 700; color: #38bdf8;">On-Demand Auto-Retry Scan</div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Trigger immediate execution of the background retry worker right now.</div>
             </div>
+            <button class="btn btn-secondary" id="btnRunAutoRetryNow" onclick="runAutoRetryNow(this)" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); padding: 6px 14px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+              <span>⚡ Run Scan Now</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TAB 3: WATI & Templates -->
+        <div id="wmSetTabWati" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px;">
             <div>
-              <span style="color: var(--text-dim); font-size: 11px;">Max Retries per Failed Report:</span>
-              <select id="adminMaxAutoRetries" style="width: 100%; margin-top: 4px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 8px; color: var(--text-main); font-size: 12px;">
-                <option value="1">1 Attempt</option>
-                <option value="2">2 Attempts</option>
-                <option value="3" selected>3 Attempts (Standard)</option>
-                <option value="5">5 Attempts (Aggressive)</option>
-              </select>
+              <div class="meta-title">WATI API Endpoint URL</div>
+              <input type="text" id="adminWatiEndpoint" placeholder="https://live-mt-server.wati.io/10190409" style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+            </div>
+
+            <div>
+              <div class="meta-title">WATI Bearer Access Token</div>
+              <input type="password" id="adminWatiToken" placeholder="eyJhbGciOi..." style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+            </div>
+
+            <!-- Dynamic Template Selector -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="meta-title">Active Meta Message Template</div>
+                <button type="button" onclick="loadWatiTemplates(true)" style="background: none; border: none; color: #38bdf8; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  <span>🔄 Refresh from WATI</span>
+                </button>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <select id="adminWatiTemplateSelect" style="flex: 1; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; padding: 7px 10px; color: #34d399; font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 12.5px;">
+                  <option value="pacs_reports_new">pacs_reports_new (Approved Utility - MAPIMS)</option>
+                </select>
+              </div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Template must be approved in Meta WhatsApp Business Manager with media header for PDF streaming.</div>
+            </div>
+
+            <!-- PDF Public Gateway URL -->
+            <div>
+              <div class="meta-title">Public PDF Gateway Streaming URL</div>
+              <input type="text" id="adminPublicGatewayInput" placeholder="http://194.238.22.210:2020" style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-family: 'JetBrains Mono', monospace; font-size: 12px;">
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">Base URL accessible by Meta servers to fetch and stream diagnostic report PDFs.</div>
             </div>
           </div>
-          <div style="font-size: 11px; color: var(--text-dim); margin-top: 6px;">
-            Automatically detects failed transmissions, re-verifies Final PDF from PACS, and re-dispatches to recipient.
-          </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 9px 12px;">
-          <div>
-            <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Active Meta Template:</span>
-            <span id="adminWatiTemplate" style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #34d399; margin-left: 6px; font-weight: 700;">pacs_reports_new</span>
-            <span style="font-size: 11px; color: var(--text-dim); margin-left: 8px;">(Approved Utility &bull; MAPIMS)</span>
+        <!-- TAB 4: Receipts & Test Dispatch -->
+        <div id="wmSetTabTest" style="display: none;">
+          <!-- Sync Receipts Card -->
+          <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 12.5px; font-weight: 700; color: #34d399;">Sync Live WATI Receipts</div>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">Pulls carrier delivery (✓✓) and patient read confirmation (👁️) from WATI API.</div>
+            </div>
+            <button class="btn btn-secondary" onclick="syncWhatsAppWithWati(this)" style="color: #34d399; border-color: rgba(16, 185, 129, 0.4); padding: 6px 14px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+              <span>⚡ Sync Receipts Now</span>
+            </button>
           </div>
-          <button class="btn btn-primary" style="padding: 6px 14px; font-size: 12px; font-weight: 600;" onclick="saveWhatsAppConfig()">
-            💾 Save Settings
-          </button>
-        </div>
 
-        <div id="adminPublicGatewayRow" style="margin-bottom: 16px; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; background: rgba(56, 189, 248, 0.07); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 4px; padding: 7px 12px;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="color: #38bdf8; font-weight: 700;">🌐 PDF Delivery Gateway:</span>
-            <span id="adminPublicGatewayUrl" style="font-family: 'JetBrains Mono', monospace; color: #34d399; font-size: 11px;">Active &bull; Live Patient PDF Streaming</span>
-          </div>
-          <span style="font-size: 10px; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 2px 6px; border-radius: 3px;">ONLINE</span>
-        </div>
-
-        <!-- Strict Guard Explanation Box -->
-        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 16px;">
-          <div style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-            <span>🛡️ Strict Final PDF Policy Guard:</span>
-            <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">ENFORCED</span>
-          </div>
-          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.6;">
-            &bull; WhatsApp notifications are <strong>strictly blocked</strong> if only Word draft documents (<code>.doc</code>) exist.<br>
-            &bull; Only signed reports starting with <code>Final_*.pdf</code> in <code>D:\PACS_DATA\Reports\</code> can be delivered to recipients.
-          </div>
-        </div>
-
-        <!-- Gateway Health & Test Broadcast Action -->
-        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 12px; font-weight: 700; color: #34d399;">Dispatch Real Patient Final PDF Report</div>
-            <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
-              Verifies the Final PDF for the Patient ID above and dispatches the live report to the test number.
+          <!-- Strict Guard Box -->
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px;">
+            <div style="font-size: 12px; font-weight: 700; color: #38bdf8; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span>🛡️ Strict Final PDF Policy Guard:</span>
+              <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3);">ENFORCED</span>
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted); line-height: 1.5;">
+              Reports starting with <code>Final_*.pdf</code> are verified from PACS storage. Word drafts (<code>.doc</code>) and unfinalized studies are rejected.
             </div>
           </div>
-          <button class="btn btn-secondary" id="btnAdminTestSend" style="color: #34d399; border-color: rgba(16, 185, 129, 0.4); padding: 6px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; font-weight: 600;" onclick="sendAdminWhatsAppTest()">
-            <span>🚀 Send Test Final PDF</span>
+
+          <!-- Send Test Final PDF Box -->
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-sm); padding: 14px;">
+            <div style="font-size: 12.5px; font-weight: 700; color: #34d399; margin-bottom: 6px;">Dispatch Real Patient Final PDF Report</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+              <input type="text" id="adminTestSendPatientId" placeholder="Patient ID (e.g. 5038408)" style="padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px;">
+              <input type="text" id="adminTestSendPhone" placeholder="Mobile Number (+91...)" style="padding: 7px 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 12px;">
+            </div>
+            <div style="text-align: right;">
+              <button class="btn btn-secondary" id="btnAdminTestSend" style="color: #34d399; border-color: rgba(16, 185, 129, 0.4); padding: 7px 16px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;" onclick="sendAdminWhatsAppTest()">
+                <span>🚀 Send Test Final PDF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer with Save Button -->
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11px; color: var(--text-dim);" id="wmModalStatusNotice">Settings auto-apply across cluster</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary" onclick="closeWhatsAppModal()">Close</button>
+          <button class="btn btn-primary" onclick="saveWhatsAppAdvancedConfig()" style="font-weight: 700; padding: 7px 18px; display: inline-flex; align-items: center; gap: 6px;">
+            <span>💾 Save All Settings</span>
           </button>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content: flex-end;">
-        <button class="btn btn-primary" onclick="closeWhatsAppModal()">Done</button>
-      </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -6669,6 +6949,25 @@
         gatewayUrlEl.textContent = currentWhatsAppConfig.publicUrl || 'Auto-Connected (Live Patient PDF Streaming)';
       }
 
+      // Populate inputs in Advanced Settings Modal
+      const autoSendCb = document.getElementById('adminAutoSendFinalized');
+      const autoRetryCb = document.getElementById('adminAutoRetryEnabled');
+      const autoRetryInterval = document.getElementById('adminAutoRetryInterval');
+      const maxAutoRetries = document.getElementById('adminMaxAutoRetries');
+      const watiEndpointIn = document.getElementById('adminWatiEndpoint');
+      const publicGatewayIn = document.getElementById('adminPublicGatewayInput');
+      const testSendPid = document.getElementById('adminTestSendPatientId');
+      const testSendPhone = document.getElementById('adminTestSendPhone');
+
+      if (autoSendCb) autoSendCb.checked = (currentWhatsAppConfig.autoSendFinalized !== false);
+      if (autoRetryCb) autoRetryCb.checked = (currentWhatsAppConfig.autoRetryEnabled !== false);
+      if (autoRetryInterval) autoRetryInterval.value = String(currentWhatsAppConfig.autoRetryIntervalMinutes || 15);
+      if (maxAutoRetries) maxAutoRetries.value = String(currentWhatsAppConfig.maxAutoRetries || 3);
+      if (watiEndpointIn && !watiEndpointIn.matches(':focus')) watiEndpointIn.value = currentWhatsAppConfig.apiEndpoint || 'https://live-mt-server.wati.io/10190409';
+      if (publicGatewayIn && !publicGatewayIn.matches(':focus')) publicGatewayIn.value = currentWhatsAppConfig.publicUrl || 'http://194.238.22.210:2020';
+      if (testSendPid && !testSendPid.matches(':focus')) testSendPid.value = patientId;
+      if (testSendPhone && !testSendPhone.matches(':focus')) testSendPhone.value = phone;
+
       if (banner) {
         banner.style.background = isTest ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)';
         banner.style.borderColor = isTest ? 'rgba(245, 158, 11, 0.35)' : 'rgba(16, 185, 129, 0.35)';
@@ -6687,6 +6986,7 @@
 
     function openWhatsAppModal() {
       fetchWhatsAppConfig();
+      loadWatiTemplates(false);
       document.getElementById('whatsappModal').classList.add('active');
     }
 
@@ -6696,6 +6996,123 @@
 
     function closeWhatsAppModalOnOverlay(e) {
       if (e.target.id === 'whatsappModal') closeWhatsAppModal();
+    }
+
+    function switchWmSettingsTab(tab) {
+      const tabs = ['routing', 'retry', 'wati', 'test'];
+      for (const t of tabs) {
+        const btn = document.getElementById(`wmSetTab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+        const pane = document.getElementById(`wmSetTab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) btn.classList.toggle('active', t === tab);
+        if (pane) pane.style.display = (t === tab) ? 'block' : 'none';
+      }
+      if (tab === 'wati' && watiTemplatesList.length === 0) {
+        loadWatiTemplates();
+      }
+    }
+
+    async function loadWatiTemplates(forceRefresh = false) {
+      const sel = document.getElementById('adminWatiTemplateSelect');
+      if (!sel) return;
+      try {
+        const res = await fetch('/api/admin/wati-templates');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.templates) && data.templates.length > 0) {
+          watiTemplatesList = data.templates;
+          const currentSelected = currentWhatsAppConfig.templateName || 'pacs_reports_new';
+          let html = '';
+          for (const t of data.templates) {
+            const isSel = (t.elementName === currentSelected) ? 'selected' : '';
+            const cat = t.category ? `[${t.category}] ` : '';
+            html += `<option value="${t.elementName}" ${isSel}>${cat}${t.elementName} (${t.status || 'APPROVED'})</option>`;
+          }
+          sel.innerHTML = html;
+          if (forceRefresh) alert(`✅ Loaded ${data.templates.length} approved templates from WATI!`);
+        }
+      } catch (e) {
+        console.error('Failed to load WATI templates:', e);
+      }
+    }
+
+    async function runAutoRetryNow(btn) {
+      const orig = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner" style="display:inline-block;width:12px;height:12px;border-width:2px;margin-right:6px;"></span> Scanning...`;
+      }
+      try {
+        const res = await fetch('/api/whatsapp/run-auto-retry', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert(`✅ Auto-Retry Scan Executed!\n${data.message || 'Worker finished scan.'}`);
+          loadWhatsAppLogs(false);
+        } else {
+          alert(`Auto-retry notice: ${data.error || 'Execution completed.'}`);
+        }
+      } catch (err) {
+        alert(`Auto-retry error: ${err.message}`);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = orig;
+        }
+      }
+    }
+
+    async function saveWhatsAppAdvancedConfig() {
+      const isTest = currentWhatsAppConfig.testMode !== false;
+      const phone = (document.getElementById('adminFixedTestPhone')?.value || '').trim();
+      const patientId = (document.getElementById('adminTestPatientId')?.value || '').trim();
+      const autoSend = document.getElementById('adminAutoSendFinalized')?.checked !== false;
+      const autoRetry = document.getElementById('adminAutoRetryEnabled')?.checked !== false;
+      const retryInterval = parseInt(document.getElementById('adminAutoRetryInterval')?.value || '15', 10);
+      const maxRetries = parseInt(document.getElementById('adminMaxAutoRetries')?.value || '3', 10);
+      const endpoint = (document.getElementById('adminWatiEndpoint')?.value || '').trim();
+      const token = (document.getElementById('adminWatiToken')?.value || '').trim();
+      const template = (document.getElementById('adminWatiTemplateSelect')?.value || currentWhatsAppConfig.templateName || 'pacs_reports_new').trim();
+      const publicUrl = (document.getElementById('adminPublicGatewayInput')?.value || '').trim();
+
+      if (!phone || phone.length < 10) {
+        return alert('Please enter a valid 10-digit mobile number.');
+      }
+      if (!patientId) {
+        return alert('Please enter a Test Patient ID.');
+      }
+
+      const payload = {
+        testMode: isTest,
+        fixedTestPhone: phone,
+        testPatientId: patientId,
+        autoSendFinalized: autoSend,
+        autoRetryEnabled: autoRetry,
+        autoRetryIntervalMinutes: retryInterval,
+        maxAutoRetries: maxRetries,
+        templateName: template,
+        apiEndpoint: endpoint,
+        publicUrl: publicUrl
+      };
+      if (token) {
+        payload.watiAccessToken = token;
+      }
+
+      try {
+        const res = await fetch('/api/admin/whatsapp-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentWhatsAppConfig = { ...currentWhatsAppConfig, ...payload };
+          renderWhatsAppConfigUI();
+          alert(`✅ All WhatsApp Settings Saved Successfully!\n• Mode: ${isTest ? 'TEST MODE' : 'LIVE PRODUCTION'}\n• Template: ${template}\n• Auto-Retry: ${autoRetry ? 'Active (' + retryInterval + 'm, Max ' + maxRetries + 'x)' : 'Disabled'}\n• Safe Test Phone: ${phone}\n• PDF Gateway: ${publicUrl || 'Auto-Connected'}`);
+          loadWhatsAppLogs(false);
+        } else {
+          alert(`❌ Failed to save settings: ${data.error || 'Server error'}`);
+        }
+      } catch (err) {
+        alert(`❌ Network error: ${err.message}`);
+      }
     }
 
     async function setWhatsAppMode(isTest) {
@@ -6843,12 +7260,83 @@
     let currentWmLogsData = null;
     let selectedWmRowIds = new Set();
     let isWmAnalyticsVisible = true;
+    let wmCurrentViewMode = 'tests'; // 'tests', 'patients', 'groups'
+    const expandedPatientGroups = new Set();
+    let watiTemplatesList = [];
 
     // Chart.js instances
     let wmStatusDonutChartInstance = null;
     let wmTimelineChartInstance = null;
     let wmModalityChartInstance = null;
     let wmLatencyChartInstance = null;
+
+    // Top Date Range Presets Handler
+    function selectWmDatePreset(preset, btn) {
+      wmDateFilter = preset;
+      currentWmPage = 1;
+
+      document.querySelectorAll('.wm-date-pill').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const customRow = document.getElementById('wmTopCustomDateRow');
+      if (preset === 'custom') {
+        if (customRow) customRow.style.display = 'inline-flex';
+        return; // Wait for user to click Apply Range
+      } else {
+        if (customRow) customRow.style.display = 'none';
+        wmStartDate = '';
+        wmEndDate = '';
+      }
+
+      loadWhatsAppLogs(true);
+    }
+
+    function applyWmTopCustomDate() {
+      const startIn = document.getElementById('wmTopStartDateInput');
+      const endIn = document.getElementById('wmTopEndDateInput');
+      wmStartDate = startIn ? startIn.value : '';
+      wmEndDate = endIn ? endIn.value : '';
+      if (!wmStartDate || !wmEndDate) {
+        return alert('Please select both From Date and To Date for the custom range.');
+      }
+      currentWmPage = 1;
+      loadWhatsAppLogs(true);
+    }
+
+    // 3-Way Segmented View Switcher Handler
+    function setWmViewMode(mode) {
+      wmCurrentViewMode = mode;
+      document.querySelectorAll('.wm-view-tab').forEach(b => b.classList.remove('active'));
+      if (mode === 'tests') document.getElementById('wmTabTests')?.classList.add('active');
+      else if (mode === 'patients') document.getElementById('wmTabPatients')?.classList.add('active');
+      else if (mode === 'groups') document.getElementById('wmTabGroups')?.classList.add('active');
+
+      const cTests = document.getElementById('wmViewTestsContainer');
+      const cPatients = document.getElementById('wmViewPatientsContainer');
+      const cGroups = document.getElementById('wmViewGroupsContainer');
+      const rangeWrap = document.getElementById('wmRangeSelectWrap');
+
+      if (cTests) cTests.style.display = (mode === 'tests') ? 'block' : 'none';
+      if (cPatients) cPatients.style.display = (mode === 'patients') ? 'block' : 'none';
+      if (cGroups) cGroups.style.display = (mode === 'groups') ? 'block' : 'none';
+      if (rangeWrap) rangeWrap.style.display = (mode === 'tests') ? 'flex' : 'none';
+
+      renderCurrentWmView();
+    }
+
+    function renderCurrentWmView() {
+      if (!currentWmLogsData) return;
+      const logs = currentWmLogsData.logs || [];
+      const patientList = currentWmLogsData.analytics?.patientBreakdown?.patients || [];
+
+      if (wmCurrentViewMode === 'tests') {
+        renderWhatsAppLogsTable(logs, currentWmLogsData.totalCount);
+      } else if (wmCurrentViewMode === 'patients') {
+        renderPatientWiseTable(patientList);
+      } else if (wmCurrentViewMode === 'groups') {
+        renderPatientGroupView(patientList);
+      }
+    }
 
     async function loadWhatsAppLogs(showSpinner = false) {
       const tbody = document.getElementById('wmTableBody');
@@ -6877,7 +7365,7 @@
         if (data.success) {
           currentWmLogsData = data;
           renderWhatsAppKpis(data.stats);
-          renderWhatsAppLogsTable(data.logs, data.totalCount);
+          renderCurrentWmView();
           renderWmPagination(data);
           updateWmBulkActionBar();
 
@@ -6905,7 +7393,9 @@
 
     function renderWhatsAppKpis(stats) {
       if (!stats) return;
+      const elPatients = document.getElementById('wmKpiPatients');
       const elTotal = document.getElementById('wmKpiTotal');
+      const elTotalSub = document.getElementById('wmKpiTotalSub');
       const elDelivered = document.getElementById('wmKpiDelivered');
       const elDeliveredRate = document.getElementById('wmKpiDeliveredRate');
       const elRead = document.getElementById('wmKpiRead');
@@ -6915,15 +7405,18 @@
       const elFailedSub = document.getElementById('wmKpiFailedSub');
       const elFailedBtn = document.getElementById('wmFailedBtnCount');
 
-      const total = stats.total || 0;
+      const totalTests = stats.totalTests !== undefined ? stats.totalTests : (stats.total || 0);
+      const totalPatients = stats.totalPatients !== undefined ? stats.totalPatients : 0;
       const delivered = stats.delivered || 0;
       const read = stats.read || 0;
       const sent = stats.sent || 0;
       const failed = stats.failed || 0;
-      const deliveryRate = stats.deliveryRate !== undefined ? stats.deliveryRate : (total > 0 ? Math.round(((delivered + read) / total) * 100) : 100);
-      const readRate = stats.readRate !== undefined ? stats.readRate : (total > 0 ? Math.round((read / total) * 100) : 0);
+      const deliveryRate = stats.deliveryRate !== undefined ? stats.deliveryRate : (totalTests > 0 ? Math.round(((delivered + read) / totalTests) * 100) : 100);
+      const readRate = stats.readRate !== undefined ? stats.readRate : (totalTests > 0 ? Math.round((read / totalTests) * 100) : 0);
 
-      if (elTotal) elTotal.textContent = total;
+      if (elPatients) elPatients.textContent = totalPatients;
+      if (elTotal) elTotal.textContent = totalTests;
+      if (elTotalSub) elTotalSub.textContent = `All diagnostic tests across modalities`;
       if (elDelivered) elDelivered.textContent = delivered;
       if (elDeliveredRate) elDeliveredRate.textContent = `${deliveryRate}% delivery success rate`;
       if (elRead) elRead.textContent = read;
@@ -6934,6 +7427,14 @@
         elFailedSub.textContent = failed === 0 ? 'Zero delivery rejections' : `${failed} delivery failures`;
       }
       if (elFailedBtn) elFailedBtn.textContent = failed;
+
+      // Update View Tabs Badges
+      const badgeTests = document.getElementById('wmTabBadgeTests');
+      if (badgeTests) badgeTests.textContent = totalTests;
+      const badgePatients = document.getElementById('wmTabBadgePatients');
+      if (badgePatients) badgePatients.textContent = totalPatients;
+      const badgeGroups = document.getElementById('wmTabBadgeGroups');
+      if (badgeGroups) badgeGroups.textContent = totalPatients;
 
       // Update Chart Rate Badges
       const donutBadge = document.getElementById('wmChartDeliveredRateBadge');
@@ -7365,6 +7866,349 @@
         const visibleIds = logs.map(l => String(l._id || l.messageId));
         const allChecked = visibleIds.length > 0 && visibleIds.every(id => selectedWmRowIds.has(id));
         masterCb.checked = allChecked;
+      }
+    }
+
+    // Render Patient-wise Aggregated Table View
+    function renderPatientWiseTable(patientList) {
+      const tbody = document.getElementById('wmPatientTableBody');
+      const infoEl = document.getElementById('wmPatientPaginationInfo');
+      if (!tbody) return;
+
+      if (!patientList || patientList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
+              <div style="font-size: 32px; margin-bottom: 10px;">👤</div>
+              <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">No Patients Found</div>
+              <div style="font-size: 12px; margin-top: 4px;">No patient records matched the active date preset or filters.</div>
+            </td>
+          </tr>
+        `;
+        if (infoEl) infoEl.textContent = 'Showing 0 patients';
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < patientList.length; i++) {
+        const p = patientList[i];
+        const rowNum = i + 1;
+
+        // Status progression badge
+        let statusBadge = '';
+        const st = (p.overallStatus || 'SENT').toUpperCase();
+        if (st === 'READ') {
+          statusBadge = `<span class="pipe-step step-read active" style="font-size: 11px; padding: 3px 8px;">Read 👁️ (${p.testsCount} tests verified)</span>`;
+        } else if (st === 'DELIVERED') {
+          statusBadge = `<span class="pipe-step step-delivered active" style="font-size: 11px; padding: 3px 8px;">Delivered ✓✓ (On Device)</span>`;
+        } else if (st === 'SENT') {
+          statusBadge = `<span class="pipe-step step-sent active" style="font-size: 11px; padding: 3px 8px;">Sent ● (In Transit)</span>`;
+        } else {
+          statusBadge = `<span class="pipe-step step-failed active" style="font-size: 11px; padding: 3px 8px;">⚠️ Has Failed Tests</span>`;
+        }
+
+        // Modality tags
+        const modBadges = (p.modalities || []).map(m => {
+          let bg = 'rgba(148, 163, 184, 0.15)', col = '#94a3b8';
+          if (m === 'CT') { bg = 'rgba(2, 132, 199, 0.2)'; col = '#38bdf8'; }
+          else if (m === 'MR') { bg = 'rgba(139, 92, 246, 0.2)'; col = '#c084fc'; }
+          else if (m === 'CR' || m === 'DX') { bg = 'rgba(16, 185, 129, 0.2)'; col = '#34d399'; }
+          else if (m === 'US') { bg = 'rgba(245, 158, 11, 0.2)'; col = '#fbbf24'; }
+          return `<span style="font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; background: ${bg}; color: ${col};">${m}</span>`;
+        }).join(' ');
+
+        const lastDate = p.lastDispatchedAt ? new Date(p.lastDispatchedAt).toLocaleString([], { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+
+        html += `
+          <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseenter="this.style.background='rgba(255,255,255,0.03)'" onmouseleave="this.style.background='transparent'">
+            <td style="padding: 12px 8px; text-align: center; font-family: 'JetBrains Mono'; font-size: 11px; color: var(--text-dim);">${rowNum}</td>
+            <td style="padding: 12px 14px;">
+              <div style="font-weight: 700; color: var(--text-main); font-size: 13px;">${p.patientName || 'Patient'}</div>
+              <div style="margin-top: 2px;">
+                <span style="font-family: 'JetBrains Mono'; font-size: 11px; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 3px; color: var(--accent-cyan); border: 1px solid var(--border-color);">ID: ${p.patientId || '-'}</span>
+              </div>
+            </td>
+            <td style="padding: 12px 14px;">
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="font-family: 'JetBrains Mono'; font-weight: 600; font-size: 12px; color: var(--text-main);">+91 ${p.phone || '-'}</span>
+                <button onclick="navigator.clipboard.writeText('${p.phone}'); alert('Copied: ${p.phone}');" style="background: none; border: none; cursor: pointer; color: var(--text-dim); padding: 1px;" title="Copy Phone Number">📋</button>
+              </div>
+            </td>
+            <td style="padding: 12px 14px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-size: 11px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 2px 7px; border-radius: 4px;">${p.testsCount} ${p.testsCount === 1 ? 'Test' : 'Tests'}</span>
+                ${modBadges}
+              </div>
+            </td>
+            <td style="padding: 12px 14px;">${statusBadge}</td>
+            <td style="padding: 12px 14px; font-size: 11.5px; color: var(--text-dim); white-space: nowrap;">${lastDate}</td>
+            <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
+              <div style="display: inline-flex; align-items: center; gap: 6px;">
+                <button class="btn btn-secondary" onclick="openPatientGroupDetail('${p.patientId}')" style="padding: 4px 10px; font-size: 11px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.35);" title="Open all tests for this patient">
+                  🗂️ View Tests (${p.testsCount})
+                </button>
+                <button class="btn btn-secondary" onclick="retryPatientDispatches('${p.patientId}')" style="padding: 4px 8px; font-size: 11px; color: #34d399; border-color: rgba(16, 185, 129, 0.35);" title="Re-dispatch all tests for this patient">
+                  🔄 Retry All
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+
+      tbody.innerHTML = html;
+      if (infoEl) infoEl.textContent = `Showing ${patientList.length} unique patients`;
+    }
+
+    // Render Patient Group with All Tests View (Accordion Cards)
+    function renderPatientGroupView(patientList) {
+      const container = document.getElementById('wmGroupsListContainer');
+      if (!container) return;
+
+      if (!patientList || patientList.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 50px 20px; background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-color); color: var(--text-muted);">
+            <div style="font-size: 32px; margin-bottom: 10px;">🗂️</div>
+            <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">No Patient Groups Found</div>
+            <div style="font-size: 12px; margin-top: 4px;">No patients match current filters or date range.</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Expand all by default if <= 10 patients
+      if (expandedPatientGroups.size === 0 && patientList.length <= 10) {
+        for (const p of patientList) {
+          if (p.patientId) expandedPatientGroups.add(String(p.patientId));
+        }
+      }
+
+      let html = '';
+      for (let i = 0; i < patientList.length; i++) {
+        const p = patientList[i];
+        const pid = String(p.patientId || p.phone || i);
+        const isExpanded = expandedPatientGroups.has(pid);
+
+        // Modality tags
+        const modBadges = (p.modalities || []).map(m => {
+          let bg = 'rgba(148, 163, 184, 0.15)', col = '#94a3b8';
+          if (m === 'CT') { bg = 'rgba(2, 132, 199, 0.2)'; col = '#38bdf8'; }
+          else if (m === 'MR') { bg = 'rgba(139, 92, 246, 0.2)'; col = '#c084fc'; }
+          else if (m === 'CR' || m === 'DX') { bg = 'rgba(16, 185, 129, 0.2)'; col = '#34d399'; }
+          else if (m === 'US') { bg = 'rgba(245, 158, 11, 0.2)'; col = '#fbbf24'; }
+          return `<span style="font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; background: ${bg}; color: ${col};">${m}</span>`;
+        }).join(' ');
+
+        // Overall status stepper
+        const st = (p.overallStatus || 'SENT').toUpperCase();
+        let overallStepper = '';
+        if (st === 'READ') {
+          overallStepper = `
+            <div class="pipeline-stepper" title="All examinations verified read by patient">
+              <span class="pipe-step step-sent active">Sent ●</span>
+              <span class="pipe-arrow">&rarr;</span>
+              <span class="pipe-step step-delivered active">Delivered ✓✓</span>
+              <span class="pipe-arrow">&rarr;</span>
+              <span class="pipe-step step-read active">Read 👁️</span>
+            </div>
+          `;
+        } else if (st === 'DELIVERED') {
+          overallStepper = `
+            <div class="pipeline-stepper" title="Examinations delivered to device">
+              <span class="pipe-step step-sent active">Sent ●</span>
+              <span class="pipe-arrow">&rarr;</span>
+              <span class="pipe-step step-delivered active">Delivered ✓✓</span>
+              <span class="pipe-arrow">&rarr;</span>
+              <span class="pipe-step step-read">Read</span>
+            </div>
+          `;
+        } else if (st === 'SENT') {
+          overallStepper = `
+            <div class="pipeline-stepper">
+              <span class="pipe-step step-sent active">Sent ●</span>
+              <span class="pipe-arrow">&rarr;</span>
+              <span class="pipe-step step-delivered">Delivered</span>
+              <span class="pipe-arrow">&rarr;</span>
+              <span class="pipe-step step-read">Read</span>
+            </div>
+          `;
+        } else {
+          overallStepper = `
+            <div class="pipeline-stepper">
+              <span class="pipe-step step-failed active">⚠️ FAILED (${p.tests.filter(t => t.status === 'FAILED').length} test(s) failed)</span>
+            </div>
+          `;
+        }
+
+        // Nested tests rows
+        let testRows = '';
+        const tests = p.tests || [];
+        for (let j = 0; j < tests.length; j++) {
+          const t = tests[j];
+          const tMod = (t.modality || 'DOC').toUpperCase();
+          let tModBg = 'rgba(148, 163, 184, 0.15)', tModCol = '#94a3b8';
+          if (tMod === 'CT') { tModBg = 'rgba(2, 132, 199, 0.2)'; tModCol = '#38bdf8'; }
+          else if (tMod === 'MR') { tModBg = 'rgba(139, 92, 246, 0.2)'; tModCol = '#c084fc'; }
+          else if (tMod === 'CR' || tMod === 'DX') { tModBg = 'rgba(16, 185, 129, 0.2)'; tModCol = '#34d399'; }
+          else if (tMod === 'US') { tModBg = 'rgba(245, 158, 11, 0.2)'; tModCol = '#fbbf24'; }
+
+          const tStatus = (t.status || 'SENT').toUpperCase();
+          let tPipe = '';
+          if (tStatus === 'READ') {
+            tPipe = `<span class="pipe-step step-read active" style="font-size: 10px; padding: 2px 6px;">Read 👁️ (${t.readAt ? new Date(t.readAt).toLocaleTimeString() : 'verified'})</span>`;
+          } else if (tStatus === 'DELIVERED') {
+            tPipe = `<span class="pipe-step step-delivered active" style="font-size: 10px; padding: 2px 6px;">Delivered ✓✓ (${t.deliveredAt ? new Date(t.deliveredAt).toLocaleTimeString() : 'verified'})</span>`;
+          } else if (tStatus === 'SENT') {
+            tPipe = `<span class="pipe-step step-sent active" style="font-size: 10px; padding: 2px 6px;">Sent ● (In Transit)</span>`;
+          } else {
+            tPipe = `<span class="pipe-step step-failed active" style="font-size: 10px; padding: 2px 6px;">⚠️ FAILED (${t.retryCount || 0}x retried)</span>`;
+          }
+
+          const safeStudy = (t.studyUid || '').replace(/[^a-zA-Z0-9._-]/g, '');
+          const pdfName = `Final_${safeStudy}.pdf`;
+          const tSentTime = t.dispatchedAt ? new Date(t.dispatchedAt).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-';
+
+          testRows += `
+            <tr>
+              <td style="padding: 10px 14px;">
+                <span style="font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 3px; background: ${tModBg}; color: ${tModCol};">${tMod}</span>
+              </td>
+              <td style="padding: 10px 14px; font-weight: 600; color: var(--text-main);">${t.studyName}</td>
+              <td style="padding: 10px 14px; font-size: 11px; color: var(--text-dim);">${t.studyDate || '-'}</td>
+              <td style="padding: 10px 14px;">${tPipe}</td>
+              <td style="padding: 10px 14px;">
+                <button onclick="previewPdfFromStudy('${t.studyUid}', '${(p.patientName || '').replace(/'/g, "\\'")}', '${p.patientId || ''}')" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: #38bdf8; padding: 3px 8px; border-radius: 4px; font-size: 11px; display: inline-flex; align-items: gap: 4px; cursor: pointer;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span style="font-family: 'JetBrains Mono';">${pdfName}</span>
+                </button>
+              </td>
+              <td style="padding: 10px 14px; font-size: 11px; color: var(--text-dim); white-space: nowrap;">${tSentTime}</td>
+              <td style="padding: 10px 14px; text-align: right; white-space: nowrap;">
+                <div style="display: inline-flex; align-items: center; gap: 5px;">
+                  <button class="btn btn-secondary" onclick="previewPdfFromStudy('${t.studyUid}', '${(p.patientName || '').replace(/'/g, "\\'")}', '${p.patientId || ''}')" style="padding: 3px 7px; font-size: 10.5px;">👁️ View</button>
+                  <button class="btn btn-secondary" onclick="retryWhatsAppDispatch('${t._id}')" style="padding: 3px 7px; font-size: 10.5px; color: #34d399; border-color: rgba(16, 185, 129, 0.35);">🔄 Retry</button>
+                  <button class="btn btn-secondary" onclick="openWhatsAppAuditModal('${t._id}')" style="padding: 3px 7px; font-size: 10.5px;">ℹ️ Details</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+
+        html += `
+          <div class="wm-patient-group-card" id="wmGroupCard_${pid}">
+            <!-- Patient Header Summary Bar -->
+            <div class="wm-patient-header" onclick="togglePatientGroupExpand('${pid}')">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; color: #ffffff;">
+                  👤
+                </div>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-main);">${p.patientName || 'Patient'}</h4>
+                    <span style="font-family: 'JetBrains Mono'; font-size: 11px; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 3px; color: var(--accent-cyan); border: 1px solid var(--border-color);">UHID: ${p.patientId || '-'}</span>
+                    <span style="font-family: 'JetBrains Mono'; font-size: 11.5px; color: var(--text-dim);">📞 +91 ${p.phone || '-'}</span>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">
+                    <span>Total ${p.testsCount} ${p.testsCount === 1 ? 'Diagnostic Test' : 'Diagnostic Tests'}</span> &bull; <span>Last Activity: ${p.lastDispatchedAt ? new Date(p.lastDispatchedAt).toLocaleString() : '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 4px;">${modBadges}</div>
+                <span style="font-size: 11px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 3px 8px; border-radius: 4px;">${p.testsCount} Tests</span>
+                ${overallStepper}
+                <span id="wmChevron_${pid}" style="font-size: 11px; color: var(--text-dim); transition: transform 0.2s ease;">${isExpanded ? '▲' : '▼'}</span>
+              </div>
+            </div>
+
+            <!-- Drawer: Nested Tests Table -->
+            <div class="wm-patient-tests-drawer" id="wmDrawer_${pid}" style="display: ${isExpanded ? 'block' : 'none'};">
+              <table class="wm-nested-tests-table">
+                <thead>
+                  <tr>
+                    <th style="width: 50px;">Modality</th>
+                    <th>Study Name</th>
+                    <th>Study Date</th>
+                    <th>Status Progression</th>
+                    <th>Diagnostic PDF</th>
+                    <th>Dispatched At</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${testRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function togglePatientGroupExpand(pid) {
+      if (expandedPatientGroups.has(pid)) {
+        expandedPatientGroups.delete(pid);
+      } else {
+        expandedPatientGroups.add(pid);
+      }
+      const drawer = document.getElementById(`wmDrawer_${pid}`);
+      const chev = document.getElementById(`wmChevron_${pid}`);
+      const isExp = expandedPatientGroups.has(pid);
+      if (drawer) drawer.style.display = isExp ? 'block' : 'none';
+      if (chev) chev.textContent = isExp ? '▲' : '▼';
+    }
+
+    function expandAllPatientGroups(expanded) {
+      const patientList = currentWmLogsData?.analytics?.patientBreakdown?.patients || [];
+      for (const p of patientList) {
+        const pid = String(p.patientId || p.phone);
+        if (expanded) expandedPatientGroups.add(pid);
+        else expandedPatientGroups.delete(pid);
+        const drawer = document.getElementById(`wmDrawer_${pid}`);
+        const chev = document.getElementById(`wmChevron_${pid}`);
+        if (drawer) drawer.style.display = expanded ? 'block' : 'none';
+        if (chev) chev.textContent = expanded ? '▲' : '▼';
+      }
+    }
+
+    function openPatientGroupDetail(patientId) {
+      expandedPatientGroups.add(String(patientId));
+      setWmViewMode('groups');
+      setTimeout(() => {
+        const el = document.getElementById(`wmGroupCard_${patientId}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+
+    async function retryPatientDispatches(patientId) {
+      const patientList = currentWmLogsData?.analytics?.patientBreakdown?.patients || [];
+      const patient = patientList.find(p => String(p.patientId) === String(patientId));
+      if (!patient || !patient.tests || patient.tests.length === 0) {
+        return alert('No tests found for this patient.');
+      }
+
+      const logIds = patient.tests.map(t => t._id);
+      const confirmed = confirm(`Re-dispatch ${logIds.length} report(s) for patient ${patient.patientName} (${patientId}) via WhatsApp?`);
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch('/api/whatsapp/bulk-retry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ logIds })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert(`✅ Patient reports re-dispatched!\n${json.message || 'Dispatches queued.'}`);
+          loadWhatsAppLogs(false);
+        } else {
+          alert(`❌ Retry notice: ${json.error || 'Server error'}`);
+        }
+      } catch (err) {
+        alert(`❌ Network error: ${err.message}`);
       }
     }
 
