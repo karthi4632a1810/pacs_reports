@@ -9666,7 +9666,7 @@
 
       // Check report type and final PDF status in PACS D:\ drive
       try {
-        const res = await fetch(`/api/report/${encodeURIComponent(studyUid)}/check`);
+        const res = await fetch(`/api/report/${encodeURIComponent(targetStudyUid)}/check`);
         const checkData = await res.json();
 
         // If backend provided enriched patient info or filename, ensure download button uses it
@@ -9827,7 +9827,8 @@
           patientName: s.patientName,
           studyName: `${s.study || 'Radiology Investigation'} (${s.modality || ''})`.trim(),
           patientId: s.patientId,
-          studyDate: s.studyDate
+          studyDate: s.studyDate,
+          modality: s.modality || ''
         })
       })
       .then(res => res.json())

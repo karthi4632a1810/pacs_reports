@@ -1532,6 +1532,15 @@ app.post('/api/admin/whatsapp-test-send', requireAuth(), async (req, res) => {
     }
 
     if (!study) {
+      // Graceful fallback: find the most recent study with a signed Final PDF in MongoDB
+      study = await db.collection('studies')
+        .find({ hasFinalPdf: true })
+        .sort({ studyDate: -1, studyTime: -1 })
+        .limit(1)
+        .next();
+    }
+
+    if (!study) {
       return res.status(404).json({
         success: false,
         error: `No studies found in PACS/MongoDB for Patient ID: "${targetPatientId}". Please verify the Patient ID.`
@@ -1924,7 +1933,7 @@ app.delete('/api/admin/users/:id', requireAuth('canManageUsers'), async (req, re
 app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), async (req, res) => {
   try {
     const { studyUid } = req.params;
-    let { phone, patientName, studyName, patientId, studyDate, pdfUrl } = req.body || {};
+    let { phone, patientName, studyName, patientId, studyDate, pdfUrl, modality } = req.body || {};
 
     if (!phone) {
       return res.status(400).json({ success: false, error: 'Recipient phone number is required.' });
@@ -1955,9 +1964,16 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
       });
     }
 
+    let studyDoc = null;
     const db = await connectDB().catch(() => null);
-    if (db && (!patientName || !patientId)) {
-      const studyDoc = await db.collection('studies').findOne({ studyUid });
+    if (db) {
+      studyDoc = await db.collection('studies').findOne({
+        $or: [
+          { studyUid },
+          { studyInstanceUid: studyUid },
+          { accessionNumber: studyUid }
+        ]
+      });
       if (studyDoc) {
         patientName = patientName || studyDoc.patientName;
         patientId = patientId || studyDoc.patientId;
@@ -1965,6 +1981,7 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
         studyDate = studyDate || studyDoc.studyDate;
       }
     }
+    const finalModality = modality || studyDoc?.modality || '';
 
     // 2. Load WhatsApp Settings (Check if Test Mode is active)
     let whatsappConfig = {
@@ -2026,7 +2043,7 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
         patientId,
         patientName,
         studyName,
-        modality: studyDoc?.modality || '',
+        modality: finalModality,
         studyDate,
         phone: targetPhone,
         originalPhone,
@@ -2055,7 +2072,7 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
         patientId,
         patientName,
         studyName,
-        modality: studyDoc?.modality || '',
+        modality: finalModality,
         studyDate,
         phone: targetPhone,
         originalPhone,
@@ -2217,13 +2234,19 @@ async function runAutoRetryWorker() {
 
     const eligibleLogs = await db.collection('whatsapp_logs').find({
       status: 'FAILED',
-      $or: [
-        { retryCount: { $lt: maxRetries } },
-        { retryCount: { $exists: false } }
-      ],
-      $or: [
-        { lastRetryAt: { $lte: cutoff } },
-        { lastRetryAt: { $exists: false }, dispatchedAt: { $lte: cutoff } }
+      $and: [
+        {
+          $or: [
+            { retryCount: { $lt: maxRetries } },
+            { retryCount: { $exists: false } }
+          ]
+        },
+        {
+          $or: [
+            { lastRetryAt: { $lte: cutoff } },
+            { lastRetryAt: { $exists: false }, dispatchedAt: { $lte: cutoff } }
+          ]
+        }
       ]
     }).limit(10).toArray();
 
