@@ -1272,8 +1272,110 @@ function isDummyPhone(num) {
   return false;
 }
 
+// Format Date to MM/DD/YYYY for Central Hospital HIS SQL Queries
+function formatToHisDate(dateVal) {
+  if (!dateVal) {
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    return `${mm}/${dd}/${now.getFullYear()}`;
+  }
+  const str = String(dateVal).trim();
+  const ymd = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (ymd) {
+    return `${String(ymd[2]).padStart(2, '0')}/${String(ymd[3]).padStart(2, '0')}/${ymd[1]}`;
+  }
+  const dmy = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (dmy) {
+    return `${String(dmy[2]).padStart(2, '0')}/${String(dmy[1]).padStart(2, '0')}/${dmy[3]}`;
+  }
+  return str;
+}
+
+// Check Hospital HIS QueryBuilder (Fo_Rpt_OPPatdetailsprint_QB) for OP Visit Details & ZPATIENT Fake Patient Flag
+async function checkHisPatientType(patientId, studyDate = null) {
+  if (!patientId) return null;
+  const cleanId = String(patientId).trim();
+  if (!cleanId) return null;
+
+  const frmDate = formatToHisDate(studyDate);
+  const toDate = formatToHisDate(new Date());
+
+  const qbEndpoints = [
+    process.env.HIS_QUERYBUILDER_URL,
+    'http://172.19.0.1:18080/BB15SE/QueryBuilder/wsQueryBuilder.asmx/Getdataset1',
+    'http://127.0.0.1:18080/BB15SE/QueryBuilder/wsQueryBuilder.asmx/Getdataset1',
+    'http://192.168.103.37/BB15SE/QueryBuilder/wsQueryBuilder.asmx/Getdataset1'
+  ].filter(Boolean);
+
+  const sqlQuery = `Use kmch_frontoffice Exec Fo_Rpt_OPPatdetailsprint_QB @frmdate = '${frmDate}' , @todate = '${toDate}' , @regno = '${cleanId}' , @patname = '' , @docid = '0' , @IncludingDirectIP = '1' , @Visittype = '0' , @PatType = '0' , @MatrixFormat = '0' , @ReferredSource = '0' , @Type = '0' , @ClassId = '0' , @CorporateId = '0' , @Corporate_type = '0' , @depid = '0' , @RefDocCity = '0' , @ReligionId = '0' , @RefDocDays = '0' , @RefDocId = '0' , @VisitCategory = '' `;
+
+  for (const endpoint of qbEndpoints) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify({
+          strQuery: sqlQuery,
+          strCon: 'BB_CONSTR'
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = await res.json();
+        let items = [];
+        if (data && data.d) {
+          try {
+            items = typeof data.d === 'string' ? JSON.parse(data.d) : data.d;
+          } catch (_) { }
+        }
+        if (Array.isArray(items) && items.length > 0) {
+          // Check if ANY visit record has PATIENT TYPE == 'ZPATIENT' (Hospital Fake / Test Patient)
+          const zPat = items.find(it => {
+            const pt = String(it['PATIENT TYPE'] || '').trim().toUpperCase();
+            return pt === 'ZPATIENT' || pt.includes('ZPATIENT');
+          });
+
+          if (zPat) {
+            return {
+              isFake: true,
+              patientType: 'ZPATIENT',
+              isDummy: true,
+              mobile: zPat['MOBILE'] || '9000000000',
+              doctor: zPat['DOCTOR'] || '',
+              department: zPat['DEPARTMENT'] || '',
+              visitDate: zPat['VISIT DATE'] || '',
+              name: zPat['NAME'] || '',
+              reason: 'ZPATIENT (Hospital Fake/Test Registration)'
+            };
+          }
+
+          const latest = items[0];
+          const pt = String(latest['PATIENT TYPE'] || '').trim();
+          const mob = String(latest['MOBILE'] || '').replace(/[^0-9]/g, '');
+          return {
+            isFake: false,
+            patientType: pt,
+            isDummy: isDummyPhone(mob),
+            mobile: mob.length >= 10 ? mob.slice(-10) : '',
+            doctor: latest['DOCTOR'] || '',
+            department: latest['DEPARTMENT'] || '',
+            visitDate: latest['VISIT DATE'] || '',
+            name: latest['NAME'] || ''
+          };
+        }
+      }
+    } catch (_) { }
+  }
+  return null;
+}
+
 // Resolve Patient Phone Number from Previous Logs, PACS Records, Central Hospital HIS WebService, or OP EMR
-async function resolvePatientPhone(patientId) {
+async function resolvePatientPhone(patientId, studyDate = null) {
   if (!patientId) return null;
   const cleanId = String(patientId).trim();
   if (!cleanId) return null;
@@ -1282,6 +1384,38 @@ async function resolvePatientPhone(patientId) {
   try {
     const db = await connectDB().catch(() => null);
     if (db) {
+      // Check if patient is already flagged as Fake/ZPATIENT in local cache
+      const patientDoc = await db.collection('patients').findOne(
+        { patientId: cleanId },
+        { projection: { phone: 1, name: 1, city: 1, ageGender: 1, isFake: 1, patientType: 1 } }
+      );
+      if (patientDoc && (patientDoc.isFake || patientDoc.patientType === 'ZPATIENT')) {
+        return {
+          phone: '',
+          originalPhone: '9000000000',
+          source: 'Hospital HIS (Fake / ZPATIENT)',
+          isDummy: true,
+          isFake: true,
+          patientType: 'ZPATIENT',
+          patientName: patientDoc.name || ''
+        };
+      }
+
+      const pastStudy = await db.collection('studies').findOne(
+        { patientId: cleanId },
+        { projection: { patientPhone: 1, isFakePatient: 1, patientType: 1 } }
+      );
+      if (pastStudy && (pastStudy.isFakePatient || pastStudy.patientType === 'ZPATIENT')) {
+        return {
+          phone: '',
+          originalPhone: '9000000000',
+          source: 'Hospital HIS (Fake / ZPATIENT)',
+          isDummy: true,
+          isFake: true,
+          patientType: 'ZPATIENT'
+        };
+      }
+
       const pastLog = await db.collection('whatsapp_logs').findOne(
         { patientId: cleanId, originalPhone: { $exists: true, $ne: '' } },
         { sort: { dispatchedAt: -1 }, projection: { originalPhone: 1, phone: 1 } }
@@ -1291,19 +1425,11 @@ async function resolvePatientPhone(patientId) {
         return { phone: validPastPhone.slice(-10), source: 'Previous PACS WhatsApp Log' };
       }
 
-      const pastStudy = await db.collection('studies').findOne(
-        { patientId: cleanId, patientPhone: { $exists: true, $ne: '' } },
-        { projection: { patientPhone: 1 } }
-      );
       const validStudyPhone = (pastStudy?.patientPhone || '').replace(/[^0-9]/g, '');
       if (validStudyPhone.length >= 10 && !isDummyPhone(validStudyPhone)) {
         return { phone: validStudyPhone.slice(-10), source: 'PACS Study Record' };
       }
 
-      const patientDoc = await db.collection('patients').findOne(
-        { patientId: cleanId, phone: { $exists: true, $ne: '' } },
-        { projection: { phone: 1, name: 1, city: 1, ageGender: 1 } }
-      );
       const validPatPhone = (patientDoc?.phone || '').replace(/[^0-9]/g, '');
       if (validPatPhone.length >= 10 && !isDummyPhone(validPatPhone)) {
         return {
@@ -1316,7 +1442,62 @@ async function resolvePatientPhone(patientId) {
     }
   } catch (_) { }
 
-  // 2. Query Central Hospital HIS WebService API (Fo_Patient_Detail_15SE)
+  // 2. Query Central Hospital HIS QueryBuilder to check for ZPATIENT (fake patient)
+  let qbResult = null;
+  try {
+    qbResult = await checkHisPatientType(cleanId, studyDate);
+    if (qbResult && qbResult.isFake) {
+      try {
+        const db = await connectDB().catch(() => null);
+        if (db) {
+          await db.collection('patients').updateOne(
+            { patientId: cleanId },
+            {
+              $set: {
+                patientId: cleanId,
+                name: qbResult.name || '',
+                isFake: true,
+                patientType: 'ZPATIENT',
+                isDummy: true,
+                phone: '',
+                mobile: qbResult.mobile || '9000000000',
+                updatedAt: new Date()
+              }
+            },
+            { upsert: true }
+          );
+          await db.collection('studies').updateMany(
+            { patientId: cleanId },
+            { $set: { isFakePatient: true, patientType: 'ZPATIENT' } }
+          );
+        }
+      } catch (_) { }
+
+      return {
+        phone: '',
+        originalPhone: qbResult.mobile || '9000000000',
+        source: 'Hospital HIS (Fake / ZPATIENT)',
+        isDummy: true,
+        isFake: true,
+        patientType: 'ZPATIENT',
+        patientName: qbResult.name || ''
+      };
+    }
+  } catch (_) { }
+
+  // If QueryBuilder found verified non-dummy mobile number for a real patient, use it directly
+  if (qbResult && !qbResult.isFake && qbResult.mobile && !isDummyPhone(qbResult.mobile)) {
+    return {
+      phone: qbResult.mobile,
+      source: 'Hospital HIS (OP Visit Registry)',
+      isDummy: false,
+      isFake: false,
+      patientType: qbResult.patientType || 'General',
+      patientName: qbResult.name || ''
+    };
+  }
+
+  // 3. Query Central Hospital HIS WebService API (Fo_Patient_Detail_15SE)
   // Endpoints: reverse tunnel on 172.19.0.1:18080 (VPS docker), 127.0.0.1:18080, or direct LAN 192.168.103.37
   const hisEndpoints = [
     process.env.HIS_API_URL,
@@ -1394,6 +1575,8 @@ async function resolvePatientPhone(patientId) {
               phone: cleanMobile,
               source: isDummyPhone(cleanMobile) ? 'Hospital HIS (Dummy Entry)' : 'Hospital HIS (Live Registry)',
               isDummy: isDummyPhone(cleanMobile),
+              isFake: isDummyPhone(cleanMobile) && (item.cPat_Name === 'Test' || cleanMobile === '9000000000'),
+              patientType: item.PatientType || 'General',
               patientName: item.cPat_Name || '',
               gender: item.Gender || '',
               ageGender: item.AgeGender || '',
@@ -1407,7 +1590,7 @@ async function resolvePatientPhone(patientId) {
     } catch (_) { }
   }
 
-  // 3. Fallback: Query hospital OP EMR (op_reports in op-lab-mongo on port 3021)
+  // 4. Fallback: Query hospital OP EMR (op_reports in op-lab-mongo on port 3021)
   try {
     const { MongoClient } = require('mongodb');
     const opClient = new MongoClient('mongodb://172.19.0.1:3021/op-lab-reports', { serverSelectionTimeoutMS: 1500 });
@@ -2325,6 +2508,15 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
       });
     }
 
+    // 2. Fake / Test Patient (ZPATIENT) Guard
+    const patCheck = await resolvePatientPhone(patientId, studyDate);
+    if (patCheck && (patCheck.isFake || patCheck.patientType === 'ZPATIENT' || studyDoc?.isFakePatient)) {
+      return res.status(422).json({
+        success: false,
+        error: `Dispatch blocked: Patient ${patientName || patientId} is registered as a Fake / Test Patient (PATIENT TYPE: ZPATIENT) in hospital HIS. WhatsApp notifications are ignored.`
+      });
+    }
+
     // 2. Load WhatsApp Settings (Check if Test Mode is active)
     let whatsappConfig = {
       testMode: true,
@@ -2644,7 +2836,11 @@ async function runAutoSendFinalizedWorker() {
       }
 
       // Resolve recipient phone number
-      const phoneInfo = await resolvePatientPhone(study.patientId);
+      const phoneInfo = await resolvePatientPhone(study.patientId, study.studyDate);
+      if (phoneInfo?.isFake || phoneInfo?.patientType === 'ZPATIENT' || study.isFakePatient || phoneInfo?.isDummy) {
+        console.log(`[Auto-Send Worker] Skipping study ${study.studyUid}: Fake / Test Patient (${study.patientName}, ID: ${study.patientId}, Type: ${phoneInfo?.patientType || 'ZPATIENT'})`);
+        continue;
+      }
       const targetPhone = isTestMode ? fixedTestPhone : phoneInfo?.phone;
 
       // In Live mode, only auto-send if a verified 10-digit mobile number exists
@@ -2746,12 +2942,14 @@ app.post('/api/whatsapp/resolve-phones', requireAuth('canViewReports'), async (r
       const patientId = String(item.patientId || '');
       const pastLog = logMap.get(studyUid);
 
-      const phoneInfo = await resolvePatientPhone(patientId);
+      const phoneInfo = await resolvePatientPhone(patientId, item.studyDate);
 
       resolved[studyUid] = {
         phone: phoneInfo?.phone || (pastLog?.originalPhone || pastLog?.phone || ''),
         source: phoneInfo?.source || (pastLog ? 'Previous PACS Log' : ''),
         isDummy: Boolean(phoneInfo?.isDummy),
+        isFake: Boolean(phoneInfo?.isFake || phoneInfo?.patientType === 'ZPATIENT'),
+        patientType: phoneInfo?.patientType || '',
         alreadyDispatched: !!pastLog,
         lastStatus: pastLog?.status || null,
         dispatchedAt: pastLog?.dispatchedAt || null,

@@ -5656,22 +5656,26 @@
       <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 16px;">
         
         <!-- Summary KPI Cards -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Eligible Final Reports</div>
             <div style="font-size: 22px; font-weight: 700; color: #38bdf8; margin-top: 4px;" id="bulkKpiTotal">0</div>
           </div>
-          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Ready to Dispatch</div>
             <div style="font-size: 22px; font-weight: 700; color: #34d399; margin-top: 4px;" id="bulkKpiReady">0</div>
           </div>
-          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Already Dispatched</div>
             <div style="font-size: 22px; font-weight: 700; color: #fbbf24; margin-top: 4px;" id="bulkKpiAlready">0</div>
           </div>
-          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Missing Mobile #</div>
             <div style="font-size: 22px; font-weight: 700; color: #f87171; margin-top: 4px;" id="bulkKpiMissing">0</div>
+          </div>
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 12px 14px;">
+            <div style="font-size: 11px; color: #f87171; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Fake / ZPATIENT</div>
+            <div style="font-size: 22px; font-weight: 700; color: #ef4444; margin-top: 4px;" id="bulkKpiFake">0</div>
           </div>
         </div>
 
@@ -9468,7 +9472,10 @@
             </td>
             <td>
               <div class="patient-cell">
-                <span class="patient-name">${escapeHtml(s.patientName || 'ANONYMOUS')}</span>
+                <span class="patient-name">
+                  ${escapeHtml(s.patientName || 'ANONYMOUS')}
+                  ${(s.patientType === 'ZPATIENT' || s.isFakePatient) ? `<span class="badge" title="Hospital Fake / Test Patient (PATIENT TYPE: ZPATIENT)" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 9px; padding: 1px 5px; border-radius: 4px; vertical-align: middle; margin-left: 4px; font-weight: 700;">⛔ ZPATIENT</span>` : ''}
+                </span>
                 <span class="patient-id">ID: ${escapeHtml(s.patientId || '-')} &bull; ${escapeHtml(s.age || '')} ${escapeHtml(s.sex || '')}</span>
               </div>
             </td>
@@ -10110,7 +10117,7 @@
 
       // 2. Resolve phones and dispatch history from backend
       try {
-        const payload = eligibleStudies.map(s => ({ studyUid: s.studyUid, patientId: s.patientId }));
+        const payload = eligibleStudies.map(s => ({ studyUid: s.studyUid, patientId: s.patientId, studyDate: s.studyDate }));
         const res = await fetch('/api/whatsapp/resolve-phones', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -10123,7 +10130,9 @@
           const info = resolvedMap[s.studyUid] || {};
           const phone = info.phone || '';
           const already = Boolean(info.alreadyDispatched);
-          const hasPhone = phone && phone.length >= 10;
+          const isFake = Boolean(info.isFake || info.patientType === 'ZPATIENT');
+          const isDummy = Boolean(info.isDummy || isFake || (phone && (phone === '9000000000' || phone === '0000000000')));
+          const hasPhone = phone && phone.length >= 10 && !isDummy && !isFake;
           return {
             studyUid: s.studyUid,
             patientId: s.patientId,
@@ -10138,8 +10147,10 @@
             alreadyDispatched: already,
             lastStatus: info.lastStatus || (already ? 'DELIVERED' : null),
             messageId: info.messageId || null,
-            isDummy: Boolean(info.isDummy),
-            selected: (!already && hasPhone && !info.isDummy)
+            isDummy: isDummy,
+            isFake: isFake,
+            patientType: info.patientType || (isFake ? 'ZPATIENT' : ''),
+            selected: (!already && hasPhone && !isDummy && !isFake)
           };
         });
 
@@ -10191,7 +10202,9 @@
         const modClass = `badge-${(c.modality || 'other').toLowerCase()}`;
         
         let statusBadge = '';
-        if (c.alreadyDispatched) {
+        if (c.isFake || c.patientType === 'ZPATIENT') {
+          statusBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 11px; font-weight: 700;" title="Hospital Fake / Test Patient (PATIENT TYPE: ZPATIENT). WhatsApp delivery ignored.">⛔ Fake (ZPATIENT)</span>`;
+        } else if (c.alreadyDispatched) {
           statusBadge = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 11px;">✓ Delivered</span>`;
         } else if (hasPhone) {
           statusBadge = `<span class="badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 11px;">Ready</span>`;
@@ -10200,12 +10213,18 @@
         }
 
         return `
-          <tr id="bulkRow-${safeStudy}" style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+          <tr id="bulkRow-${safeStudy}" style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; ${c.isFake ? 'opacity: 0.65; background: rgba(239,68,68,0.04);' : ''}" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='${c.isFake ? 'rgba(239,68,68,0.04)' : 'transparent'}'">
             <td style="text-align: center; padding: 10px 8px;">
-              <input type="checkbox" ${c.selected ? 'checked' : ''} onchange="toggleCandidateSelect('${c.studyUid}', this.checked)" style="accent-color: #10b981; cursor: pointer; width: 16px; height: 16px;">
+              ${c.isFake ?
+                `<input type="checkbox" disabled style="opacity: 0.25; cursor: not-allowed;" title="Fake patient (ZPATIENT) cannot be sent">` :
+                `<input type="checkbox" ${c.selected ? 'checked' : ''} onchange="toggleCandidateSelect('${c.studyUid}', this.checked)" style="accent-color: #10b981; cursor: pointer; width: 16px; height: 16px;">`
+              }
             </td>
             <td style="padding: 10px 12px;">
-              <div style="font-weight: 600; color: #f8fafc;">${escapeHtml(c.patientName)}</div>
+              <div style="font-weight: 600; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
+                <span>${escapeHtml(c.patientName)}</span>
+                ${c.isFake ? `<span class="badge" style="background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.45); font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 700;">Fake / Test</span>` : ''}
+              </div>
               <div style="font-size: 11px; color: #94a3b8;">ID: <code>${escapeHtml(c.patientId)}</code> ${c.age ? '&bull; ' + escapeHtml(c.age) : ''} ${c.sex ? '&bull; ' + escapeHtml(c.sex) : ''}</div>
             </td>
             <td style="padding: 10px 12px;">
@@ -10218,9 +10237,8 @@
             <td style="padding: 10px 12px;">
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">+91</span>
-                <input type="text" value="${escapeHtml(c.phone || '')}" placeholder="10-digit mobile" maxlength="10" oninput="onBulkPhoneInput('${c.studyUid}', this.value)" style="width: 125px; background: rgba(15,23,42,0.8); border: 1px solid ${hasPhone && !c.isDummy ? 'rgba(255,255,255,0.15)' : 'rgba(248,113,113,0.5)'}; color: #f8fafc; font-family: monospace; font-size: 12px; padding: 4px 8px; border-radius: 6px;">
-                ${c.phoneSource ? `<span class="badge" title="Source: ${escapeHtml(c.phoneSource)}" style="font-size: 9px; padding: 2px 5px; background: ${c.phoneSource.includes('HIS') ? 'rgba(56,189,248,0.18)' : 'rgba(16,185,129,0.15)'}; color: ${c.phoneSource.includes('HIS') ? '#38bdf8' : '#34d399'}; border: 1px solid ${c.phoneSource.includes('HIS') ? 'rgba(56,189,248,0.35)' : 'rgba(16,185,129,0.3)'}; border-radius: 4px;">${c.phoneSource.includes('HIS') ? '🏥 HIS' : (c.phoneSource.includes('EMR') ? 'EMR' : 'Saved')}</span>` : ''}
-                ${c.isDummy ? `<span class="badge" title="Hospital dummy registration number. Please verify." style="font-size: 9px; padding: 2px 4px; background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); border-radius: 4px;">⚠️ Dummy</span>` : ''}
+                <input type="text" value="${escapeHtml(c.phone || '')}" placeholder="10-digit mobile" maxlength="10" oninput="onBulkPhoneInput('${c.studyUid}', this.value)" style="width: 125px; background: rgba(15,23,42,0.8); border: 1px solid ${hasPhone && !c.isDummy && !c.isFake ? 'rgba(255,255,255,0.15)' : 'rgba(248,113,113,0.5)'}; color: #f8fafc; font-family: monospace; font-size: 12px; padding: 4px 8px; border-radius: 6px;">
+                ${c.isFake ? `<span class="badge" title="Hospital Test / ZPATIENT registration ignored" style="font-size: 9px; padding: 2px 4px; background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 4px; font-weight: 700;">⛔ ZPATIENT Ignored</span>` : (c.isDummy ? `<span class="badge" title="Hospital dummy registration number. Please verify." style="font-size: 9px; padding: 2px 4px; background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); border-radius: 4px;">⚠️ Dummy</span>` : (c.phoneSource ? `<span class="badge" title="Source: ${escapeHtml(c.phoneSource)}" style="font-size: 9px; padding: 2px 5px; background: ${c.phoneSource.includes('HIS') ? 'rgba(56,189,248,0.18)' : 'rgba(16,185,129,0.15)'}; color: ${c.phoneSource.includes('HIS') ? '#38bdf8' : '#34d399'}; border: 1px solid ${c.phoneSource.includes('HIS') ? 'rgba(56,189,248,0.35)' : 'rgba(16,185,129,0.3)'}; border-radius: 4px;">${c.phoneSource.includes('HIS') ? '🏥 HIS' : (c.phoneSource.includes('EMR') ? 'EMR' : 'Saved')}</span>` : ''))}
               </div>
               ${isTest ? `<div style="font-size: 10px; color: #fbbf24; margin-top: 2px;">Diverts to: ${fixedTest} (Test)</div>` : ''}
             </td>
@@ -10249,11 +10267,15 @@
 
       bulkCandidates.forEach(c => {
         if (checked) {
+          if (c.isFake || c.patientType === 'ZPATIENT') {
+            c.selected = false;
+            return;
+          }
           if (skipSent && c.alreadyDispatched) {
             c.selected = false;
             return;
           }
-          if (requirePhone && (!c.phone || c.phone.length < 10)) {
+          if (requirePhone && (!c.phone || c.phone.length < 10 || c.isDummy)) {
             c.selected = false;
             return;
           }
@@ -10268,7 +10290,13 @@
 
     function toggleCandidateSelect(studyUid, checked) {
       const c = bulkCandidates.find(item => item.studyUid === studyUid);
-      if (c) c.selected = checked;
+      if (c) {
+        if (c.isFake || c.patientType === 'ZPATIENT') {
+          c.selected = false;
+        } else {
+          c.selected = checked;
+        }
+      }
       updateBulkKPIs();
     }
 
@@ -10277,7 +10305,8 @@
       const c = bulkCandidates.find(item => item.studyUid === studyUid);
       if (c) {
         c.phone = clean;
-        c.selected = (clean.length >= 10);
+        c.isDummy = (clean === '9000000000' || clean === '0000000000' || clean.length < 10);
+        c.selected = (clean.length >= 10 && !c.isDummy && !c.isFake);
       }
       updateBulkKPIs();
     }
@@ -10287,11 +10316,13 @@
       const requirePhone = document.getElementById('bulkOptRequirePhone')?.checked !== false;
 
       bulkCandidates.forEach(c => {
-        if (skipSent && c.alreadyDispatched) {
+        if (c.isFake || c.patientType === 'ZPATIENT') {
           c.selected = false;
-        } else if (requirePhone && (!c.phone || c.phone.length < 10)) {
+        } else if (skipSent && c.alreadyDispatched) {
           c.selected = false;
-        } else if (!c.alreadyDispatched && c.phone && c.phone.length >= 10) {
+        } else if (requirePhone && (!c.phone || c.phone.length < 10 || c.isDummy)) {
+          c.selected = false;
+        } else if (!c.alreadyDispatched && c.phone && c.phone.length >= 10 && !c.isDummy) {
           c.selected = true;
         }
       });
@@ -10305,22 +10336,25 @@
 
     function updateBulkKPIs() {
       const total = bulkCandidates.length;
-      const ready = bulkCandidates.filter(c => c.phone && c.phone.length >= 10 && !c.alreadyDispatched).length;
+      const fakeCount = bulkCandidates.filter(c => c.isFake || c.patientType === 'ZPATIENT').length;
+      const ready = bulkCandidates.filter(c => c.phone && c.phone.length >= 10 && !c.alreadyDispatched && !c.isDummy && !c.isFake).length;
       const already = bulkCandidates.filter(c => c.alreadyDispatched).length;
-      const missing = bulkCandidates.filter(c => !c.phone || c.phone.length < 10).length;
-      const selected = bulkCandidates.filter(c => c.selected).length;
+      const missing = bulkCandidates.filter(c => (!c.phone || c.phone.length < 10 || c.isDummy) && !c.isFake).length;
+      const selected = bulkCandidates.filter(c => c.selected && !c.isFake).length;
 
       document.getElementById('bulkKpiTotal').textContent = String(total);
       document.getElementById('bulkKpiReady').textContent = String(ready);
       document.getElementById('bulkKpiAlready').textContent = String(already);
       document.getElementById('bulkKpiMissing').textContent = String(missing);
+      const fakeKpiEl = document.getElementById('bulkKpiFake');
+      if (fakeKpiEl) fakeKpiEl.textContent = String(fakeCount);
 
       document.getElementById('bulkFooterSelectedCount').textContent = String(selected);
       document.getElementById('bulkFooterTotalCount').textContent = String(total);
 
       const headerCb = document.getElementById('bulkHeaderCheckbox');
       if (headerCb) {
-        headerCb.checked = (selected > 0 && selected === total);
+        headerCb.checked = (selected > 0 && selected === ready);
       }
     }
 
@@ -10407,6 +10441,11 @@
         if (bulkSendingState.isCancelled) break;
 
         const candidate = selected[i];
+        if (candidate.isFake || candidate.patientType === 'ZPATIENT' || candidate.isDummy) {
+          appendBulkLog(`[${new Date().toLocaleTimeString()}] ⛔ Skipped: ${candidate.patientName} (${candidate.patientId}) - Fake / Test Patient (ZPATIENT)`, '#fbbf24');
+          updateCandidateRowStatus(candidate.studyUid, 'SKIPPED', 'Ignored: Fake patient (ZPATIENT)');
+          continue;
+        }
         bulkSendingState.currentIndex = i;
 
         // Update progress bar
@@ -10873,7 +10912,10 @@
             </td>
             <td>
               <div class="patient-cell">
-                <span class="patient-name">${escapeHtml(s.patientName || 'ANONYMOUS')}</span>
+                <span class="patient-name">
+                  ${escapeHtml(s.patientName || 'ANONYMOUS')}
+                  ${(s.patientType === 'ZPATIENT' || s.isFakePatient) ? `<span class="badge" title="Hospital Fake / Test Patient (PATIENT TYPE: ZPATIENT)" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); font-size: 9px; padding: 1px 5px; border-radius: 4px; vertical-align: middle; margin-left: 4px; font-weight: 700;">⛔ ZPATIENT</span>` : ''}
+                </span>
                 <span class="patient-id">ID: ${escapeHtml(s.patientId || '-')} &bull; ${escapeHtml(s.age || '')} ${escapeHtml(s.sex || '')}</span>
               </div>
             </td>
