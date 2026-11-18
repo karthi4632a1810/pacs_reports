@@ -58,7 +58,7 @@ settingsManager.initSettings().then(cfg => {
     MAX_CACHE_GB = parseFloat(cfg.storage.maxCacheGb) || 100;
     MAX_CACHE_BYTES = MAX_CACHE_GB * 1024 * 1024 * 1024;
   }
-}).catch(() => {});
+}).catch(() => { });
 
 // Ensure storage directories exist
 [STORAGE_DIR, DICOM_DIR, THUMB_DIR, REPORT_DIR].forEach(dir => {
@@ -118,12 +118,12 @@ async function enforceStorageQuota() {
       return {
         pruned: false,
         totalUsedBytes,
-        totalGb: (totalUsedBytes / (1024**3)).toFixed(3),
+        totalGb: (totalUsedBytes / (1024 ** 3)).toFixed(3),
         maxCapGb: MAX_CACHE_GB,
       };
     }
 
-    console.log(`[${MAX_CACHE_GB}GB Storage Watchdog] Storage exceeded ${MAX_CACHE_GB} GB (${(totalUsedBytes / (1024**3)).toFixed(2)} GB). Enforcing quota...`);
+    console.log(`[${MAX_CACHE_GB}GB Storage Watchdog] Storage exceeded ${MAX_CACHE_GB} GB (${(totalUsedBytes / (1024 ** 3)).toFixed(2)} GB). Enforcing quota...`);
 
     // Target: prune down to 80% of MAX_CACHE_GB (80 GB for 100 GB cap) to leave operational headroom
     const targetBytes = MAX_CACHE_BYTES * 0.8;
@@ -154,12 +154,12 @@ async function enforceStorageQuota() {
       totalFreed += minioFreed.bytesFreed || 0;
     }
 
-    console.log(`[${MAX_CACHE_GB}GB Storage Watchdog] Enforced quota. Total freed: ${(totalFreed / (1024**3)).toFixed(2)} GB.`);
+    console.log(`[${MAX_CACHE_GB}GB Storage Watchdog] Enforced quota. Total freed: ${(totalFreed / (1024 ** 3)).toFixed(2)} GB.`);
     return {
       pruned: true,
       bytesFreed: totalFreed,
       totalUsedBytes: Math.max(0, totalUsedBytes - totalFreed),
-      totalGb: (Math.max(0, totalUsedBytes - totalFreed) / (1024**3)).toFixed(3),
+      totalGb: (Math.max(0, totalUsedBytes - totalFreed) / (1024 ** 3)).toFixed(3),
       maxCapGb: MAX_CACHE_GB,
     };
   } catch (err) {
@@ -286,15 +286,15 @@ app.get('/api/cache/stats', async (req, res) => {
       },
       usage: {
         minioDicomBytes: minioBytes,
-        minioDicomGb: parseFloat((minioBytes / (1024**3)).toFixed(3)),
+        minioDicomGb: parseFloat((minioBytes / (1024 ** 3)).toFixed(3)),
         minioDicomFiles: minioStats.totalDicomFiles || 0,
         thumbnailBytes: thumbBytes,
-        thumbnailMb: parseFloat((thumbBytes / (1024**2)).toFixed(2)),
+        thumbnailMb: parseFloat((thumbBytes / (1024 ** 2)).toFixed(2)),
         reportBytes,
-        reportMb: parseFloat((reportBytes / (1024**2)).toFixed(2)),
+        reportMb: parseFloat((reportBytes / (1024 ** 2)).toFixed(2)),
         totalBytes: totalUsedBytes,
-        totalGb: parseFloat((totalUsedBytes / (1024**3)).toFixed(3)),
-        remainingGb: parseFloat((remainingBytes / (1024**3)).toFixed(3)),
+        totalGb: parseFloat((totalUsedBytes / (1024 ** 3)).toFixed(3)),
+        remainingGb: parseFloat((remainingBytes / (1024 ** 3)).toFixed(3)),
         utilizationPct,
         status: utilizationPct > 90 ? 'CRITICAL' : utilizationPct > 75 ? 'WARNING' : 'SAFE'
       }
@@ -321,18 +321,18 @@ app.get('/api/storage/quota', async (req, res) => {
       success: true,
       maxLimitGb: MAX_CACHE_GB,
       maxLimitBytes: MAX_CACHE_BYTES,
-      usedGb: parseFloat((totalUsedBytes / (1024**3)).toFixed(3)),
-      remainingGb: parseFloat((remainingBytes / (1024**3)).toFixed(3)),
+      usedGb: parseFloat((totalUsedBytes / (1024 ** 3)).toFixed(3)),
+      remainingGb: parseFloat((remainingBytes / (1024 ** 3)).toFixed(3)),
       utilizationPct,
       status: utilizationPct > 90 ? 'CRITICAL' : utilizationPct > 75 ? 'WARNING' : 'SAFE',
       breakdown: {
         minioDicomBytes: minioBytes,
-        minioDicomMb: parseFloat((minioBytes / (1024**2)).toFixed(2)),
+        minioDicomMb: parseFloat((minioBytes / (1024 ** 2)).toFixed(2)),
         minioDicomFiles: minioStats.totalDicomFiles || 0,
         reportBytes,
-        reportMb: parseFloat((reportBytes / (1024**2)).toFixed(2)),
+        reportMb: parseFloat((reportBytes / (1024 ** 2)).toFixed(2)),
         thumbnailBytes: thumbBytes,
-        thumbnailMb: parseFloat((thumbBytes / (1024**2)).toFixed(2)),
+        thumbnailMb: parseFloat((thumbBytes / (1024 ** 2)).toFixed(2)),
       },
       quotaPolicy: {
         enforcement: `Automated LRU Watchdog + MinIO ${MAX_CACHE_GB}GiB Hard Quota`,
@@ -400,7 +400,7 @@ app.get('/api/studies', optionalAuth, async (req, res) => {
     if (offset) params.append('offset', offset);
 
     const targetUrl = `${PACS_HOST}/api_pacs.asp?${params.toString()}`;
-    
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -464,7 +464,7 @@ app.get('/api/study/:studyUid/series', async (req, res) => {
   try {
     const { studyUid } = req.params;
     const targetUrl = `${PACS_HOST}/ZEROFOOTPRINT/getStudy.aspx?StudyUID=${encodeURIComponent(studyUid)}`;
-    
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(targetUrl, { signal: controller.signal });
@@ -527,9 +527,9 @@ app.get('/api/thumbnail/:studyUid/:seriesUid', async (req, res) => {
     }
 
     const buffer = Buffer.from(await remoteRes.arrayBuffer());
-    
+
     // Save to local cache asynchronously
-    fsp.writeFile(localThumbPath, buffer).catch(() => {});
+    fsp.writeFile(localThumbPath, buffer).catch(() => { });
 
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', 'public, max-age=86400');
@@ -569,7 +569,7 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
           ]
         })) || studyDoc || {};
       }
-    } catch (_) {}
+    } catch (_) { }
   }
   studyDoc = studyDoc || {};
 
@@ -612,7 +612,7 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
         try {
           const db = await connectDB().catch(() => null);
           if (db) await db.collection('studies').updateOne({ studyUid }, { $set: { hasFinalPdf: true, hasFinalDoc: true } });
-        } catch (_) {}
+        } catch (_) { }
 
         try {
           const modern = await renderModernPdf(studyUid, studyDoc);
@@ -654,7 +654,7 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
             break;
           }
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   }
 
@@ -672,7 +672,7 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
           try {
             const db = await connectDB().catch(() => null);
             if (db) await db.collection('studies').updateOne({ studyUid }, { $set: { hasFinalPdf: true, hasFinalDoc: true } });
-          } catch (_) {}
+          } catch (_) { }
 
           try {
             const modern = await renderModernPdf(studyUid, studyDoc);
@@ -707,11 +707,11 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
             const printCmd = `"${chromeBin}" --headless=new --no-sandbox --disable-gpu --disable-software-rasterizer --print-to-pdf-no-header --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}"`;
             execSync(printCmd, { timeout: 15000 });
             if (fs.existsSync(modernPdfPath) && fs.statSync(modernPdfPath).size > 1000) {
-              await fsp.copyFile(modernPdfPath, localPdfPath).catch(() => {});
+              await fsp.copyFile(modernPdfPath, localPdfPath).catch(() => { });
               try {
                 const db = await connectDB().catch(() => null);
                 if (db) await db.collection('studies').updateOne({ studyUid }, { $set: { hasFinalPdf: true, hasFinalDoc: true } });
-              } catch (_) {}
+              } catch (_) { }
               return { localPdfPath, modernPdfPath: modernPdfPath, fileToServe: modernPdfPath, studyDoc };
             }
           }
@@ -750,7 +750,7 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
           patientId = studyDoc.patientId || '';
         }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     // First attempt to ensure PDF is available or auto-convert from PACS Word doc
     const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
@@ -760,11 +760,11 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
         const parsed = parseReportFromPdf(localPdfPath, studyDoc || {});
         if (!patientName) patientName = parsed.patientName || '';
         if (!patientId) patientId = parsed.patientId || '';
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const downloadFilename = formatReportFilename(patientName, patientId, studyUid);
-    
+
     // 1. If valid PDF is verified (either cached or auto-converted)
     if (pdfResult && pdfResult.fileToServe && fs.existsSync(pdfResult.fileToServe)) {
       return res.json({
@@ -921,7 +921,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
           ]
         })) || {};
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // Ensure PDF report is cached locally or auto-converted from Word doc
     const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
@@ -938,7 +938,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
           const parsed = parseReportFromPdf(rawForParsing, studyDoc);
           if (!pName) pName = parsed.patientName;
           if (!pId) pId = parsed.patientId;
-        } catch (e) {}
+        } catch (e) { }
       }
       const downloadFilename = formatReportFilename(pName, pId, safeStudy);
 
@@ -1063,7 +1063,7 @@ async function createPublicReportToken(studyUid) {
         createdAt: new Date()
       });
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return token;
 }
@@ -1126,7 +1126,7 @@ app.get('/reports/:token/:filename', async (req, res) => {
           if (!pName) pName = sDoc.patientName;
           if (!pId) pId = sDoc.patientId;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
     if (!pName || !pId) {
       try {
@@ -1134,7 +1134,7 @@ app.get('/reports/:token/:filename', async (req, res) => {
         const parsed = parseReportFromPdf(rawForParsing, info);
         if (!pName) pName = parsed.patientName;
         if (!pId) pId = parsed.patientId;
-      } catch (e) {}
+      } catch (e) { }
     }
     const downloadFilename = formatReportFilename(pName, pId, safeStudy);
     const isDownload = req.query.download === '1' || req.query.download === 'true';
@@ -1174,7 +1174,7 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
           ]
         })) || {};
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // Ensure PDF is cached locally or auto-converted from PACS Word doc
     const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
@@ -1194,7 +1194,7 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
           const parsed = parseReportFromPdf(rawForParsing, studyDoc);
           if (!pName) pName = parsed.patientName;
           if (!pId) pId = parsed.patientId;
-        } catch (e) {}
+        } catch (e) { }
       }
       downloadFilename = formatReportFilename(pName, pId, safeStudy);
     }
@@ -1314,7 +1314,7 @@ async function resolvePatientPhone(patientId) {
         };
       }
     }
-  } catch (_) {}
+  } catch (_) { }
 
   // 2. Query Central Hospital HIS WebService API (Fo_Patient_Detail_15SE)
   // Endpoints: reverse tunnel on 172.19.0.1:18080 (VPS docker), 127.0.0.1:18080, or direct LAN 192.168.103.37
@@ -1348,7 +1348,7 @@ async function resolvePatientPhone(patientId) {
         if (data.d) {
           try {
             rawItems = typeof data.d === 'string' ? JSON.parse(data.d) : data.d;
-          } catch (_) {}
+          } catch (_) { }
         }
         const item = Array.isArray(rawItems[0]) ? rawItems[0][0] : (Array.isArray(rawItems) ? rawItems[0] : rawItems);
 
@@ -1388,7 +1388,7 @@ async function resolvePatientPhone(patientId) {
                   { $set: { patientPhone: cleanMobile } }
                 );
               }
-            } catch (_) {}
+            } catch (_) { }
 
             return {
               phone: cleanMobile,
@@ -1404,7 +1404,7 @@ async function resolvePatientPhone(patientId) {
           }
         }
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // 3. Fallback: Query hospital OP EMR (op_reports in op-lab-mongo on port 3021)
@@ -1421,7 +1421,7 @@ async function resolvePatientPhone(patientId) {
     if (validOpPhone.length >= 10 && !isDummyPhone(validOpPhone)) {
       return { phone: validOpPhone.slice(-10), source: 'Hospital OP EMR Registry' };
     }
-  } catch (_) {}
+  } catch (_) { }
 
   return null;
 }
@@ -1479,13 +1479,13 @@ async function logWhatsAppDispatch({
         db.collection('patients').updateOne(
           { patientId: String(patientId) },
           { $set: { phone: cleanPhone, updatedAt: new Date() } }
-        ).catch(() => {});
+        ).catch(() => { });
       }
       if (studyUid) {
         db.collection('studies').updateOne(
           { studyUid: String(studyUid) },
           { $set: { patientPhone: cleanPhone, updatedAt: new Date() } }
-        ).catch(() => {});
+        ).catch(() => { });
       }
     }
 
@@ -1750,7 +1750,7 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
       if (typeof settingsManager !== 'undefined' && settingsManager.updateSettings) {
         await settingsManager.updateSettings({ whatsapp: updateDoc }, req.user?.username || 'admin');
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const saved = await db.collection('settings').findOne({ _id: 'whatsapp_config' });
 
@@ -1917,7 +1917,7 @@ app.post('/api/admin/whatsapp-test-send', requireAuth(), async (req, res) => {
         if (pdfRes.ok) {
           hasFinalPdf = true;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (!hasFinalPdf) {
@@ -1936,7 +1936,7 @@ app.post('/api/admin/whatsapp-test-send', requireAuth(), async (req, res) => {
           const buf = Buffer.from(await pdfRes.arrayBuffer());
           await fsp.writeFile(localPdfPath, buf);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     const patientName = study.patientName || 'Patient';
@@ -2083,7 +2083,7 @@ app.post('/api/admin/actions', requireAuth('canManageUsers'), async (req, res) =
     if (action === 'sync_pacs') {
       const dFrom = payload?.from || new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0];
       const dTo = payload?.to || new Date().toISOString().split('T')[0];
-      
+
       const targetUrl = `${PACS_HOST}/api_pacs.asp?from=${encodeURIComponent(dFrom)}&to=${encodeURIComponent(dTo)}&limit=5000`;
       const pResp = await fetch(targetUrl);
       if (!pResp.ok) throw new Error(`PACS returned HTTP ${pResp.status}`);
@@ -2107,8 +2107,8 @@ app.post('/api/admin/actions', requireAuth('canManageUsers'), async (req, res) =
           freed += st.size;
         }
       }
-      await settingsManager.logAudit('CACHE_PURGE', 'storage', `Manual cache purge freed ${(freed / (1024*1024)).toFixed(2)} MB`, username);
-      return res.json({ success: true, message: `Temporary report cache cleared (${(freed / (1024*1024)).toFixed(2)} MB freed).`, bytesFreed: freed });
+      await settingsManager.logAudit('CACHE_PURGE', 'storage', `Manual cache purge freed ${(freed / (1024 * 1024)).toFixed(2)} MB`, username);
+      return res.json({ success: true, message: `Temporary report cache cleared (${(freed / (1024 * 1024)).toFixed(2)} MB freed).`, bytesFreed: freed });
     }
 
     if (action === 'test_pacs_ping') {
@@ -2377,7 +2377,7 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
               whatsappMessageId: result.data?.local_message_id
             }
           }
-        ).catch(() => {});
+        ).catch(() => { });
       }
 
       await logWhatsAppDispatch({
@@ -2556,7 +2556,7 @@ async function retryWhatsAppDispatchCore(db, logDoc, triggeredBy = 'system') {
           }
         }
       }
-    ).catch(() => {});
+    ).catch(() => { });
     return { success: false, error: err.message };
   }
 }
@@ -3188,7 +3188,7 @@ app.post('/api/whatsapp/bulk-retry', requireAuth('canViewReports'), async (req, 
       const objectIds = [];
       const stringIds = [];
       for (const id of logIds) {
-        try { objectIds.push(new ObjectId(id)); } catch(e) { stringIds.push(id); }
+        try { objectIds.push(new ObjectId(id)); } catch (e) { stringIds.push(id); }
       }
       query = {
         $or: [
@@ -3252,7 +3252,7 @@ app.post('/api/whatsapp/retry/:logId', requireAuth('canViewReports'), async (req
     let logDoc = null;
     try {
       logDoc = await db.collection('whatsapp_logs').findOne({ _id: new ObjectId(logId) });
-    } catch(e) {
+    } catch (e) {
       logDoc = await db.collection('whatsapp_logs').findOne({ messageId: logId });
     }
 
@@ -3406,7 +3406,7 @@ app.get('/api/mongo/stats', async (req, res) => {
 app.post('/api/mongo/sync', requireAuth('canSyncMongo'), async (req, res) => {
   try {
     const { days = 30, from, to } = req.body || {};
-    
+
     let dFrom = from;
     let dTo = to;
     if (!dFrom) {
@@ -3629,7 +3629,7 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(` MinIO DICOM S3    : http://localhost:${process.env.MINIO_API_PORT || 4020} (Bucket: ${BUCKET_NAME})`);
   console.log(` MinIO Console     : http://localhost:${process.env.MINIO_CONSOLE_PORT || 5020}`);
   console.log(`===================================================`);
-  
+
   // Establish initial connections
   connectDB().then(async (dbInstance) => {
     if (dbInstance) {
