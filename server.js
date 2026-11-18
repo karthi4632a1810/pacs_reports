@@ -1262,13 +1262,23 @@ function fetchWatiContactMessages(phone) {
   });
 }
 
-// Resolve Patient Phone Number from Previous Logs, PACS Records, or Hospital OP EMR
+function isDummyPhone(num) {
+  if (!num) return true;
+  const digits = String(num).replace(/[^0-9]/g, '');
+  if (digits.length < 10) return true;
+  const last10 = digits.slice(-10);
+  if (/^(\d)\1{9}$/.test(last10)) return true;
+  if (last10 === '9000000000' || last10 === '0000000000' || last10 === '1234567890' || last10 === '9876543210') return true;
+  return false;
+}
+
+// Resolve Patient Phone Number from Previous Logs, PACS Records, Central Hospital HIS WebService, or OP EMR
 async function resolvePatientPhone(patientId) {
   if (!patientId) return null;
   const cleanId = String(patientId).trim();
   if (!cleanId) return null;
 
-  // 1. Check pacs_db whatsapp_logs & studies & patients
+  // 1. Check pacs_db whatsapp_logs & studies & patients cache
   try {
     const db = await connectDB().catch(() => null);
     if (db) {
@@ -1277,7 +1287,7 @@ async function resolvePatientPhone(patientId) {
         { sort: { dispatchedAt: -1 }, projection: { originalPhone: 1, phone: 1 } }
       );
       const validPastPhone = (pastLog?.originalPhone || pastLog?.phone || '').replace(/[^0-9]/g, '');
-      if (validPastPhone.length >= 10) {
+      if (validPastPhone.length >= 10 && !isDummyPhone(validPastPhone)) {
         return { phone: validPastPhone.slice(-10), source: 'Previous PACS WhatsApp Log' };
       }
 
@@ -1286,22 +1296,118 @@ async function resolvePatientPhone(patientId) {
         { projection: { patientPhone: 1 } }
       );
       const validStudyPhone = (pastStudy?.patientPhone || '').replace(/[^0-9]/g, '');
-      if (validStudyPhone.length >= 10) {
+      if (validStudyPhone.length >= 10 && !isDummyPhone(validStudyPhone)) {
         return { phone: validStudyPhone.slice(-10), source: 'PACS Study Record' };
       }
 
       const patientDoc = await db.collection('patients').findOne(
         { patientId: cleanId, phone: { $exists: true, $ne: '' } },
-        { projection: { phone: 1 } }
+        { projection: { phone: 1, name: 1, city: 1, ageGender: 1 } }
       );
       const validPatPhone = (patientDoc?.phone || '').replace(/[^0-9]/g, '');
-      if (validPatPhone.length >= 10) {
-        return { phone: validPatPhone.slice(-10), source: 'PACS Patient Directory' };
+      if (validPatPhone.length >= 10 && !isDummyPhone(validPatPhone)) {
+        return {
+          phone: validPatPhone.slice(-10),
+          source: 'Hospital HIS (Cached)',
+          patientName: patientDoc.name || '',
+          city: patientDoc.city || ''
+        };
       }
     }
   } catch (_) {}
 
-  // 2. Query hospital OP EMR (op_reports in op-lab-mongo on port 3021)
+  // 2. Query Central Hospital HIS WebService API (Fo_Patient_Detail_15SE)
+  // Endpoints: reverse tunnel on 172.19.0.1:18080 (VPS docker), 127.0.0.1:18080, or direct LAN 192.168.103.37
+  const hisEndpoints = [
+    process.env.HIS_API_URL,
+    'http://172.19.0.1:18080/BB15SE/FrontOfficeCS/FOWebService.asmx/GetJSONData',
+    'http://127.0.0.1:18080/BB15SE/FrontOfficeCS/FOWebService.asmx/GetJSONData',
+    'http://192.168.103.37/BB15SE/FrontOfficeCS/FOWebService.asmx/GetJSONData'
+  ].filter(Boolean);
+
+  for (const endpoint of hisEndpoints) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3500);
+      const payload = {
+        parameters: [{ regNo: cleanId }, { CompanyId: "1" }],
+        SPName: "Fo_Patient_Detail_15SE",
+        userId: "false"
+      };
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = await res.json();
+        let rawItems = [];
+        if (data.d) {
+          try {
+            rawItems = typeof data.d === 'string' ? JSON.parse(data.d) : data.d;
+          } catch (_) {}
+        }
+        const item = Array.isArray(rawItems[0]) ? rawItems[0][0] : (Array.isArray(rawItems) ? rawItems[0] : rawItems);
+
+        if (item && (item.cMobile || item.cWhatsApp_No)) {
+          const mob = String(item.cWhatsApp_No || item.cMobile || '').replace(/[^0-9]/g, '');
+          const cleanMobile = mob.length >= 10 ? mob.slice(-10) : '';
+
+          // Cache in MongoDB patients collection for fast future lookups
+          if (cleanMobile) {
+            try {
+              const db = await connectDB().catch(() => null);
+              if (db) {
+                await db.collection('patients').updateOne(
+                  { patientId: cleanId },
+                  {
+                    $set: {
+                      patientId: cleanId,
+                      name: item.cPat_Name || '',
+                      phone: cleanMobile,
+                      mobile: item.cMobile || '',
+                      whatsAppNo: item.cWhatsApp_No || '',
+                      gender: item.Gender || item.cSex || '',
+                      ageGender: item.AgeGender || '',
+                      city: item.cCity || '',
+                      address: item.cAddress1 || '',
+                      pincode: item.cPinCode || '',
+                      hisPatId: item.iPat_id || null,
+                      updatedAt: new Date()
+                    }
+                  },
+                  { upsert: true }
+                );
+
+                // Update current studies for this patient if phone was missing
+                await db.collection('studies').updateMany(
+                  { patientId: cleanId, $or: [{ patientPhone: { $exists: false } }, { patientPhone: '' }] },
+                  { $set: { patientPhone: cleanMobile } }
+                );
+              }
+            } catch (_) {}
+
+            return {
+              phone: cleanMobile,
+              source: isDummyPhone(cleanMobile) ? 'Hospital HIS (Dummy Entry)' : 'Hospital HIS (Live Registry)',
+              isDummy: isDummyPhone(cleanMobile),
+              patientName: item.cPat_Name || '',
+              gender: item.Gender || '',
+              ageGender: item.AgeGender || '',
+              city: item.cCity || '',
+              address: item.cAddress1 || '',
+              pincode: item.cPinCode || ''
+            };
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  // 3. Fallback: Query hospital OP EMR (op_reports in op-lab-mongo on port 3021)
   try {
     const { MongoClient } = require('mongodb');
     const opClient = new MongoClient('mongodb://172.19.0.1:3021/op-lab-reports', { serverSelectionTimeoutMS: 1500 });
@@ -1312,7 +1418,7 @@ async function resolvePatientPhone(patientId) {
     );
     await opClient.close();
     const validOpPhone = (opRec?.mobile || '').replace(/[^0-9]/g, '');
-    if (validOpPhone.length >= 10) {
+    if (validOpPhone.length >= 10 && !isDummyPhone(validOpPhone)) {
       return { phone: validOpPhone.slice(-10), source: 'Hospital OP EMR Registry' };
     }
   } catch (_) {}
@@ -2645,6 +2751,7 @@ app.post('/api/whatsapp/resolve-phones', requireAuth('canViewReports'), async (r
       resolved[studyUid] = {
         phone: phoneInfo?.phone || (pastLog?.originalPhone || pastLog?.phone || ''),
         source: phoneInfo?.source || (pastLog ? 'Previous PACS Log' : ''),
+        isDummy: Boolean(phoneInfo?.isDummy),
         alreadyDispatched: !!pastLog,
         lastStatus: pastLog?.status || null,
         dispatchedAt: pastLog?.dispatchedAt || null,

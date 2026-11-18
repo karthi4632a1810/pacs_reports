@@ -10138,7 +10138,8 @@
             alreadyDispatched: already,
             lastStatus: info.lastStatus || (already ? 'DELIVERED' : null),
             messageId: info.messageId || null,
-            selected: (!already && hasPhone)
+            isDummy: Boolean(info.isDummy),
+            selected: (!already && hasPhone && !info.isDummy)
           };
         });
 
@@ -10217,8 +10218,9 @@
             <td style="padding: 10px 12px;">
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">+91</span>
-                <input type="text" value="${escapeHtml(c.phone || '')}" placeholder="10-digit mobile" maxlength="10" oninput="onBulkPhoneInput('${c.studyUid}', this.value)" style="width: 125px; background: rgba(15,23,42,0.8); border: 1px solid ${hasPhone ? 'rgba(255,255,255,0.15)' : 'rgba(248,113,113,0.5)'}; color: #f8fafc; font-family: monospace; font-size: 12px; padding: 4px 8px; border-radius: 6px;">
-                ${c.phoneSource ? `<span class="badge" title="Source: ${escapeHtml(c.phoneSource)}" style="font-size: 9px; padding: 2px 5px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); border-radius: 4px;">${c.phoneSource.includes('EMR') ? 'EMR' : 'Saved'}</span>` : ''}
+                <input type="text" value="${escapeHtml(c.phone || '')}" placeholder="10-digit mobile" maxlength="10" oninput="onBulkPhoneInput('${c.studyUid}', this.value)" style="width: 125px; background: rgba(15,23,42,0.8); border: 1px solid ${hasPhone && !c.isDummy ? 'rgba(255,255,255,0.15)' : 'rgba(248,113,113,0.5)'}; color: #f8fafc; font-family: monospace; font-size: 12px; padding: 4px 8px; border-radius: 6px;">
+                ${c.phoneSource ? `<span class="badge" title="Source: ${escapeHtml(c.phoneSource)}" style="font-size: 9px; padding: 2px 5px; background: ${c.phoneSource.includes('HIS') ? 'rgba(56,189,248,0.18)' : 'rgba(16,185,129,0.15)'}; color: ${c.phoneSource.includes('HIS') ? '#38bdf8' : '#34d399'}; border: 1px solid ${c.phoneSource.includes('HIS') ? 'rgba(56,189,248,0.35)' : 'rgba(16,185,129,0.3)'}; border-radius: 4px;">${c.phoneSource.includes('HIS') ? '🏥 HIS' : (c.phoneSource.includes('EMR') ? 'EMR' : 'Saved')}</span>` : ''}
+                ${c.isDummy ? `<span class="badge" title="Hospital dummy registration number. Please verify." style="font-size: 9px; padding: 2px 4px; background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.4); border-radius: 4px;">⚠️ Dummy</span>` : ''}
               </div>
               ${isTest ? `<div style="font-size: 10px; color: #fbbf24; margin-top: 2px;">Diverts to: ${fixedTest} (Test)</div>` : ''}
             </td>
