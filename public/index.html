@@ -3921,6 +3921,10 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
         </button>
+        <button class="btn btn-secondary" onclick="openBulkWhatsAppModal()" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399; background: rgba(16, 185, 129, 0.1); display: inline-flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          Bulk WhatsApp
+        </button>
       </div>
     </div>
 
@@ -3931,7 +3935,12 @@
           <span>Studies Worklist</span>
           <span class="result-count-badge" id="resultsCount">0 Studies</span>
         </div>
-        <div class="table-actions">
+        <div class="table-actions" style="display: flex; align-items: center; gap: 12px;">
+          <button class="btn btn-primary" id="btnBulkWhatsAppWorklist" onclick="openBulkWhatsAppModal()" title="Batch send completed final reports to patients via WhatsApp" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #10b981; color: white; display: inline-flex; align-items: center; gap: 7px; font-weight: 600; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35); padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><path d="M12 8v4l3 3"/></svg>
+            <span>Bulk Send WhatsApp</span>
+            <span class="badge" id="bulkFinalCountBadge" style="background: rgba(255,255,255,0.22); color: #fff; padding: 2px 7px; border-radius: 12px; font-size: 11px; font-weight: 700;">0 Final</span>
+          </button>
           <span id="lastUpdatedText" style="font-size: 12px; color: var(--text-dim);">Last updated: Just now</span>
         </div>
       </div>
@@ -5616,6 +5625,154 @@
           <button class="btn btn-primary" onclick="closeReportPreviewModal()">Close Preview</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Bulk WhatsApp Report Dispatcher Modal -->
+  <div class="modal-overlay" id="bulkWhatsAppModal" onclick="closeBulkWhatsAppModalOnOverlay(event)">
+    <div class="modal-card" style="max-width: 1100px; width: 95vw; height: 90vh; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; background: #0f172a; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
+      
+      <!-- Modal Header -->
+      <div class="modal-header" style="background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 16px 22px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16,185,129,0.35);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #f8fafc;">Bulk WhatsApp Final Report Dispatcher</h3>
+              <span id="bulkModalModeBadge" class="badge" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">LIVE MODE</span>
+              <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;">⏱️ 2s Live Throttle</span>
+            </div>
+            <p style="margin: 3px 0 0; font-size: 12px; color: #94a3b8;">
+              Batch send verified diagnostic Final PDF reports via official WhatsApp Business API with real-time live progress.
+            </p>
+          </div>
+        </div>
+        <button class="btn-icon" onclick="closeBulkWhatsAppModal()" style="font-size: 20px; color: #94a3b8; background: transparent; border: none; cursor: pointer;">&times;</button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 16px;">
+        
+        <!-- Summary KPI Cards -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Eligible Final Reports</div>
+            <div style="font-size: 22px; font-weight: 700; color: #38bdf8; margin-top: 4px;" id="bulkKpiTotal">0</div>
+          </div>
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Ready to Dispatch</div>
+            <div style="font-size: 22px; font-weight: 700; color: #34d399; margin-top: 4px;" id="bulkKpiReady">0</div>
+          </div>
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Already Dispatched</div>
+            <div style="font-size: 22px; font-weight: 700; color: #fbbf24; margin-top: 4px;" id="bulkKpiAlready">0</div>
+          </div>
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px;">
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Missing Mobile #</div>
+            <div style="font-size: 22px; font-weight: 700; color: #f87171; margin-top: 4px;" id="bulkKpiMissing">0</div>
+          </div>
+        </div>
+
+        <!-- Options & Filter Bar -->
+        <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: #e2e8f0; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="bulkOptSkipSent" checked onchange="onBulkFilterChange()" style="accent-color: #10b981; width: 16px; height: 16px; cursor: pointer;">
+              <span>Skip already sent reports</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: #e2e8f0; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="bulkOptRequirePhone" checked onchange="onBulkFilterChange()" style="accent-color: #10b981; width: 16px; height: 16px; cursor: pointer;">
+              <span>Only select valid 10-digit mobile</span>
+            </label>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 12px; color: #94a3b8;">Send Gap:</span>
+            <select id="bulkSendGapSelect" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; font-size: 12px; padding: 5px 10px; border-radius: 6px;">
+              <option value="2000" selected>2.0 Seconds (Recommended)</option>
+              <option value="1500">1.5 Seconds</option>
+              <option value="3000">3.0 Seconds</option>
+              <option value="5000">5.0 Seconds</option>
+            </select>
+            <input type="text" id="bulkSearchInput" placeholder="Filter patient or test..." oninput="filterBulkTable()" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; font-size: 12px; padding: 5px 10px; border-radius: 6px; width: 170px;">
+          </div>
+        </div>
+
+        <!-- Live Progress Container (Hidden until dispatch starts) -->
+        <div id="bulkProgressSection" style="display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div class="spinner" style="width: 16px; height: 16px; border-width: 2px;" id="bulkLiveSpinner"></div>
+              <span style="font-size: 14px; font-weight: 600; color: #f8fafc;" id="bulkProgressTitle">Dispatching reports...</span>
+            </div>
+            <span style="font-size: 14px; font-weight: 700; color: #34d399;" id="bulkProgressPercent">0%</span>
+          </div>
+
+          <!-- Progress Bar Track -->
+          <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; position: relative;">
+            <div id="bulkProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981 0%, #06b6d4 100%); transition: width 0.3s ease; border-radius: 6px;"></div>
+          </div>
+
+          <!-- Live Metrics & Log Terminal -->
+          <div style="display: grid; grid-template-columns: 220px 1fr; gap: 12px; margin-top: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #cbd5e1; background: rgba(30, 41, 59, 0.5); padding: 10px; border-radius: 8px;">
+              <div>✅ Sent: <strong id="bulkLiveSent" style="color: #34d399;">0</strong></div>
+              <div>❌ Failed: <strong id="bulkLiveFailed" style="color: #f87171;">0</strong></div>
+              <div>⏳ Remaining: <strong id="bulkLiveRemaining" style="color: #38bdf8;">0</strong></div>
+              <div>⏱️ Live Gap: <strong id="bulkLiveDelayText" style="color: #fbbf24;">2.0s</strong></div>
+            </div>
+            <div id="bulkTerminalLog" style="background: #020617; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 10px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; color: #94a3b8; height: 90px; overflow-y: auto; line-height: 1.5;">
+              <div style="color: #64748b;">Waiting to launch bulk dispatch...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Candidate Studies Table -->
+        <div style="flex: 1; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; background: rgba(15, 23, 42, 0.6); display: flex; flex-direction: column;">
+          <div style="max-height: 360px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead style="position: sticky; top: 0; background: #1e293b; z-index: 5; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <tr>
+                  <th style="width: 40px; text-align: center; padding: 10px 8px;">
+                    <input type="checkbox" id="bulkHeaderCheckbox" onchange="toggleSelectAllBulk(this.checked)" style="accent-color: #10b981; cursor: pointer;">
+                  </th>
+                  <th style="text-align: left; padding: 10px 12px; color: #94a3b8; font-size: 11px; text-transform: uppercase;">Patient</th>
+                  <th style="text-align: left; padding: 10px 12px; color: #94a3b8; font-size: 11px; text-transform: uppercase;">Study &amp; Modality</th>
+                  <th style="text-align: left; padding: 10px 12px; color: #94a3b8; font-size: 11px; text-transform: uppercase;">WhatsApp Recipient</th>
+                  <th style="text-align: left; padding: 10px 12px; color: #94a3b8; font-size: 11px; text-transform: uppercase;">Diagnostic PDF</th>
+                  <th style="text-align: right; padding: 10px 12px; color: #94a3b8; font-size: 11px; text-transform: uppercase;">Dispatch Status</th>
+                </tr>
+              </thead>
+              <tbody id="bulkCandidatesTableBody">
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8;">
+                    <div class="spinner" style="margin: 0 auto 10px;"></div>
+                    Scanning studies for completed final reports...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer" style="background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(255,255,255,0.08); padding: 14px 22px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 13px; color: #94a3b8;">
+          <span id="bulkFooterSelectedCount" style="color: #34d399; font-weight: 700;">0</span> of <span id="bulkFooterTotalCount">0</span> selected for dispatch
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn btn-secondary" id="btnBulkClose" onclick="closeBulkWhatsAppModal()">Close</button>
+          <button class="btn btn-secondary" id="btnBulkPause" onclick="togglePauseBulkDispatch()" style="display: none; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">⏸️ Pause</button>
+          <button class="btn btn-primary" id="btnBulkStart" onclick="startBulkDispatch()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-color: #10b981; color: white; display: inline-flex; align-items: center; gap: 7px; font-weight: 600; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            <span id="btnBulkStartText">🚀 Start Live Bulk Dispatch</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -9231,6 +9388,7 @@
       const tbody = document.getElementById('studiesTableBody');
       const totalCount = currentFiltered.length;
       document.getElementById('resultsCount').textContent = `${totalCount} Studies`;
+      if (typeof updateBulkButtonCount === 'function') updateBulkButtonCount();
 
       if (totalCount === 0) {
         tbody.innerHTML = `
@@ -9666,7 +9824,7 @@
 
       // Check report type and final PDF status in PACS D:\ drive
       try {
-        const res = await fetch(`/api/report/${encodeURIComponent(studyUid)}/check`);
+        const res = await fetch(`/api/report/${encodeURIComponent(targetStudyUid)}/check`);
         const checkData = await res.json();
 
         // If backend provided enriched patient info or filename, ensure download button uses it
@@ -9827,7 +9985,8 @@
           patientName: s.patientName,
           studyName: `${s.study || 'Radiology Investigation'} (${s.modality || ''})`.trim(),
           patientId: s.patientId,
-          studyDate: s.studyDate
+          studyDate: s.studyDate,
+          modality: s.modality || ''
         })
       })
       .then(res => res.json())
@@ -9861,6 +10020,490 @@
 
     function closeReportModalOnOverlay(e) {
       if (e.target.id === 'reportModal') closeReportModal();
+    }
+
+    // ==========================================
+    // Bulk WhatsApp Final Report Dispatcher
+    // ==========================================
+    let bulkCandidates = [];
+    let bulkSendingState = {
+      isRunning: false,
+      isPaused: false,
+      isCancelled: false,
+      currentIndex: 0,
+      total: 0,
+      sent: 0,
+      failed: 0,
+      delayMs: 2000
+    };
+
+    function updateBulkButtonCount() {
+      const eligible = (allStudies || []).filter(s => s.hasFinalPdf || (s.status || '').toUpperCase() === 'FINAL');
+      const badge = document.getElementById('bulkFinalCountBadge');
+      if (badge) {
+        badge.textContent = `${eligible.length} Final`;
+      }
+    }
+
+    async function openBulkWhatsAppModal() {
+      const isTest = (currentWhatsAppConfig && currentWhatsAppConfig.testMode !== false);
+      const fixedTest = currentWhatsAppConfig.fixedTestPhone || '9498094815';
+
+      const modeBadge = document.getElementById('bulkModalModeBadge');
+      const startBtnText = document.getElementById('btnBulkStartText');
+      if (modeBadge) {
+        if (isTest) {
+          modeBadge.textContent = `🧪 TEST MODE (Diverted to ${fixedTest})`;
+          modeBadge.style.background = 'rgba(245, 158, 11, 0.2)';
+          modeBadge.style.color = '#fbbf24';
+          modeBadge.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        } else {
+          modeBadge.textContent = '🚀 LIVE MODE (Direct to Patients)';
+          modeBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+          modeBadge.style.color = '#34d399';
+          modeBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        }
+      }
+      if (startBtnText) {
+        startBtnText.textContent = isTest ? '🧪 Start Test Bulk Dispatch' : '🚀 Start Live Bulk Dispatch';
+      }
+
+      // Reset progress & state
+      bulkSendingState.isRunning = false;
+      bulkSendingState.isPaused = false;
+      bulkSendingState.isCancelled = false;
+      document.getElementById('bulkProgressSection').style.display = 'none';
+      document.getElementById('btnBulkStart').style.display = 'inline-flex';
+      document.getElementById('btnBulkPause').style.display = 'none';
+      document.getElementById('btnBulkClose').disabled = false;
+      document.getElementById('bulkTerminalLog').innerHTML = '<div style="color: #64748b;">Ready to dispatch...</div>';
+
+      const tbody = document.getElementById('bulkCandidatesTableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 30px; color: #94a3b8;">
+            <div class="spinner" style="margin: 0 auto 10px;"></div>
+            Scanning worklist for completed Final PDF reports and resolving patient phone numbers...
+          </td>
+        </tr>
+      `;
+
+      document.getElementById('bulkWhatsAppModal').classList.add('active');
+
+      // 1. Gather all studies that have a completed final report
+      const eligibleStudies = (allStudies || []).filter(s => s.hasFinalPdf || (s.status || '').toUpperCase() === 'FINAL');
+      document.getElementById('bulkKpiTotal').textContent = String(eligibleStudies.length);
+
+      if (eligibleStudies.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 35px; color: #94a3b8;">
+              <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
+              <strong style="color: #f8fafc;">No Finalized PDF Reports Found</strong>
+              <p style="font-size: 12px; margin-top: 4px; color: #64748b;">Only studies with completed, signed Final PDFs (Final_*.pdf) can be dispatched via WhatsApp.</p>
+            </td>
+          </tr>
+        `;
+        updateBulkKPIs();
+        return;
+      }
+
+      // 2. Resolve phones and dispatch history from backend
+      try {
+        const payload = eligibleStudies.map(s => ({ studyUid: s.studyUid, patientId: s.patientId }));
+        const res = await fetch('/api/whatsapp/resolve-phones', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: payload })
+        });
+        const data = await res.json();
+        const resolvedMap = data.resolved || {};
+
+        bulkCandidates = eligibleStudies.map(s => {
+          const info = resolvedMap[s.studyUid] || {};
+          const phone = info.phone || '';
+          const already = Boolean(info.alreadyDispatched);
+          const hasPhone = phone && phone.length >= 10;
+          return {
+            studyUid: s.studyUid,
+            patientId: s.patientId,
+            patientName: s.patientName || 'Patient',
+            age: s.age || '',
+            sex: s.sex || '',
+            study: s.study || 'Radiology Investigation',
+            modality: s.modality || '',
+            studyDate: s.studyDate || '',
+            phone: phone,
+            phoneSource: info.source || (hasPhone ? 'Known' : ''),
+            alreadyDispatched: already,
+            lastStatus: info.lastStatus || (already ? 'DELIVERED' : null),
+            messageId: info.messageId || null,
+            selected: (!already && hasPhone)
+          };
+        });
+
+        renderBulkCandidatesTable();
+        updateBulkKPIs();
+      } catch (err) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 25px; color: #f87171;">
+              Failed to resolve patient metadata: ${escapeHtml(err.message)}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderBulkCandidatesTable() {
+      const tbody = document.getElementById('bulkCandidatesTableBody');
+      const search = (document.getElementById('bulkSearchInput')?.value || '').toLowerCase().trim();
+
+      let filtered = bulkCandidates;
+      if (search) {
+        filtered = filtered.filter(c =>
+          (c.patientName || '').toLowerCase().includes(search) ||
+          (c.patientId || '').toLowerCase().includes(search) ||
+          (c.study || '').toLowerCase().includes(search) ||
+          (c.modality || '').toLowerCase().includes(search) ||
+          (c.phone || '').includes(search)
+        );
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 25px; color: #94a3b8;">
+              No candidates matching current filter.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const isTest = (currentWhatsAppConfig && currentWhatsAppConfig.testMode !== false);
+      const fixedTest = currentWhatsAppConfig.fixedTestPhone || '9498094815';
+
+      tbody.innerHTML = filtered.map((c) => {
+        const safeStudy = String(c.studyUid).replace(/[^a-zA-Z0-9._-]/g, '');
+        const hasPhone = c.phone && c.phone.length >= 10;
+        const modClass = `badge-${(c.modality || 'other').toLowerCase()}`;
+        
+        let statusBadge = '';
+        if (c.alreadyDispatched) {
+          statusBadge = `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); font-size: 11px;">✓ Delivered</span>`;
+        } else if (hasPhone) {
+          statusBadge = `<span class="badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 11px;">Ready</span>`;
+        } else {
+          statusBadge = `<span class="badge" style="background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.35); font-size: 11px;">Missing Mobile</span>`;
+        }
+
+        return `
+          <tr id="bulkRow-${safeStudy}" style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            <td style="text-align: center; padding: 10px 8px;">
+              <input type="checkbox" ${c.selected ? 'checked' : ''} onchange="toggleCandidateSelect('${c.studyUid}', this.checked)" style="accent-color: #10b981; cursor: pointer; width: 16px; height: 16px;">
+            </td>
+            <td style="padding: 10px 12px;">
+              <div style="font-weight: 600; color: #f8fafc;">${escapeHtml(c.patientName)}</div>
+              <div style="font-size: 11px; color: #94a3b8;">ID: <code>${escapeHtml(c.patientId)}</code> ${c.age ? '&bull; ' + escapeHtml(c.age) : ''} ${c.sex ? '&bull; ' + escapeHtml(c.sex) : ''}</div>
+            </td>
+            <td style="padding: 10px 12px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="modality-badge ${modClass}" style="font-size: 10px; padding: 1px 6px;">${escapeHtml(c.modality || '-')}</span>
+                <span style="font-weight: 500; color: #e2e8f0; font-size: 12px;">${escapeHtml(c.study)}</span>
+              </div>
+              <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${escapeHtml(c.studyDate)}</div>
+            </td>
+            <td style="padding: 10px 12px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 12px; color: #94a3b8; font-weight: 600;">+91</span>
+                <input type="text" value="${escapeHtml(c.phone || '')}" placeholder="10-digit mobile" maxlength="10" oninput="onBulkPhoneInput('${c.studyUid}', this.value)" style="width: 125px; background: rgba(15,23,42,0.8); border: 1px solid ${hasPhone ? 'rgba(255,255,255,0.15)' : 'rgba(248,113,113,0.5)'}; color: #f8fafc; font-family: monospace; font-size: 12px; padding: 4px 8px; border-radius: 6px;">
+                ${c.phoneSource ? `<span class="badge" title="Source: ${escapeHtml(c.phoneSource)}" style="font-size: 9px; padding: 2px 5px; background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); border-radius: 4px;">${c.phoneSource.includes('EMR') ? 'EMR' : 'Saved'}</span>` : ''}
+              </div>
+              ${isTest ? `<div style="font-size: 10px; color: #fbbf24; margin-top: 2px;">Diverts to: ${fixedTest} (Test)</div>` : ''}
+            </td>
+            <td style="padding: 10px 12px;">
+              <a href="/reports/study/${encodeURIComponent(c.studyUid)}/Final_${safeStudy}.pdf" target="_blank" style="color: #38bdf8; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;" title="View Diagnostic PDF">
+                <span>Final_${safeStudy.substring(0, 10)}...pdf</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </td>
+            <td style="padding: 10px 12px; text-align: right;" id="bulkStatusCell-${safeStudy}">
+              ${statusBadge}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function toggleSelectAllBulk(checked) {
+      const skipSent = document.getElementById('bulkOptSkipSent')?.checked !== false;
+      const requirePhone = document.getElementById('bulkOptRequirePhone')?.checked !== false;
+
+      bulkCandidates.forEach(c => {
+        if (checked) {
+          if (skipSent && c.alreadyDispatched) {
+            c.selected = false;
+            return;
+          }
+          if (requirePhone && (!c.phone || c.phone.length < 10)) {
+            c.selected = false;
+            return;
+          }
+          c.selected = true;
+        } else {
+          c.selected = false;
+        }
+      });
+      renderBulkCandidatesTable();
+      updateBulkKPIs();
+    }
+
+    function toggleCandidateSelect(studyUid, checked) {
+      const c = bulkCandidates.find(item => item.studyUid === studyUid);
+      if (c) c.selected = checked;
+      updateBulkKPIs();
+    }
+
+    function onBulkPhoneInput(studyUid, val) {
+      const clean = String(val).replace(/[^0-9]/g, '');
+      const c = bulkCandidates.find(item => item.studyUid === studyUid);
+      if (c) {
+        c.phone = clean;
+        c.selected = (clean.length >= 10);
+      }
+      updateBulkKPIs();
+    }
+
+    function onBulkFilterChange() {
+      const skipSent = document.getElementById('bulkOptSkipSent')?.checked !== false;
+      const requirePhone = document.getElementById('bulkOptRequirePhone')?.checked !== false;
+
+      bulkCandidates.forEach(c => {
+        if (skipSent && c.alreadyDispatched) {
+          c.selected = false;
+        } else if (requirePhone && (!c.phone || c.phone.length < 10)) {
+          c.selected = false;
+        } else if (!c.alreadyDispatched && c.phone && c.phone.length >= 10) {
+          c.selected = true;
+        }
+      });
+      renderBulkCandidatesTable();
+      updateBulkKPIs();
+    }
+
+    function filterBulkTable() {
+      renderBulkCandidatesTable();
+    }
+
+    function updateBulkKPIs() {
+      const total = bulkCandidates.length;
+      const ready = bulkCandidates.filter(c => c.phone && c.phone.length >= 10 && !c.alreadyDispatched).length;
+      const already = bulkCandidates.filter(c => c.alreadyDispatched).length;
+      const missing = bulkCandidates.filter(c => !c.phone || c.phone.length < 10).length;
+      const selected = bulkCandidates.filter(c => c.selected).length;
+
+      document.getElementById('bulkKpiTotal').textContent = String(total);
+      document.getElementById('bulkKpiReady').textContent = String(ready);
+      document.getElementById('bulkKpiAlready').textContent = String(already);
+      document.getElementById('bulkKpiMissing').textContent = String(missing);
+
+      document.getElementById('bulkFooterSelectedCount').textContent = String(selected);
+      document.getElementById('bulkFooterTotalCount').textContent = String(total);
+
+      const headerCb = document.getElementById('bulkHeaderCheckbox');
+      if (headerCb) {
+        headerCb.checked = (selected > 0 && selected === total);
+      }
+    }
+
+    function appendBulkLog(text, color = '#94a3b8') {
+      const logBox = document.getElementById('bulkTerminalLog');
+      if (!logBox) return;
+      const div = document.createElement('div');
+      div.style.color = color;
+      div.textContent = text;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function updateCandidateRowStatus(studyUid, status, detail = '') {
+      const safeStudy = String(studyUid).replace(/[^a-zA-Z0-9._-]/g, '');
+      const cell = document.getElementById(`bulkStatusCell-${safeStudy}`);
+      const row = document.getElementById(`bulkRow-${safeStudy}`);
+      if (!cell) return;
+
+      if (status === 'SENDING') {
+        cell.innerHTML = `<span class="badge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);"><span class="spinner" style="width: 10px; height: 10px; border-width: 2px; display: inline-block; vertical-align: middle; margin-right: 4px;"></span> Sending...</span>`;
+        if (row) row.style.boxShadow = 'inset 0 0 0 1px #38bdf8';
+      } else if (status === 'SUCCESS') {
+        cell.innerHTML = `<span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);" title="Message ID: ${escapeHtml(detail)}">✓ Delivered</span>`;
+        if (row) row.style.boxShadow = 'none';
+      } else if (status === 'FAILED') {
+        cell.innerHTML = `<span class="badge" style="background: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.4);" title="${escapeHtml(detail)}">✗ Failed</span>`;
+        if (row) row.style.boxShadow = 'none';
+      }
+    }
+
+    async function startBulkDispatch() {
+      if (bulkSendingState.isRunning) return;
+
+      const selected = bulkCandidates.filter(c => c.selected);
+      if (selected.length === 0) {
+        return alert('⚠️ Please select at least one study to dispatch.');
+      }
+
+      const isTest = (currentWhatsAppConfig && currentWhatsAppConfig.testMode !== false);
+      const fixedTest = currentWhatsAppConfig.fixedTestPhone || '9498094815';
+
+      if (!isTest) {
+        const confirmMsg =
+          `⚠️ CONFIRM BULK LIVE DISPATCH (META OFFICIAL API)\n\n` +
+          `• Total Selected Reports : ${selected.length}\n` +
+          `• Target Mode           : LIVE PRODUCTION (Real Patients)\n` +
+          `• Rate Limiting Gap     : ${Number(document.getElementById('bulkSendGapSelect').value) / 1000}s between each message\n\n` +
+          `Each patient will receive their official finalized diagnostic PDF report via WhatsApp.\n\n` +
+          `Are you sure you want to proceed with live bulk delivery?`;
+        if (!confirm(confirmMsg)) return;
+      }
+
+      // Initialize state
+      bulkSendingState.isRunning = true;
+      bulkSendingState.isPaused = false;
+      bulkSendingState.isCancelled = false;
+      bulkSendingState.sent = 0;
+      bulkSendingState.failed = 0;
+      bulkSendingState.total = selected.length;
+      bulkSendingState.delayMs = parseInt(document.getElementById('bulkSendGapSelect').value, 10) || 2000;
+
+      // UI updates
+      document.getElementById('bulkProgressSection').style.display = 'block';
+      document.getElementById('btnBulkStart').style.display = 'none';
+      document.getElementById('btnBulkPause').style.display = 'inline-flex';
+      document.getElementById('btnBulkPause').textContent = '⏸️ Pause';
+      document.getElementById('btnBulkClose').disabled = true;
+
+      const logBox = document.getElementById('bulkTerminalLog');
+      logBox.innerHTML = '';
+      appendBulkLog(`[${new Date().toLocaleTimeString()}] Bulk dispatch initiated (${selected.length} reports, gap: ${bulkSendingState.delayMs / 1000}s)...`);
+
+      for (let i = 0; i < selected.length; i++) {
+        if (bulkSendingState.isCancelled) {
+          appendBulkLog(`[${new Date().toLocaleTimeString()}] Dispatch cancelled by user.`);
+          break;
+        }
+
+        while (bulkSendingState.isPaused) {
+          await new Promise(r => setTimeout(r, 400));
+          if (bulkSendingState.isCancelled) break;
+        }
+        if (bulkSendingState.isCancelled) break;
+
+        const candidate = selected[i];
+        bulkSendingState.currentIndex = i;
+
+        // Update progress bar
+        const percent = Math.round((i / selected.length) * 100);
+        document.getElementById('bulkProgressBar').style.width = `${percent}%`;
+        document.getElementById('bulkProgressPercent').textContent = `${percent}%`;
+        document.getElementById('bulkProgressTitle').textContent = `[${i + 1}/${selected.length}] Dispatching ${candidate.patientName || 'Patient'}...`;
+        document.getElementById('bulkLiveRemaining').textContent = String(selected.length - i);
+
+        // Highlight row
+        updateCandidateRowStatus(candidate.studyUid, 'SENDING');
+        appendBulkLog(`[${new Date().toLocaleTimeString()}] [${i + 1}/${selected.length}] Dispatching ${candidate.patientName} (${candidate.patientId}) -> ${isTest ? fixedTest : candidate.phone}...`);
+
+        try {
+          const res = await fetch(`/api/report/${encodeURIComponent(candidate.studyUid)}/send-whatsapp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone: candidate.phone,
+              patientName: candidate.patientName,
+              studyName: candidate.study,
+              patientId: candidate.patientId,
+              studyDate: candidate.studyDate,
+              modality: candidate.modality
+            })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            bulkSendingState.sent++;
+            candidate.alreadyDispatched = true;
+            candidate.lastStatus = 'DELIVERED';
+            candidate.messageId = data.messageId;
+            updateCandidateRowStatus(candidate.studyUid, 'SUCCESS', data.messageId);
+            appendBulkLog(`[${new Date().toLocaleTimeString()}] ✓ Delivered! Message ID: ${data.messageId || 'OK'}`, '#34d399');
+          } else {
+            bulkSendingState.failed++;
+            candidate.lastStatus = 'FAILED';
+            updateCandidateRowStatus(candidate.studyUid, 'FAILED', data.error || 'Failed');
+            appendBulkLog(`[${new Date().toLocaleTimeString()}] ✗ Delivery rejected: ${data.error || 'Unknown error'}`, '#f87171');
+          }
+        } catch (err) {
+          bulkSendingState.failed++;
+          candidate.lastStatus = 'FAILED';
+          updateCandidateRowStatus(candidate.studyUid, 'FAILED', err.message);
+          appendBulkLog(`[${new Date().toLocaleTimeString()}] ✗ Network error: ${err.message}`, '#f87171');
+        }
+
+        document.getElementById('bulkLiveSent').textContent = String(bulkSendingState.sent);
+        document.getElementById('bulkLiveFailed').textContent = String(bulkSendingState.failed);
+
+        // Gap delay (Meta compliance rate limiter) between messages
+        if (i < selected.length - 1 && !bulkSendingState.isCancelled) {
+          appendBulkLog(`[${new Date().toLocaleTimeString()}] Waiting ${bulkSendingState.delayMs / 1000}s live gap for Meta rate limiter...`);
+          await new Promise(r => setTimeout(r, bulkSendingState.delayMs));
+        }
+      }
+
+      // Finish progress
+      document.getElementById('bulkProgressBar').style.width = '100%';
+      document.getElementById('bulkProgressPercent').textContent = '100%';
+      document.getElementById('bulkProgressTitle').textContent = `Completed! ${bulkSendingState.sent} sent, ${bulkSendingState.failed} failed.`;
+      document.getElementById('bulkLiveRemaining').textContent = '0';
+      const liveSpin = document.getElementById('bulkLiveSpinner');
+      if (liveSpin) liveSpin.style.display = 'none';
+
+      bulkSendingState.isRunning = false;
+      document.getElementById('btnBulkPause').style.display = 'none';
+      document.getElementById('btnBulkClose').disabled = false;
+      document.getElementById('btnBulkStart').style.display = 'inline-flex';
+      document.getElementById('btnBulkStartText').textContent = '✓ Finished (Send Again)';
+
+      appendBulkLog(`====================================================`, '#38bdf8');
+      appendBulkLog(`[${new Date().toLocaleTimeString()}] 🎉 Bulk dispatch finished: ${bulkSendingState.sent} successful, ${bulkSendingState.failed} failed.`, '#34d399');
+
+      // Refresh WhatsApp logs & table in background
+      try {
+        fetchWhatsAppLogs();
+      } catch (_) {}
+    }
+
+    function togglePauseBulkDispatch() {
+      if (!bulkSendingState.isRunning) return;
+      bulkSendingState.isPaused = !bulkSendingState.isPaused;
+      const btn = document.getElementById('btnBulkPause');
+      if (btn) {
+        btn.textContent = bulkSendingState.isPaused ? '▶️ Resume' : '⏸️ Pause';
+        btn.style.color = bulkSendingState.isPaused ? '#34d399' : '#fbbf24';
+      }
+      appendBulkLog(`[${new Date().toLocaleTimeString()}] ${bulkSendingState.isPaused ? '⏸️ Dispatch PAUSED' : '▶️ Dispatch RESUMED'}`);
+    }
+
+    function closeBulkWhatsAppModal() {
+      if (bulkSendingState.isRunning) {
+        if (!confirm('Bulk dispatch is actively running. Do you want to stop and close?')) return;
+        bulkSendingState.isCancelled = true;
+      }
+      document.getElementById('bulkWhatsAppModal').classList.remove('active');
+    }
+
+    function closeBulkWhatsAppModalOnOverlay(e) {
+      if (e.target.id === 'bulkWhatsAppModal') {
+        closeBulkWhatsAppModal();
+      }
     }
 
     // Study Details Modal
