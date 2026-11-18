@@ -1090,6 +1090,64 @@ function fetchWatiContactMessages(phone) {
   });
 }
 
+// Resolve Patient Phone Number from Previous Logs, PACS Records, or Hospital OP EMR
+async function resolvePatientPhone(patientId) {
+  if (!patientId) return null;
+  const cleanId = String(patientId).trim();
+  if (!cleanId) return null;
+
+  // 1. Check pacs_db whatsapp_logs & studies & patients
+  try {
+    const db = await connectDB().catch(() => null);
+    if (db) {
+      const pastLog = await db.collection('whatsapp_logs').findOne(
+        { patientId: cleanId, originalPhone: { $exists: true, $ne: '' } },
+        { sort: { dispatchedAt: -1 }, projection: { originalPhone: 1, phone: 1 } }
+      );
+      const validPastPhone = (pastLog?.originalPhone || pastLog?.phone || '').replace(/[^0-9]/g, '');
+      if (validPastPhone.length >= 10) {
+        return { phone: validPastPhone.slice(-10), source: 'Previous PACS WhatsApp Log' };
+      }
+
+      const pastStudy = await db.collection('studies').findOne(
+        { patientId: cleanId, patientPhone: { $exists: true, $ne: '' } },
+        { projection: { patientPhone: 1 } }
+      );
+      const validStudyPhone = (pastStudy?.patientPhone || '').replace(/[^0-9]/g, '');
+      if (validStudyPhone.length >= 10) {
+        return { phone: validStudyPhone.slice(-10), source: 'PACS Study Record' };
+      }
+
+      const patientDoc = await db.collection('patients').findOne(
+        { patientId: cleanId, phone: { $exists: true, $ne: '' } },
+        { projection: { phone: 1 } }
+      );
+      const validPatPhone = (patientDoc?.phone || '').replace(/[^0-9]/g, '');
+      if (validPatPhone.length >= 10) {
+        return { phone: validPatPhone.slice(-10), source: 'PACS Patient Directory' };
+      }
+    }
+  } catch (_) {}
+
+  // 2. Query hospital OP EMR (op_reports in op-lab-mongo on port 3021)
+  try {
+    const { MongoClient } = require('mongodb');
+    const opClient = new MongoClient('mongodb://172.19.0.1:3021/op-lab-reports', { serverSelectionTimeoutMS: 1500 });
+    await opClient.connect();
+    const opRec = await opClient.db().collection('op_reports').findOne(
+      { regNo: cleanId, mobile: { $exists: true, $ne: '' } },
+      { projection: { mobile: 1, name: 1 } }
+    );
+    await opClient.close();
+    const validOpPhone = (opRec?.mobile || '').replace(/[^0-9]/g, '');
+    if (validOpPhone.length >= 10) {
+      return { phone: validOpPhone.slice(-10), source: 'Hospital OP EMR Registry' };
+    }
+  } catch (_) {}
+
+  return null;
+}
+
 // Log WhatsApp dispatch event to MongoDB collection 'whatsapp_logs'
 async function logWhatsAppDispatch({
   studyUid,
@@ -1135,6 +1193,24 @@ async function logWhatsAppDispatch({
 
     const result = await db.collection('whatsapp_logs').insertOne(logEntry);
     logEntry._id = result.insertedId;
+
+    // Persist verified phone number onto patient & study documents for future automatic lookup
+    if (originalPhone && originalPhone.length >= 10) {
+      const cleanPhone = String(originalPhone).replace(/[^0-9]/g, '').slice(-10);
+      if (patientId) {
+        db.collection('patients').updateOne(
+          { patientId: String(patientId) },
+          { $set: { phone: cleanPhone, updatedAt: new Date() } }
+        ).catch(() => {});
+      }
+      if (studyUid) {
+        db.collection('studies').updateOne(
+          { studyUid: String(studyUid) },
+          { $set: { patientPhone: cleanPhone, updatedAt: new Date() } }
+        ).catch(() => {});
+      }
+    }
+
     return logEntry;
   } catch (err) {
     console.error('[WHATSAPP LOG ERROR]', err.message);
@@ -2263,6 +2339,165 @@ async function runAutoRetryWorker() {
 
 // Run auto-retry worker every 60 seconds
 setInterval(runAutoRetryWorker, 60 * 1000);
+
+// Background Auto-Send Finalized Reports Worker
+async function runAutoSendFinalizedWorker() {
+  try {
+    const db = await connectDB().catch(() => null);
+    if (!db) return;
+
+    const configDoc = await db.collection('settings').findOne({ _id: 'whatsapp_config' });
+    if (!configDoc || configDoc.autoSendFinalized !== true) {
+      return; // Disabled by admin in settings
+    }
+
+    // Look for studies finalized in the last 48 hours that haven't been dispatched yet
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const dateStr = twoDaysAgo.toISOString().split('T')[0];
+
+    const unDispatchedStudies = await db.collection('studies').find({
+      hasFinalPdf: true,
+      studyDate: { $gte: dateStr },
+      whatsappDispatchedAt: { $exists: false }
+    }).limit(6).toArray();
+
+    if (unDispatchedStudies.length === 0) return;
+
+    const isTestMode = (configDoc.testMode !== false);
+    const fixedTestPhone = configDoc.fixedTestPhone || '9498094815';
+
+    for (const study of unDispatchedStudies) {
+      // Double check it wasn't already logged
+      const existingLog = await db.collection('whatsapp_logs').findOne({ studyUid: study.studyUid });
+      if (existingLog) {
+        await db.collection('studies').updateOne(
+          { studyUid: study.studyUid },
+          { $set: { whatsappDispatchedAt: existingLog.dispatchedAt, whatsappMessageId: existingLog.messageId } }
+        );
+        continue;
+      }
+
+      // Resolve recipient phone number
+      const phoneInfo = await resolvePatientPhone(study.patientId);
+      const targetPhone = isTestMode ? fixedTestPhone : phoneInfo?.phone;
+
+      // In Live mode, only auto-send if a verified 10-digit mobile number exists
+      if (!targetPhone || targetPhone.length < 10) {
+        continue;
+      }
+
+      const safeStudy = study.studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
+      const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+      if (!fs.existsSync(localPdfPath)) {
+        continue;
+      }
+
+      console.log(`[Auto-Send Worker] Auto-dispatching finalized report for Patient ${study.patientName} (${study.patientId}) -> ${targetPhone} (Mode: ${isTestMode ? 'TEST' : 'LIVE'})`);
+      const reportPdfUrl = await getPublicReportPdfUrl(study.studyUid);
+
+      const { sendWhatsAppReport } = require('./scripts/send_whatsapp_report');
+      const result = await sendWhatsAppReport({
+        phone: targetPhone,
+        patientName: study.patientName,
+        studyName: `${study.study || 'Radiology Investigation'} (${study.modality || ''})`.trim(),
+        patientId: study.patientId,
+        studyDate: study.studyDate,
+        pdfUrl: reportPdfUrl,
+        templateName: configDoc.templateName || 'pacs_reports_new'
+      });
+
+      const isSuccess = !!result.success;
+      const status = isSuccess ? (result.data?.statusString?.toUpperCase() || 'DELIVERED') : 'FAILED';
+
+      await logWhatsAppDispatch({
+        studyUid: study.studyUid,
+        patientId: study.patientId,
+        patientName: study.patientName,
+        studyName: `${study.study || 'Radiology Investigation'} (${study.modality || ''})`.trim(),
+        modality: study.modality || '',
+        studyDate: study.studyDate,
+        phone: targetPhone,
+        originalPhone: phoneInfo?.phone || targetPhone,
+        testMode: isTestMode,
+        pdfUrl: reportPdfUrl,
+        status,
+        statusDetails: isSuccess ? null : (result.error?.message || 'WATI API rejected message delivery'),
+        messageId: result.data?.local_message_id,
+        watiMessageId: result.data?.id,
+        username: 'AUTO_FINALIZED_DAEMON'
+      });
+
+      await db.collection('studies').updateOne(
+        { studyUid: study.studyUid },
+        {
+          $set: {
+            whatsappDispatchedAt: new Date(),
+            whatsappDispatchedTo: targetPhone,
+            whatsappOriginalPhone: phoneInfo?.phone || targetPhone,
+            whatsappTestMode: isTestMode,
+            whatsappMessageId: result.data?.local_message_id
+          }
+        }
+      );
+
+      // Meta compliance rate limiter: exactly 2 seconds gap between each dispatch
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  } catch (err) {
+    console.error('[Auto-Send Finalized Worker Error]:', err.message);
+  }
+}
+
+// Run auto-send finalized worker every 60 seconds
+setInterval(runAutoSendFinalizedWorker, 60 * 1000);
+
+// Resolve Patient Mobile Numbers in Bulk from PACS, Logs & Hospital OP EMR
+app.post('/api/whatsapp/resolve-phones', requireAuth('canViewReports'), async (req, res) => {
+  try {
+    const { items = [] } = req.body || {};
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.json({ success: true, resolved: {} });
+    }
+
+    const db = await connectDB().catch(() => null);
+    const studyUids = items.map(i => String(i.studyUid || '')).filter(Boolean);
+
+    // Fetch existing WhatsApp dispatch history for these studies
+    const pastLogs = db ? await db.collection('whatsapp_logs').find({
+      studyUid: { $in: studyUids }
+    }).toArray() : [];
+
+    const logMap = new Map();
+    pastLogs.forEach(l => {
+      if (!logMap.has(l.studyUid) || new Date(l.dispatchedAt) > new Date(logMap.get(l.studyUid).dispatchedAt)) {
+        logMap.set(l.studyUid, l);
+      }
+    });
+
+    const resolved = {};
+    for (const item of items) {
+      const studyUid = String(item.studyUid || '');
+      const patientId = String(item.patientId || '');
+      const pastLog = logMap.get(studyUid);
+
+      const phoneInfo = await resolvePatientPhone(patientId);
+
+      resolved[studyUid] = {
+        phone: phoneInfo?.phone || (pastLog?.originalPhone || pastLog?.phone || ''),
+        source: phoneInfo?.source || (pastLog ? 'Previous PACS Log' : ''),
+        alreadyDispatched: !!pastLog,
+        lastStatus: pastLog?.status || null,
+        dispatchedAt: pastLog?.dispatchedAt || null,
+        messageId: pastLog?.messageId || null,
+        testMode: pastLog ? pastLog.testMode : null
+      };
+    }
+
+    res.json({ success: true, resolved });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // Get WhatsApp logs with advanced filtering, export support, and rich analytics
 app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
