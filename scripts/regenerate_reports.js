@@ -167,7 +167,36 @@ async function main() {
     const rawPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
 
     if (!fs.existsSync(rawPdfPath)) {
-      console.log(`[${i + 1}/${uidsToCompile.length}] Skipping ${uid} (raw PDF not cached on local disk)`);
+      // Auto-fetch from PACS or convert from Word document
+      const rawDocPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
+      const PACS_HOST = process.env.PACS_HOST || 'http://103.102.85.3';
+      if (!fs.existsSync(rawDocPath)) {
+        try {
+          const pdfRes = await fetch(`${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(uid)}/Final_${encodeURIComponent(uid)}.pdf`).catch(() => null);
+          if (pdfRes && pdfRes.ok) {
+            fs.writeFileSync(rawPdfPath, Buffer.from(await pdfRes.arrayBuffer()));
+          } else {
+            const docRes = await fetch(`${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(uid)}/Final_${encodeURIComponent(uid)}.doc`).catch(() => null);
+            if (docRes && docRes.ok) {
+              fs.writeFileSync(rawDocPath, Buffer.from(await docRes.arrayBuffer()));
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (fs.existsSync(rawDocPath) && !fs.existsSync(rawPdfPath)) {
+        try {
+          const { execSync } = require('child_process');
+          const soffice = fs.existsSync('/usr/bin/soffice') ? '/usr/bin/soffice' : (fs.existsSync('/usr/bin/libreoffice') ? '/usr/bin/libreoffice' : null);
+          if (soffice) {
+            execSync(`"${soffice}" --headless --convert-to pdf --outdir "${REPORT_DIR}" "${rawDocPath}"`, { timeout: 15000 });
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (!fs.existsSync(rawPdfPath)) {
+      console.log(`[${i + 1}/${uidsToCompile.length}] Skipping ${uid} (no report file available on PACS server)`);
       continue;
     }
 

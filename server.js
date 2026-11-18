@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const fsp = require('fs/promises');
 const crypto = require('crypto');
+const { execSync } = require('child_process');
 const { ZipArchive } = require('archiver');
 const { ObjectId } = require('mongodb');
 const { connectDB, upsertStudies, getMongoStats, queryPatients, MONGODB_URI } = require('./db');
@@ -33,7 +34,7 @@ const {
   deleteUser
 } = require('./auth');
 const settingsManager = require('./settingsManager');
-const { parseReportFromPdf, generateReportHtml, renderModernPdf, formatReportFilename } = require('./reportGenerator');
+const { parseReportFromPdf, parseReportFromText, generateReportHtml, renderModernPdf, formatReportFilename } = require('./reportGenerator');
 const { registerReportsRoutes } = require('./reportsApi');
 
 const app = express();
@@ -538,6 +539,192 @@ app.get('/api/thumbnail/:studyUid/:seriesUid', async (req, res) => {
   }
 });
 
+/**
+ * Ensures a valid PDF report (either raw or compiled modern) exists locally for the study.
+ * Automatically checks:
+ * 1. Local compiled Modern_Final_<uid>.pdf or Final_<uid>.pdf
+ * 2. Remote PACS Final_<uid>.pdf
+ * 3. Remote PACS Final_<uid>.doc or <uid>.doc -> Auto-converts via LibreOffice/soffice or antiword
+ * 4. Compiles modern colourful hospital report via renderModernPdf
+ * 5. Updates MongoDB study record with hasFinalPdf: true
+ * Returns { localPdfPath, modernPdfPath, fileToServe, studyDoc } or null if unavailable.
+ */
+async function ensureStudyPdf(studyUid, studyDoc = null) {
+  if (!studyUid) return null;
+  const safeStudy = String(studyUid).replace(/[^a-zA-Z0-9._-]/g, '');
+  const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+  const modernPdfPath = path.join(REPORT_DIR, `Modern_Final_${safeStudy}.pdf`);
+  const localDocPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
+
+  // Ensure DB record is loaded
+  if (!studyDoc || !studyDoc.patientName) {
+    try {
+      const db = await connectDB().catch(() => null);
+      if (db) {
+        studyDoc = (await db.collection('studies').findOne({
+          $or: [
+            { studyUid },
+            { studyInstanceUid: studyUid },
+            { accessionNumber: studyUid }
+          ]
+        })) || studyDoc || {};
+      }
+    } catch (_) {}
+  }
+  studyDoc = studyDoc || {};
+
+  // 1. If Modern PDF already exists and is healthy (>2KB), return immediately
+  if (fs.existsSync(modernPdfPath) && fs.statSync(modernPdfPath).size > 2000) {
+    return {
+      localPdfPath: fs.existsSync(localPdfPath) ? localPdfPath : modernPdfPath,
+      modernPdfPath,
+      fileToServe: modernPdfPath,
+      studyDoc
+    };
+  }
+
+  // 2. If raw PDF exists locally, compile modern PDF
+  if (fs.existsSync(localPdfPath) && fs.statSync(localPdfPath).size > 1000) {
+    try {
+      const modern = await renderModernPdf(studyUid, studyDoc);
+      if (fs.existsSync(modern) && fs.statSync(modern).size > 1000) {
+        return { localPdfPath, modernPdfPath: modern, fileToServe: modern, studyDoc };
+      }
+    } catch (e) {
+      console.warn(`[REPORT] renderModernPdf error for cached raw PDF ${studyUid}:`, e.message);
+    }
+    return { localPdfPath, modernPdfPath: localPdfPath, fileToServe: localPdfPath, studyDoc };
+  }
+
+  // 3. Try fetching Final_*.pdf directly from PACS server
+  const remotePdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(remotePdfUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (res.ok) {
+      const buf = Buffer.from(await res.arrayBuffer());
+      if (buf.length > 500) {
+        await fsp.writeFile(localPdfPath, buf);
+        console.log(`[REPORT] Fetched remote PACS Final PDF for ${studyUid} (${buf.length} bytes)`);
+
+        try {
+          const db = await connectDB().catch(() => null);
+          if (db) await db.collection('studies').updateOne({ studyUid }, { $set: { hasFinalPdf: true, hasFinalDoc: true } });
+        } catch (_) {}
+
+        try {
+          const modern = await renderModernPdf(studyUid, studyDoc);
+          if (fs.existsSync(modern) && fs.statSync(modern).size > 1000) {
+            return { localPdfPath, modernPdfPath: modern, fileToServe: modern, studyDoc };
+          }
+        } catch (mErr) {
+          console.warn(`[REPORT] Modern compile error for ${studyUid}:`, mErr.message);
+        }
+        return { localPdfPath, modernPdfPath: localPdfPath, fileToServe: localPdfPath, studyDoc };
+      }
+    }
+  } catch (pdfFetchErr) {
+    // Non-fatal, check for Word doc below
+  }
+
+  // 4. Fallback: Check for Word document (.doc) on PACS server
+  const docUrls = [
+    `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.doc`,
+    `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/${encodeURIComponent(studyUid)}.doc`
+  ];
+
+  let docDownloaded = false;
+  if (fs.existsSync(localDocPath) && fs.statSync(localDocPath).size > 1000) {
+    docDownloaded = true;
+  } else {
+    for (const dUrl of docUrls) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch(dUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const buf = Buffer.from(await res.arrayBuffer());
+          if (buf.length > 500) {
+            await fsp.writeFile(localDocPath, buf);
+            docDownloaded = true;
+            console.log(`[REPORT] Fetched remote PACS Word document for ${studyUid} from ${dUrl} (${buf.length} bytes)`);
+            break;
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  // 5. If Word doc is available, convert it to PDF
+  if (docDownloaded) {
+    // Attempt conversion via soffice / libreoffice
+    try {
+      const sofficeBin = fs.existsSync('/usr/bin/soffice') ? '/usr/bin/soffice' : (fs.existsSync('/usr/bin/libreoffice') ? '/usr/bin/libreoffice' : null);
+      if (sofficeBin) {
+        console.log(`[REPORT] Converting Word doc ${localDocPath} to PDF via ${sofficeBin}...`);
+        execSync(`"${sofficeBin}" --headless --convert-to pdf --outdir "${REPORT_DIR}" "${localDocPath}"`, { timeout: 20000 });
+        if (fs.existsSync(localPdfPath) && fs.statSync(localPdfPath).size > 1000) {
+          console.log(`[REPORT] Successfully converted Word doc to PDF: ${localPdfPath} (${fs.statSync(localPdfPath).size} bytes)`);
+
+          try {
+            const db = await connectDB().catch(() => null);
+            if (db) await db.collection('studies').updateOne({ studyUid }, { $set: { hasFinalPdf: true, hasFinalDoc: true } });
+          } catch (_) {}
+
+          try {
+            const modern = await renderModernPdf(studyUid, studyDoc);
+            if (fs.existsSync(modern) && fs.statSync(modern).size > 1000) {
+              return { localPdfPath, modernPdfPath: modern, fileToServe: modern, studyDoc };
+            }
+          } catch (mErr) {
+            console.warn(`[REPORT] Modern compile error from converted doc for ${studyUid}:`, mErr.message);
+          }
+          return { localPdfPath, modernPdfPath: localPdfPath, fileToServe: localPdfPath, studyDoc };
+        }
+      }
+    } catch (convErr) {
+      console.warn(`[REPORT] soffice conversion failed for ${studyUid}:`, convErr.message);
+    }
+
+    // Secondary fallback: antiword text extraction -> renderModernPdf
+    try {
+      if (fs.existsSync('/usr/bin/antiword')) {
+        console.log(`[REPORT] Extracting clinical text from ${localDocPath} via antiword...`);
+        const docText = execSync(`antiword "${localDocPath}"`, { timeout: 10000 }).toString('utf8');
+        if (docText && docText.trim().length > 50) {
+          const reportData = parseReportFromText(docText, docText, studyDoc);
+          const htmlContent = await generateReportHtml(reportData, studyUid);
+          const modernHtmlPath = path.join(REPORT_DIR, `Modern_Final_${safeStudy}.html`);
+          await fsp.writeFile(modernHtmlPath, htmlContent, 'utf8');
+
+          const chromeBin = fs.existsSync('/usr/bin/google-chrome')
+            ? '/usr/bin/google-chrome'
+            : (fs.existsSync('/usr/bin/chromium-browser') ? '/usr/bin/chromium-browser' : (fs.existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : null));
+          if (chromeBin) {
+            const printCmd = `"${chromeBin}" --headless=new --no-sandbox --disable-gpu --disable-software-rasterizer --print-to-pdf-no-header --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}"`;
+            execSync(printCmd, { timeout: 15000 });
+            if (fs.existsSync(modernPdfPath) && fs.statSync(modernPdfPath).size > 1000) {
+              await fsp.copyFile(modernPdfPath, localPdfPath).catch(() => {});
+              try {
+                const db = await connectDB().catch(() => null);
+                if (db) await db.collection('studies').updateOne({ studyUid }, { $set: { hasFinalPdf: true, hasFinalDoc: true } });
+              } catch (_) {}
+              return { localPdfPath, modernPdfPath: modernPdfPath, fileToServe: modernPdfPath, studyDoc };
+            }
+          }
+        }
+      }
+    } catch (antiErr) {
+      console.warn(`[REPORT] antiword fallback failed for ${studyUid}:`, antiErr.message);
+    }
+  }
+
+  return null;
+}
+
 // Check if a report exists for a study & verify if it has a completed Final PDF
 app.get('/api/report/:studyUid/check', async (req, res) => {
   try {
@@ -547,16 +734,17 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
 
     let patientName = '';
     let patientId = '';
+    let studyDoc = null;
     try {
       const db = await connectDB().catch(() => null);
       if (db) {
-        const studyDoc = await db.collection('studies').findOne({
+        studyDoc = await db.collection('studies').findOne({
           $or: [
             { studyUid: studyUid },
             { studyInstanceUid: studyUid },
             { accessionNumber: studyUid }
           ]
-        }, { projection: { patientName: 1, patientId: 1 } });
+        });
         if (studyDoc) {
           patientName = studyDoc.patientName || '';
           patientId = studyDoc.patientId || '';
@@ -564,9 +752,12 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
       }
     } catch (_) {}
 
+    // First attempt to ensure PDF is available or auto-convert from PACS Word doc
+    const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
+
     if ((!patientName || !patientId) && fs.existsSync(localPdfPath)) {
       try {
-        const parsed = parseReportFromPdf(localPdfPath, {});
+        const parsed = parseReportFromPdf(localPdfPath, studyDoc || {});
         if (!patientName) patientName = parsed.patientName || '';
         if (!patientId) patientId = parsed.patientId || '';
       } catch (_) {}
@@ -574,7 +765,24 @@ app.get('/api/report/:studyUid/check', async (req, res) => {
 
     const downloadFilename = formatReportFilename(patientName, patientId, studyUid);
     
-    // 1. Check local cache for Final PDF
+    // 1. If valid PDF is verified (either cached or auto-converted)
+    if (pdfResult && pdfResult.fileToServe && fs.existsSync(pdfResult.fileToServe)) {
+      return res.json({
+        available: true,
+        hasFinalPdf: true,
+        isCompleted: true,
+        type: 'pdf',
+        filename: `Final_${safeStudy}.pdf`,
+        downloadFilename,
+        patientName,
+        patientId,
+        status: 'COMPLETED',
+        whatsappAllowed: true,
+        url: `/api/report/${studyUid}`,
+        message: 'Official Final PDF report verified and ready for delivery.'
+      });
+    }
+
     if (fs.existsSync(localPdfPath)) {
       return res.json({
         available: true,
@@ -700,35 +908,34 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
     // Only return HTML if explicitly requested via ?format=html AND not requesting a PDF download
     const isHtml = req.query.format === 'html' && !isDownload;
 
-    // 1. Ensure raw PDF report is cached locally from PACS if not already present
-    if (!fs.existsSync(localPdfPath)) {
-      const pdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
-      try {
-        const response = await fetch(pdfUrl);
-        if (response.ok) {
-          const buffer = Buffer.from(await response.arrayBuffer());
-          await fsp.writeFile(localPdfPath, buffer).catch(() => {});
-        }
-      } catch (e) {}
-    }
-
     // Retrieve studyDoc for clinical metadata enrichment
     let studyDoc = {};
     try {
       const db = await connectDB().catch(() => null);
       if (db) {
-        studyDoc = await db.collection('studies').findOne({ studyUid }) || {};
+        studyDoc = (await db.collection('studies').findOne({
+          $or: [
+            { studyUid: studyUid },
+            { studyInstanceUid: studyUid },
+            { accessionNumber: studyUid }
+          ]
+        })) || {};
       }
     } catch (e) {}
 
+    // Ensure PDF report is cached locally or auto-converted from Word doc
+    const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
+    const pdfPathToUse = pdfResult?.fileToServe || (fs.existsSync(localPdfPath) ? localPdfPath : null);
+
     // 2. If Final PDF is available, generate/serve Modern Colourful UI or PDF
-    if (fs.existsSync(localPdfPath)) {
+    if (pdfPathToUse && fs.existsSync(pdfPathToUse)) {
       // Determine patient-based filename (PatientName_PatientID.pdf)
       let pName = studyDoc.patientName;
       let pId = studyDoc.patientId;
       if (!pName || !pId) {
         try {
-          const parsed = parseReportFromPdf(localPdfPath, studyDoc);
+          const rawForParsing = fs.existsSync(localPdfPath) ? localPdfPath : pdfPathToUse;
+          const parsed = parseReportFromPdf(rawForParsing, studyDoc);
           if (!pName) pName = parsed.patientName;
           if (!pId) pId = parsed.patientId;
         } catch (e) {}
@@ -737,14 +944,15 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
 
       // Interactive HTML format (for in-browser modal viewing)
       if (isHtml) {
-        const reportData = parseReportFromPdf(localPdfPath, studyDoc);
+        const rawForParsing = fs.existsSync(localPdfPath) ? localPdfPath : pdfPathToUse;
+        const reportData = parseReportFromPdf(rawForParsing, studyDoc);
         const html = await generateReportHtml(reportData, studyUid);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         return res.send(html);
       }
 
       // If user specifically requested legacy raw PACS PDF
-      if (isRaw) {
+      if (isRaw && fs.existsSync(localPdfPath)) {
         const stat = fs.statSync(localPdfPath);
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Length', stat.size);
@@ -753,29 +961,14 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
         return res.sendFile(localPdfPath);
       }
 
-      // Otherwise serve modern colourful PDF
-      try {
-        const pdfFile = await renderModernPdf(studyUid, studyDoc);
-        if (fs.existsSync(pdfFile) && fs.statSync(pdfFile).size > 1000) {
-          const stat = fs.statSync(pdfFile);
-          const disposition = isDownload ? 'attachment' : 'inline';
-          res.setHeader('Content-Type', 'application/pdf');
-          res.setHeader('Content-Length', stat.size);
-          res.setHeader('Content-Disposition', `${disposition}; filename="${downloadFilename}"`);
-          res.setHeader('Accept-Ranges', 'bytes');
-          return res.sendFile(pdfFile);
-        }
-      } catch (renderErr) {
-        console.warn(`[REPORT] Modern PDF render failed for ${studyUid}, falling back to raw PDF:`, renderErr.message);
-      }
-
-      // Fallback to raw PDF
-      const stat = fs.statSync(localPdfPath);
+      // Serve modern colourful PDF
+      const stat = fs.statSync(pdfPathToUse);
+      const disposition = isDownload ? 'attachment' : 'inline';
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Length', stat.size);
-      res.setHeader('Content-Disposition', `inline; filename="${downloadFilename}"`);
+      res.setHeader('Content-Disposition', `${disposition}; filename="${downloadFilename}"`);
       res.setHeader('Accept-Ranges', 'bytes');
-      return res.sendFile(localPdfPath);
+      return res.sendFile(pdfPathToUse);
     }
 
     // 3. Try DOC report from PACS if no Final PDF
@@ -912,30 +1105,14 @@ app.get('/reports/:token/:filename', async (req, res) => {
     const { studyUid, safeStudy } = info;
     const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
 
-    // Ensure PDF is cached locally
-    if (!fs.existsSync(localPdfPath)) {
-      const remotePdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
-      const response = await fetch(remotePdfUrl);
-      if (response.ok) {
-        const buffer = Buffer.from(await response.arrayBuffer());
-        await fsp.writeFile(localPdfPath, buffer);
-      } else {
-        console.warn(`[REPORT DOWNLOAD] Remote PACS file not found: ${remotePdfUrl}`);
-        return res.status(404).send('PDF report not found on PACS server.');
-      }
+    // Ensure PDF is cached locally or auto-converted from PACS Word doc
+    const pdfResult = await ensureStudyPdf(studyUid, info);
+    if (!pdfResult || !pdfResult.fileToServe || !fs.existsSync(pdfResult.fileToServe)) {
+      console.warn(`[REPORT DOWNLOAD] Remote PACS file not found or could not be converted: ${studyUid}`);
+      return res.status(404).send('PDF report not found on PACS server.');
     }
 
-    // Generate or fetch modern colourful PDF
-    let fileToServe = localPdfPath;
-    try {
-      const modernPdf = await renderModernPdf(studyUid, info || {});
-      if (fs.existsSync(modernPdf) && fs.statSync(modernPdf).size > 1000) {
-        fileToServe = modernPdf;
-      }
-    } catch (renderErr) {
-      console.warn(`[REPORT DOWNLOAD] Modern render fallback to raw PDF for ${studyUid}:`, renderErr.message);
-    }
-
+    const fileToServe = pdfResult.fileToServe;
     const stat = fs.statSync(fileToServe);
     console.log(`[REPORT DOWNLOAD] Serving ${path.basename(fileToServe)} (${stat.size} bytes) to UA: ${req.headers['user-agent']} (IP: ${req.ip})`);
 
@@ -953,7 +1130,8 @@ app.get('/reports/:token/:filename', async (req, res) => {
     }
     if (!pName || !pId) {
       try {
-        const parsed = parseReportFromPdf(localPdfPath, info);
+        const rawForParsing = fs.existsSync(localPdfPath) ? localPdfPath : fileToServe;
+        const parsed = parseReportFromPdf(rawForParsing, info);
         if (!pName) pName = parsed.patientName;
         if (!pId) pId = parsed.patientId;
       } catch (e) {}
@@ -984,42 +1162,36 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
     const safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
     const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
 
-    if (!fs.existsSync(localPdfPath)) {
-      const remotePdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
-      const response = await fetch(remotePdfUrl);
-      if (response.ok) {
-        const buffer = Buffer.from(await response.arrayBuffer());
-        await fsp.writeFile(localPdfPath, buffer);
-      } else {
-        return res.status(404).send('PDF report not found on PACS server.');
+    let studyDoc = {};
+    try {
+      const db = await connectDB().catch(() => null);
+      if (db) {
+        studyDoc = (await db.collection('studies').findOne({
+          $or: [
+            { studyUid: studyUid },
+            { studyInstanceUid: studyUid },
+            { accessionNumber: studyUid }
+          ]
+        })) || {};
       }
+    } catch (e) {}
+
+    // Ensure PDF is cached locally or auto-converted from PACS Word doc
+    const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
+    if (!pdfResult || !pdfResult.fileToServe || !fs.existsSync(pdfResult.fileToServe)) {
+      return res.status(404).send('PDF report not found on PACS server.');
     }
 
-    // Generate or fetch modern colourful PDF
-    let fileToServe = localPdfPath;
-    try {
-      const modernPdf = await renderModernPdf(studyUid, {});
-      if (fs.existsSync(modernPdf) && fs.statSync(modernPdf).size > 1000) {
-        fileToServe = modernPdf;
-      }
-    } catch (renderErr) {
-      console.warn(`[REPORT DOWNLOAD DIRECT] Modern render fallback to raw PDF for ${studyUid}:`, renderErr.message);
-    }
+    const fileToServe = pdfResult.fileToServe;
 
     let downloadFilename = req.params.filename;
     if (!downloadFilename || downloadFilename === 'report.pdf' || downloadFilename.startsWith('Final_') || downloadFilename.startsWith('MAPIMS_Report_')) {
-      let studyDoc = {};
-      try {
-        const db = await connectDB().catch(() => null);
-        if (db) {
-          studyDoc = await db.collection('studies').findOne({ studyUid }) || {};
-        }
-      } catch (e) {}
       let pName = studyDoc.patientName;
       let pId = studyDoc.patientId;
       if (!pName || !pId) {
         try {
-          const parsed = parseReportFromPdf(localPdfPath, studyDoc);
+          const rawForParsing = fs.existsSync(localPdfPath) ? localPdfPath : fileToServe;
+          const parsed = parseReportFromPdf(rawForParsing, studyDoc);
           if (!pName) pName = parsed.patientName;
           if (!pId) pId = parsed.patientId;
         } catch (e) {}
@@ -2017,29 +2189,6 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
 
     // 1. Strict Final PDF Guard: Only signed PDF reports starting with "Final_" are permitted
     const safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
-    const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
-    let hasFinalPdf = fs.existsSync(localPdfPath);
-
-    if (!hasFinalPdf) {
-      const remotePdfUrl = `${PACS_HOST}/PACS_DATA/Reports/${encodeURIComponent(studyUid)}/Final_${encodeURIComponent(studyUid)}.pdf`;
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-        const pdfRes = await fetch(remotePdfUrl, { method: 'HEAD', signal: controller.signal });
-        clearTimeout(timeout);
-        if (pdfRes.ok) {
-          hasFinalPdf = true;
-        }
-      } catch (e) {}
-    }
-
-    if (!hasFinalPdf) {
-      return res.status(422).json({
-        success: false,
-        error: 'Report is NOT COMPLETED: Only a Word draft (.doc) or no file was found in PACS D:\\ drive. WhatsApp delivery is restricted to completed Final PDF reports (Final_*.pdf).'
-      });
-    }
-
     let studyDoc = null;
     const db = await connectDB().catch(() => null);
     if (db) {
@@ -2058,6 +2207,17 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
       }
     }
     const finalModality = modality || studyDoc?.modality || '';
+
+    // 1. Strict Final PDF Guard: Ensure PDF exists or auto-convert from PACS Word doc
+    const pdfResult = await ensureStudyPdf(studyUid, studyDoc);
+    const hasFinalPdf = Boolean(pdfResult && pdfResult.fileToServe && fs.existsSync(pdfResult.fileToServe));
+
+    if (!hasFinalPdf) {
+      return res.status(422).json({
+        success: false,
+        error: 'Report is NOT COMPLETED: No finalized report was found on PACS server. WhatsApp delivery is restricted to completed Final PDF reports.'
+      });
+    }
 
     // 2. Load WhatsApp Settings (Check if Test Mode is active)
     let whatsappConfig = {

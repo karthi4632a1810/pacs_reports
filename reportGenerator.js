@@ -107,6 +107,13 @@ function parseReportFromPdf(rawPdfPath, studyDoc = {}) {
     plainText = layoutText;
   }
 
+  return parseReportFromText(layoutText, plainText, studyDoc);
+}
+
+function parseReportFromText(layoutText = '', plainText = '', studyDoc = {}) {
+  if (!plainText) plainText = layoutText;
+  if (!layoutText) layoutText = plainText;
+
   const result = {
     patientName: (studyDoc.patientName || '').trim(),
     ageSex: '',
@@ -1621,13 +1628,36 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
     }
   }
 
-  // Ensure raw PDF is present to extract data
+  // Ensure raw PDF is present to extract data, or try auto-converting cached .doc
   if (!fs.existsSync(rawPdfPath)) {
-    throw new Error(`Raw PACS PDF not found at ${rawPdfPath}`);
+    const docPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
+    if (fs.existsSync(docPath)) {
+      const sofficeBin = fs.existsSync('/usr/bin/soffice') ? '/usr/bin/soffice' : (fs.existsSync('/usr/bin/libreoffice') ? '/usr/bin/libreoffice' : null);
+      if (sofficeBin) {
+        try {
+          execSync(`"${sofficeBin}" --headless --convert-to pdf --outdir "${REPORT_DIR}" "${docPath}"`, { timeout: 20000 });
+        } catch (_) {}
+      }
+    }
   }
 
-  // Parse clinical data
-  const reportData = parseReportFromPdf(rawPdfPath, studyDoc);
+  // Parse clinical data from PDF or fallback from Word doc
+  let reportData = null;
+  if (fs.existsSync(rawPdfPath)) {
+    reportData = parseReportFromPdf(rawPdfPath, studyDoc);
+  } else {
+    const docPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
+    if (fs.existsSync(docPath) && fs.existsSync('/usr/bin/antiword')) {
+      try {
+        const text = execSync(`antiword "${docPath}"`, { timeout: 10000 }).toString('utf8');
+        reportData = parseReportFromText(text, text, studyDoc);
+      } catch (_) {}
+    }
+  }
+
+  if (!reportData) {
+    throw new Error(`Raw PACS PDF or Word report not found for ${studyUid} at ${rawPdfPath}`);
+  }
 
   // Generate modern HTML
   const htmlContent = await generateReportHtml(reportData, studyUid);
@@ -1656,6 +1686,7 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
 
 module.exports = {
   parseReportFromPdf,
+  parseReportFromText,
   generateReportHtml,
   renderModernPdf,
   formatReportFilename

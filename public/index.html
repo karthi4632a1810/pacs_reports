@@ -10223,10 +10223,15 @@
               ${isTest ? `<div style="font-size: 10px; color: #fbbf24; margin-top: 2px;">Diverts to: ${fixedTest} (Test)</div>` : ''}
             </td>
             <td style="padding: 10px 12px;">
-              <a href="/reports/study/${encodeURIComponent(c.studyUid)}/Final_${safeStudy}.pdf" target="_blank" style="color: #38bdf8; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;" title="View Diagnostic PDF">
-                <span>Final_${safeStudy.substring(0, 10)}...pdf</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              </a>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <a href="/reports/study/${encodeURIComponent(c.studyUid)}/Final_${safeStudy}.pdf" target="_blank" onclick="event.stopPropagation();" style="color: #38bdf8; text-decoration: none; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;" title="Open Diagnostic PDF directly in new tab">
+                  <span>Final_${safeStudy.substring(0, 10)}...pdf</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                </a>
+                <button type="button" class="btn btn-secondary" onclick="openReportModal(event, '${escapeHtml(c.studyUid)}', '${escapeHtml(c.patientName)}', '${escapeHtml(c.patientId)}')" style="padding: 3px 7px; font-size: 11px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;" title="Preview Report in Interactive Viewer">
+                  👁️ View
+                </button>
+              </div>
             </td>
             <td style="padding: 10px 12px; text-align: right;" id="bulkStatusCell-${safeStudy}">
               ${statusBadge}
