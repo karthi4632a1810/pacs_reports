@@ -1280,6 +1280,11 @@ function formatToHisDate(dateVal) {
     const dd = String(now.getDate()).padStart(2, '0');
     return `${mm}/${dd}/${now.getFullYear()}`;
   }
+  if (dateVal instanceof Date) {
+    const mm = String(dateVal.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateVal.getDate()).padStart(2, '0');
+    return `${mm}/${dd}/${dateVal.getFullYear()}`;
+  }
   const str = String(dateVal).trim();
   const ymd = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   if (ymd) {
