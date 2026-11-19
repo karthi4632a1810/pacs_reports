@@ -1417,6 +1417,52 @@ async function resolvePatientPhone(patientId, studyDate = null) {
   const cleanId = String(patientId).trim();
   if (!cleanId) return null;
 
+  // 0. FIRST & FOREMOST: Query Central Hospital HIS QueryBuilder to check for ZPATIENT (fake/dummy registration)
+  let qbResult = null;
+  try {
+    qbResult = await checkHisPatientType(cleanId, studyDate);
+    if (qbResult && qbResult.isFake) {
+      try {
+        const db = await connectDB().catch(() => null);
+        if (db) {
+          await db.collection('patients').updateOne(
+            { patientId: cleanId },
+            {
+              $set: {
+                patientId: cleanId,
+                name: qbResult.name || '',
+                isFake: true,
+                patientType: 'ZPATIENT',
+                isDummy: true,
+                phone: '',
+                mobile: qbResult.mobile || '9000000000',
+                updatedAt: new Date()
+              }
+            },
+            { upsert: true }
+          );
+          await db.collection('studies').updateMany(
+            { patientId: cleanId },
+            {
+              $set: { isFakePatient: true, patientType: 'ZPATIENT', isDummy: true, autoSendSkipped: true, autoSendSkipReason: 'FAKE_PATIENT' },
+              $unset: { patientPhone: '' }
+            }
+          );
+        }
+      } catch (_) { }
+
+      return {
+        phone: '',
+        originalPhone: qbResult.mobile || '9000000000',
+        source: 'Hospital HIS (Fake / ZPATIENT)',
+        isDummy: true,
+        isFake: true,
+        patientType: 'ZPATIENT',
+        patientName: qbResult.name || ''
+      };
+    }
+  } catch (_) { }
+
   // 1. Check pacs_db whatsapp_logs & studies & patients cache
   try {
     const db = await connectDB().catch(() => null);
@@ -1479,48 +1525,49 @@ async function resolvePatientPhone(patientId, studyDate = null) {
     }
   } catch (_) { }
 
-  // 2. Query Central Hospital HIS QueryBuilder to check for ZPATIENT (fake patient)
-  let qbResult = null;
-  try {
-    qbResult = await checkHisPatientType(cleanId, studyDate);
-    if (qbResult && qbResult.isFake) {
-      try {
-        const db = await connectDB().catch(() => null);
-        if (db) {
-          await db.collection('patients').updateOne(
-            { patientId: cleanId },
-            {
-              $set: {
-                patientId: cleanId,
-                name: qbResult.name || '',
-                isFake: true,
-                patientType: 'ZPATIENT',
-                isDummy: true,
-                phone: '',
-                mobile: qbResult.mobile || '9000000000',
-                updatedAt: new Date()
-              }
-            },
-            { upsert: true }
-          );
-          await db.collection('studies').updateMany(
-            { patientId: cleanId },
-            { $set: { isFakePatient: true, patientType: 'ZPATIENT' } }
-          );
-        }
-      } catch (_) { }
+  // 2. Fallback check for QueryBuilder result if not already populated
+  if (!qbResult) {
+    try {
+      qbResult = await checkHisPatientType(cleanId, studyDate);
+    } catch (_) { }
+  }
+  if (qbResult && qbResult.isFake) {
+    try {
+      const db = await connectDB().catch(() => null);
+      if (db) {
+        await db.collection('patients').updateOne(
+          { patientId: cleanId },
+          {
+            $set: {
+              patientId: cleanId,
+              name: qbResult.name || '',
+              isFake: true,
+              patientType: 'ZPATIENT',
+              isDummy: true,
+              phone: '',
+              mobile: qbResult.mobile || '9000000000',
+              updatedAt: new Date()
+            }
+          },
+          { upsert: true }
+        );
+        await db.collection('studies').updateMany(
+          { patientId: cleanId },
+          { $set: { isFakePatient: true, patientType: 'ZPATIENT' } }
+        );
+      }
+    } catch (_) { }
 
-      return {
-        phone: '',
-        originalPhone: qbResult.mobile || '9000000000',
-        source: 'Hospital HIS (Fake / ZPATIENT)',
-        isDummy: true,
-        isFake: true,
-        patientType: 'ZPATIENT',
-        patientName: qbResult.name || ''
-      };
-    }
-  } catch (_) { }
+    return {
+      phone: '',
+      originalPhone: qbResult.mobile || '9000000000',
+      source: 'Hospital HIS (Fake / ZPATIENT)',
+      isDummy: true,
+      isFake: true,
+      patientType: 'ZPATIENT',
+      patientName: qbResult.name || ''
+    };
+  }
 
   // If QueryBuilder found verified non-dummy mobile number for a real patient, use it directly
   if (qbResult && !qbResult.isFake && qbResult.mobile && !isDummyPhone(qbResult.mobile)) {
