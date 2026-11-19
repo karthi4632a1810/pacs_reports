@@ -2929,6 +2929,13 @@ async function runAutoSendFinalizedWorker() {
       return; // Disabled by admin in settings
     }
 
+    // Safety Guard: The background auto-send worker must ONLY run in LIVE Mode!
+    // When Test Mode is active (or Live Mode is stopped), automatic background mass-dispatching
+    // is suspended so the configured test phone number is not flooded with hospital reports.
+    if (configDoc.testMode !== false) {
+      return;
+    }
+
     // Look for studies finalized in the lookback window (default 7 days) that haven't been dispatched yet
     const lookbackDays = Math.max(1, parseInt(configDoc.autoSendLookbackDays, 10) || 7);
     const lookbackDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
