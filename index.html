@@ -5101,6 +5101,11 @@
                 </div>
                 <input type="checkbox" id="adminAutoSendFinalized" checked style="accent-color:#10b981; width:18px; height:18px; cursor:pointer;">
               </div>
+              <div class="admin-form-group" style="margin-top:10px;">
+                <label class="admin-form-label">Auto-Dispatch Lookback Window (Days)</label>
+                <input type="number" class="admin-form-input mono" id="adminAutoSendLookbackDays" value="7" min="1" max="30" style="width:100px;">
+                <div class="admin-form-hint">Scans up to N days old are automatically sent when signed (Default: 7 days, covers 2–5 day reporting turnaround).</div>
+              </div>
 
               <!-- Quick Direct Test Dispatch Section -->
               <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border-color);">
@@ -7121,6 +7126,7 @@
       const testSendPhone = document.getElementById('adminTestSendPhone');
 
       if (autoSendCb) autoSendCb.checked = (currentWhatsAppConfig.autoSendFinalized !== false);
+      if (document.getElementById('adminAutoSendLookbackDays')) document.getElementById('adminAutoSendLookbackDays').value = currentWhatsAppConfig.autoSendLookbackDays || 7;
       if (autoRetryCb) autoRetryCb.checked = (currentWhatsAppConfig.autoRetryEnabled !== false);
       if (autoRetryInterval) autoRetryInterval.value = String(currentWhatsAppConfig.autoRetryIntervalMinutes || 15);
       if (maxAutoRetries) maxAutoRetries.value = String(currentWhatsAppConfig.maxAutoRetries || 3);
@@ -7245,6 +7251,7 @@
         fixedTestPhone: phone,
         testPatientId: patientId,
         autoSendFinalized: autoSend,
+        autoSendLookbackDays: parseInt(document.getElementById('adminAutoSendLookbackDays')?.value, 10) || 7,
         autoRetryEnabled: autoRetry,
         autoRetryIntervalMinutes: retryInterval,
         maxAutoRetries: maxRetries,
@@ -11735,6 +11742,7 @@
         if (document.getElementById('adminFullFixedPhone')) document.getElementById('adminFullFixedPhone').value = cfg.whatsapp.fixedTestPhone || '9498094815';
         if (document.getElementById('adminFullTestPatientId')) document.getElementById('adminFullTestPatientId').value = cfg.whatsapp.testPatientId || '5038408';
         if (document.getElementById('adminAutoSendFinalized')) document.getElementById('adminAutoSendFinalized').checked = cfg.whatsapp.autoSendFinalized !== false;
+        if (document.getElementById('adminAutoSendLookbackDays')) document.getElementById('adminAutoSendLookbackDays').value = cfg.whatsapp.autoSendLookbackDays || 7;
         if (document.getElementById('adminWatiEndpoint')) document.getElementById('adminWatiEndpoint').value = cfg.whatsapp.apiEndpoint || cfg.whatsapp.endpoint || '';
         if (document.getElementById('adminWatiTemplateName')) document.getElementById('adminWatiTemplateName').value = cfg.whatsapp.templateName || 'pacs_reports_new';
         if (document.getElementById('adminWatiToken')) document.getElementById('adminWatiToken').value = cfg.whatsapp.watiAccessToken || cfg.whatsapp.bearerToken || '';
@@ -11812,6 +11820,7 @@
             fixedTestPhone: document.getElementById('adminFullFixedPhone')?.value.trim() || '9498094815',
             testPatientId: document.getElementById('adminFullTestPatientId')?.value.trim() || '5038408',
             autoSendFinalized: document.getElementById('adminAutoSendFinalized')?.checked !== false,
+            autoSendLookbackDays: parseInt(document.getElementById('adminAutoSendLookbackDays')?.value, 10) || 7,
             endpoint: document.getElementById('adminWatiEndpoint')?.value.trim() || '',
             templateName: document.getElementById('adminWatiTemplateName')?.value.trim() || 'pacs_reports_new',
             bearerToken: document.getElementById('adminWatiToken')?.value.trim() || '',

@@ -50,7 +50,8 @@ function getDefaultSettings() {
       autoRetryIntervalMinutes: 15,
       maxAutoRetries: 3,
       publicUrl: '',
-      autoSendFinalized: true
+      autoSendFinalized: true,
+      autoSendLookbackDays: 7
     },
     reportTemplate: {
       hospitalName: 'MAPIMS Hospital',

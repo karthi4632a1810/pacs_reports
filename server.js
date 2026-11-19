@@ -1892,7 +1892,8 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
       apiEndpoint,
       watiAccessToken,
       publicUrl,
-      autoSendFinalized
+      autoSendFinalized,
+      autoSendLookbackDays
     } = req.body || {};
 
     if (testMode !== undefined && typeof testMode !== 'boolean') {
@@ -1926,6 +1927,7 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
     if (watiAccessToken) updateDoc.watiAccessToken = String(watiAccessToken).trim();
     if (publicUrl !== undefined) updateDoc.publicUrl = String(publicUrl).trim();
     if (autoSendFinalized !== undefined) updateDoc.autoSendFinalized = Boolean(autoSendFinalized);
+    if (autoSendLookbackDays !== undefined) updateDoc.autoSendLookbackDays = Math.max(1, Math.min(30, parseInt(autoSendLookbackDays, 10) || 7));
 
     await db.collection('settings').updateOne(
       { _id: 'whatsapp_config' },
@@ -2803,6 +2805,40 @@ async function runAutoRetryWorker() {
 // Run auto-retry worker every 60 seconds
 setInterval(runAutoRetryWorker, 60 * 1000);
 
+// Background Recent PACS Studies Sync (Runs every 3 minutes)
+// Fetches the last 7 days from PACS so any delayed finalizations (2-5 days later) are captured automatically
+async function syncRecentPacsStudies() {
+  try {
+    const today = new Date();
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const dFrom = sevenDaysAgo.toISOString().split('T')[0];
+    const dTo = today.toISOString().split('T')[0];
+
+    const targetUrl = `${PACS_HOST}/api_pacs.asp?from=${encodeURIComponent(dFrom)}&to=${encodeURIComponent(dTo)}&limit=5000`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    const resp = await fetch(targetUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (resp.ok) {
+      const json = await resp.json();
+      if (json && json.success && Array.isArray(json.data) && json.data.length > 0) {
+        const result = await upsertStudies(json.data);
+        if (result.modifiedCount > 0 || result.upsertedCount > 0) {
+          console.log(`[Recent PACS Sync] Background sync updated ${result.modifiedCount} studies, inserted ${result.upsertedCount} new studies (Range: ${dFrom} to ${dTo})`);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Recent PACS Sync Warning]:', err.message);
+  }
+}
+
+// Initial sync on startup after 10s, then repeat every 3 minutes
+setTimeout(syncRecentPacsStudies, 10 * 1000);
+setInterval(syncRecentPacsStudies, 3 * 60 * 1000);
+
 // Background Auto-Send Finalized Reports Worker
 async function runAutoSendFinalizedWorker() {
   try {
@@ -2814,15 +2850,23 @@ async function runAutoSendFinalizedWorker() {
       return; // Disabled by admin in settings
     }
 
-    // Look for studies finalized in the last 48 hours that haven't been dispatched yet
-    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
-    const dateStr = twoDaysAgo.toISOString().split('T')[0];
+    // Look for studies finalized in the lookback window (default 7 days) that haven't been dispatched yet
+    const lookbackDays = Math.max(1, parseInt(configDoc.autoSendLookbackDays, 10) || 7);
+    const lookbackDate = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000);
+    const dateStr = lookbackDate.toISOString().split('T')[0];
 
     const unDispatchedStudies = await db.collection('studies').find({
-      hasFinalPdf: true,
+      $or: [
+        { status: 'FINAL' },
+        { finalizedBy: { $exists: true, $ne: '' } },
+        { hasFinalPdf: true },
+        { hasFinalDoc: true }
+      ],
       studyDate: { $gte: dateStr },
-      whatsappDispatchedAt: { $exists: false }
-    }).limit(6).toArray();
+      whatsappDispatchedAt: { $exists: false },
+      isFakePatient: { $ne: true },
+      autoSendSkipped: { $ne: true }
+    }).limit(10).toArray();
 
     if (unDispatchedStudies.length === 0) return;
 
@@ -2840,22 +2884,59 @@ async function runAutoSendFinalizedWorker() {
         continue;
       }
 
-      // Resolve recipient phone number
+      // Resolve recipient phone number & patient classification
       const phoneInfo = await resolvePatientPhone(study.patientId, study.studyDate);
       if (phoneInfo?.isFake || phoneInfo?.patientType === 'ZPATIENT' || study.isFakePatient || phoneInfo?.isDummy) {
         console.log(`[Auto-Send Worker] Skipping study ${study.studyUid}: Fake / Test Patient (${study.patientName}, ID: ${study.patientId}, Type: ${phoneInfo?.patientType || 'ZPATIENT'})`);
+        await db.collection('studies').updateOne(
+          { studyUid: study.studyUid },
+          {
+            $set: {
+              isFakePatient: true,
+              patientType: phoneInfo?.patientType || 'ZPATIENT',
+              isDummy: true,
+              autoSendSkipped: true,
+              autoSendSkipReason: 'FAKE_PATIENT'
+            }
+          }
+        );
         continue;
       }
+
       const targetPhone = isTestMode ? fixedTestPhone : phoneInfo?.phone;
 
       // In Live mode, only auto-send if a verified 10-digit mobile number exists
       if (!targetPhone || targetPhone.length < 10) {
+        console.log(`[Auto-Send Worker] Skipping study ${study.studyUid}: No valid mobile phone for ${study.patientName} (${study.patientId})`);
+        await db.collection('studies').updateOne(
+          { studyUid: study.studyUid },
+          {
+            $set: {
+              autoSendSkipped: true,
+              autoSendSkipReason: 'INVALID_PHONE',
+              autoSendSkipDetails: `Resolved phone: ${phoneInfo?.phone || 'none'}`
+            }
+          }
+        );
         continue;
       }
 
-      const safeStudy = study.studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
-      const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
-      if (!fs.existsSync(localPdfPath)) {
+      // Ensure PDF is generated/cached (converting Word .doc on the fly if needed)
+      const pdfResult = await ensureStudyPdf(study.studyUid, study);
+      if (!pdfResult || !pdfResult.fileToServe || !fs.existsSync(pdfResult.fileToServe)) {
+        console.warn(`[Auto-Send Worker] Report PDF not ready yet for study ${study.studyUid}`);
+        const attempts = (study.autoSendAttempts || 0) + 1;
+        if (attempts >= 5) {
+          await db.collection('studies').updateOne(
+            { studyUid: study.studyUid },
+            { $set: { autoSendSkipped: true, autoSendSkipReason: 'REPORT_NOT_FOUND', autoSendAttempts: attempts } }
+          );
+        } else {
+          await db.collection('studies').updateOne(
+            { studyUid: study.studyUid },
+            { $set: { autoSendAttempts: attempts } }
+          );
+        }
         continue;
       }
 
