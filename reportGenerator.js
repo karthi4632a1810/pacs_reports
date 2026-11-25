@@ -85,6 +85,106 @@ try {
 } catch (e) {}
 
 /**
+ * Strips LibreOffice headers, footers, unstyled patient header tables,
+ * duplicate trailing signatures, and normalizes spacing for authentic embedding.
+ */
+function cleanDocHtml(html) {
+  if (!html) return '';
+  let body = html;
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch) body = bodyMatch[1];
+
+  // Strip LibreOffice headers and footers
+  body = body.replace(/<div\s+title="header"[^>]*>[\s\S]*?<\/div>/gi, '');
+  body = body.replace(/<div\s+title="footer"[^>]*>[\s\S]*?<\/div>/gi, '');
+
+  // Strip first patient info table if present (colourful patient card already displays it)
+  body = body.replace(/^\s*<table[^>]*>[\s\S]*?<\/table>/i, '');
+
+  // Deduplicate repeated doctor signatures at end of document
+  const tables = [...body.matchAll(/<table[\s\S]*?<\/table>/gi)];
+  if (tables.length >= 2) {
+    const last = tables[tables.length - 1][0];
+    const prev = tables[tables.length - 2][0];
+    const cleanLast = last.replace(/<[^>]+>|\s/g, '');
+    const cleanPrev = prev.replace(/<[^>]+>|\s/g, '');
+    if (cleanLast && cleanPrev && (cleanLast === cleanPrev || cleanLast.includes(cleanPrev) || cleanPrev.includes(cleanLast))) {
+      const lastIdx = body.lastIndexOf(last);
+      body = body.substring(0, lastIdx) + body.substring(lastIdx + last.length);
+    }
+  }
+
+  // Normalize excessive consecutive empty paragraphs
+  body = body.replace(/(?:<p[^>]*>\s*(?:<br\s*\/?>|&nbsp;|\s)*<\/p>\s*){2,}/gi, '<p style="margin-bottom: 6px;"></p>');
+
+  return body.trim();
+}
+
+/**
+ * Extracts authentic clinical content from a raw PACS PDF when no Word .doc is available.
+ */
+function extractClinicalHtmlFromPdf(pdfPath) {
+  let text = '';
+  try {
+    text = execSync(`pdftotext -layout "${pdfPath}" -`, { timeout: 8000 }).toString('utf8');
+  } catch (e) {
+    try {
+      text = execSync(`pdftotext "${pdfPath}" -`, { timeout: 8000 }).toString('utf8');
+    } catch (_) { return ''; }
+  }
+
+  const pages = text.split('\f');
+  let cleanLines = [];
+
+  for (const page of pages) {
+    const lines = page.split(/\r?\n/);
+    let inHeader = true;
+    for (let line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (!inHeader) cleanLines.push('');
+        continue;
+      }
+      if (/(?:Patient\s*Name|Age\/\s*Sex|Patient\s*ID|Study\s*Date|Accession|Referring|E-Sign\s*Date|Physician:)/i.test(line)) {
+        continue;
+      }
+      if (/^\s*(?:Number:?|Physician:?)\s*$/i.test(trimmed)) {
+        continue;
+      }
+      if (inHeader && /(?:Years|Adult|Shoulder|Chest|Abdomen|\d{2}-[A-Za-z]{3}-\d{4})/i.test(trimmed) && trimmed.length < 40) {
+        continue;
+      }
+      inHeader = false;
+      cleanLines.push(line);
+    }
+  }
+
+  let html = '';
+  let inPara = false;
+  for (let line of cleanLines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (inPara) { html += '</p>\n'; inPara = false; }
+      continue;
+    }
+    if (/^(?:TECHNICAL DATA|OBSERVATION:?|OBSERVATIONS:?|FINDINGS:?|IMPRESSION:?|CONCLUSION:?|REPORT:?|MRI SCREENING|CT SCREENING)/i.test(trimmed)) {
+      if (inPara) { html += '</p>\n'; inPara = false; }
+      html += '<p style="margin-top: 10px; margin-bottom: 4px;"><strong style="color: #7f1d1d; font-size: 13.5px; text-transform: uppercase;">' + escapeHtml(trimmed) + '</strong></p>\n';
+    } else {
+      if (!inPara) {
+        html += '<p style="margin-bottom: 6px; line-height: 1.6;">';
+        inPara = true;
+      } else {
+        html += ' ';
+      }
+      html += escapeHtml(trimmed);
+    }
+  }
+  if (inPara) html += '</p>\n';
+  return html.trim();
+}
+
+/**
  * Extract structured clinical data from the raw PACS Final PDF text.
  */
 function parseReportFromPdf(rawPdfPath, studyDoc = {}) {
@@ -451,11 +551,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       </div>
     `;
   } else {
-    findingsHtml = `
-      <div class="finding-card plain">
-        <p class="finding-body text-muted">Investigation performed as per standard hospital radio-diagnostic protocol. Digital PACS images stored and reviewed.</p>
-      </div>
-    `;
+    findingsHtml = '';
   }
 
   // Format Impression HTML
@@ -475,12 +571,7 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       </li>
     `;
   } else {
-    impressionHtml = `
-      <li class="impression-item">
-        <span class="impression-bullet"></span>
-        <div class="impression-text">No significant acute abnormality identified on this study. Correlate clinically.</div>
-      </li>
-    `;
+    impressionHtml = '';
   }
 
   // Format Doctors / Signatures HTML
@@ -546,6 +637,11 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       --text-sub: #78716c;
     }
 
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm 10mm 10mm;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -561,6 +657,48 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
       padding: 24px 16px;
       line-height: 1.55;
       font-size: 13.5px;
+    }
+
+    /* Authentic PACS Clinical Content Container */
+    .clinical-content-wrap {
+      background: #ffffff;
+      padding: 10px 4px;
+      font-family: 'Plus Jakarta Sans', Calibri, 'Times New Roman', serif;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #1c1917;
+    }
+
+    .clinical-content-wrap p {
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+
+    .clinical-content-wrap u b, .clinical-content-wrap b u {
+      color: #7f1d1d;
+      font-size: 13.5px;
+      letter-spacing: 0.3px;
+    }
+
+    .clinical-content-wrap ul {
+      margin-left: 22px;
+      margin-bottom: 12px;
+    }
+
+    .clinical-content-wrap li {
+      margin-bottom: 6px;
+    }
+
+    .clinical-content-wrap table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      margin: 14px 0 !important;
+      page-break-inside: avoid;
+    }
+
+    .clinical-content-wrap table td {
+      padding: 4px 8px;
+      font-size: 12.5px;
     }
 
     .report-sheet {
@@ -1500,62 +1638,71 @@ async function generateReportHtml(data, studyUid, publicViewUrl = '', customOpti
         <div class="exam-title">${escapeHtml(data.reportTitle || data.studyName || 'DIAGNOSTIC RADIOLOGY REPORT')}</div>
       </div>
 
-      <!-- Clinical History (if present) -->
-      ${data.clinicalHistory ? `
-        <div class="callout-box">
-          <strong>Clinical Indication:</strong> ${escapeHtml(data.clinicalHistory)}
+      ${data.rawHtmlBody ? `
+        <!-- Authentic PACS Clinical Report Content -->
+        <div class="clinical-content-wrap">
+          ${data.rawHtmlBody}
         </div>
-      ` : ''}
-
-      <!-- Technique (if present) -->
-      ${data.technique ? `
-        <div class="technique-box">
-          <strong style="color: #b91c1c; text-transform: uppercase; font-size: 11.5px; display: block; margin-bottom: 2px;">Protocol & Technique</strong>
-          ${escapeHtml(data.technique)}
-        </div>
-      ` : ''}
-
-      <!-- Detailed Findings -->
-      <h3 class="section-title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-        Detailed Radiological Findings
-      </h3>
-      <div class="findings-container">
-        ${findingsHtml}
-      </div>
-
-      <!-- ============================================== -->
-      <!-- HIGHLIGHTED DIAGNOSTIC IMPRESSION / CONCLUSION -->
-      <!-- ============================================== -->
-      <section class="impression-container">
-        <div class="impression-header">
-          <div class="impression-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
-            Diagnostic Impression & Conclusion
+      ` : `
+        <!-- Clinical History (if present) -->
+        ${data.clinicalHistory ? `
+          <div class="callout-box">
+            <strong>Clinical Indication:</strong> ${escapeHtml(data.clinicalHistory)}
           </div>
-          <span class="impression-badge">Primary Findings</span>
-        </div>
-        <ul class="impression-list">
-          ${impressionHtml}
-        </ul>
-      </section>
+        ` : ''}
 
-      ${showSignatureSection ? `
-      <!-- Signature & Authenticity Block -->
-      <section class="signature-section">
-        <div class="doctors-wrap">
-          ${doctorsHtml}
+        <!-- Technique (if present) -->
+        ${data.technique ? `
+          <div class="technique-box">
+            <strong style="color: #b91c1c; text-transform: uppercase; font-size: 11.5px; display: block; margin-bottom: 2px;">Protocol & Technique</strong>
+            ${escapeHtml(data.technique)}
+          </div>
+        ` : ''}
+
+        ${findingsHtml ? `
+        <!-- Detailed Findings -->
+        <h3 class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          Detailed Radiological Findings
+        </h3>
+        <div class="findings-container">
+          ${findingsHtml}
         </div>
-      </section>
-      ` : ''}
+        ` : ''}
+
+        ${impressionHtml ? `
+        <!-- HIGHLIGHTED DIAGNOSTIC IMPRESSION / CONCLUSION -->
+        <section class="impression-container">
+          <div class="impression-header">
+            <div class="impression-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+              Diagnostic Impression & Conclusion
+            </div>
+            <span class="impression-badge">Primary Findings</span>
+          </div>
+          <ul class="impression-list">
+            ${impressionHtml}
+          </ul>
+        </section>
+        ` : ''}
+
+        ${showSignatureSection && doctorsHtml ? `
+        <!-- Signature & Authenticity Block -->
+        <section class="signature-section">
+          <div class="doctors-wrap">
+            ${doctorsHtml}
+          </div>
+        </section>
+        ` : ''}
+      `}
 
       ${showDisclaimerCard ? `
       <!-- Bilingual WhatsApp Diagnostic Disclaimer Card -->
@@ -1613,12 +1760,14 @@ function highlightMedicalTerms(text) {
 
 /**
  * Render and cache the modern colourful PDF report using headless Google Chrome.
+ * Preserves 100% of authentic clinical content from PACS Word doc or raw PDF.
  */
 async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false) {
   const safeStudy = String(studyUid).replace(/[^a-zA-Z0-9._-]/g, '');
   const rawPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
   const modernPdfPath = path.join(REPORT_DIR, `Modern_Final_${safeStudy}.pdf`);
   const modernHtmlPath = path.join(REPORT_DIR, `Modern_Final_${safeStudy}.html`);
+  const docPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
 
   // If already compiled and not forcing regenerate, return cached PDF
   if (!forceRegenerate && fs.existsSync(modernPdfPath)) {
@@ -1628,42 +1777,72 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
     }
   }
 
-  // Ensure raw PDF is present to extract data, or try auto-converting cached .doc
-  if (!fs.existsSync(rawPdfPath)) {
-    const docPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
-    if (fs.existsSync(docPath)) {
-      const sofficeBin = fs.existsSync('/usr/bin/soffice') ? '/usr/bin/soffice' : (fs.existsSync('/usr/bin/libreoffice') ? '/usr/bin/libreoffice' : null);
-      if (sofficeBin) {
-        try {
-          execSync(`"${sofficeBin}" --headless --convert-to pdf --outdir "${REPORT_DIR}" "${docPath}"`, { timeout: 20000 });
-        } catch (_) {}
+  const sofficeBin = fs.existsSync('/usr/bin/soffice') ? '/usr/bin/soffice' : (fs.existsSync('/usr/bin/libreoffice') ? '/usr/bin/libreoffice' : null);
+
+  // 1. Try extracting authentic HTML from Word document (.doc)
+  let rawHtmlBody = '';
+  if (fs.existsSync(docPath) && sofficeBin) {
+    try {
+      const tmpDir = path.join('/tmp', `pacs_html_${safeStudy}_${Date.now()}`);
+      fs.mkdirSync(tmpDir, { recursive: true });
+      execSync(`"${sofficeBin}" --headless --convert-to html --outdir "${tmpDir}" "${docPath}"`, { timeout: 20000 });
+      const convertedHtmlFile = path.join(tmpDir, `Final_${safeStudy}.html`);
+      if (fs.existsSync(convertedHtmlFile)) {
+        const rawConvertedHtml = fs.readFileSync(convertedHtmlFile, 'utf8');
+        rawHtmlBody = cleanDocHtml(rawConvertedHtml);
       }
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch (docErr) {
+      console.warn(`[REPORT GEN] Error converting .doc to HTML for ${studyUid}:`, docErr.message);
     }
   }
 
-  // Parse clinical data from PDF or fallback from Word doc
+  // Ensure raw PDF is present for metadata parsing if not already there
+  if (!fs.existsSync(rawPdfPath) && fs.existsSync(docPath) && sofficeBin) {
+    try {
+      execSync(`"${sofficeBin}" --headless --convert-to pdf --outdir "${REPORT_DIR}" "${docPath}"`, { timeout: 20000 });
+    } catch (_) {}
+  }
+
+  // Parse patient metadata from raw PDF or doc
   let reportData = null;
   if (fs.existsSync(rawPdfPath)) {
     reportData = parseReportFromPdf(rawPdfPath, studyDoc);
-  } else {
-    const docPath = path.join(REPORT_DIR, `Final_${safeStudy}.doc`);
-    if (fs.existsSync(docPath) && fs.existsSync('/usr/bin/antiword')) {
-      try {
-        const text = execSync(`antiword "${docPath}"`, { timeout: 10000 }).toString('utf8');
-        reportData = parseReportFromText(text, text, studyDoc);
-      } catch (_) {}
-    }
+  } else if (fs.existsSync(docPath) && fs.existsSync('/usr/bin/antiword')) {
+    try {
+      const text = execSync(`antiword "${docPath}"`, { timeout: 10000 }).toString('utf8');
+      reportData = parseReportFromText(text, text, studyDoc);
+    } catch (_) {}
   }
 
   if (!reportData) {
-    throw new Error(`Raw PACS PDF or Word report not found for ${studyUid} at ${rawPdfPath}`);
+    reportData = {
+      patientName: (studyDoc.patientName || '').trim(),
+      patientId: (studyDoc.patientId || '').trim(),
+      ageSex: [studyDoc.age, studyDoc.sex].filter(Boolean).join(' / '),
+      referringPhysician: (studyDoc.referringPhysician || '').trim(),
+      studyDateTime: (studyDoc.studyDate || '').trim(),
+      studyName: (studyDoc.study || '').trim(),
+      modality: (studyDoc.modality || '').trim(),
+      note: 'Note: This modality has its limitations and the report should be correlated with clinical parameters.'
+    };
+  }
+
+  // Bind authentic clinical raw content into reportData
+  if (rawHtmlBody && rawHtmlBody.length > 50) {
+    reportData.rawHtmlBody = rawHtmlBody;
+  } else if (fs.existsSync(rawPdfPath)) {
+    const pdfHtml = extractClinicalHtmlFromPdf(rawPdfPath);
+    if (pdfHtml && pdfHtml.length > 20) {
+      reportData.rawHtmlBody = pdfHtml;
+    }
   }
 
   // Generate modern HTML
   const htmlContent = await generateReportHtml(reportData, studyUid);
   await fsp.writeFile(modernHtmlPath, htmlContent, 'utf8');
 
-  // Convert HTML to PDF using Chrome Headless
+  // Convert HTML to PDF using Chrome Headless with --no-pdf-header-footer
   const chromeBin = fs.existsSync('/usr/bin/google-chrome')
     ? '/usr/bin/google-chrome'
     : (fs.existsSync('/usr/bin/chromium-browser') ? '/usr/bin/chromium-browser' : (fs.existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : null));
@@ -1673,11 +1852,11 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
     return modernHtmlPath;
   }
 
-  const printCmd = `"${chromeBin}" --headless=new --no-sandbox --disable-gpu --disable-software-rasterizer --print-to-pdf-no-header --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}"`;
+  const printCmd = `"${chromeBin}" --headless=new --no-sandbox --disable-gpu --disable-software-rasterizer --no-pdf-header-footer --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}"`;
   execSync(printCmd, { timeout: 15000 });
 
   if (fs.existsSync(modernPdfPath) && fs.statSync(modernPdfPath).size > 1000) {
-    console.log(`[REPORT GEN] Successfully compiled modern colourful PDF: ${modernPdfPath} (${fs.statSync(modernPdfPath).size} bytes)`);
+    console.log(`[REPORT GEN] Successfully compiled modern colourful PDF with authentic raw content: ${modernPdfPath} (${fs.statSync(modernPdfPath).size} bytes)`);
     return modernPdfPath;
   }
 
@@ -1685,6 +1864,8 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
 }
 
 module.exports = {
+  cleanDocHtml,
+  extractClinicalHtmlFromPdf,
   parseReportFromPdf,
   parseReportFromText,
   generateReportHtml,

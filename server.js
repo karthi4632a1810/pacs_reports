@@ -568,6 +568,20 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
             { accessionNumber: studyUid }
           ]
         })) || studyDoc || {};
+
+        if (!studyDoc.patientName && safeStudy.includes('00')) {
+          // Fuzzy fallback in case of slight consecutive zeros typo in UID
+          try {
+            const regexStr = safeStudy.replace(/0+/g, '0+');
+            const fuzzyDoc = await db.collection('studies').findOne({
+              studyUid: { $regex: new RegExp(`^${regexStr}$`) }
+            });
+            if (fuzzyDoc) {
+              studyDoc = fuzzyDoc;
+              if (fuzzyDoc.studyUid) studyUid = fuzzyDoc.studyUid;
+            }
+          } catch (_) {}
+        }
       }
     } catch (_) { }
   }
@@ -1158,9 +1172,9 @@ app.get('/reports/:token/:filename', async (req, res) => {
 // Direct studyUid public endpoint fallback: /reports/study/:studyUid/Final_:studyUid.pdf
 app.get('/reports/study/:studyUid/:filename', async (req, res) => {
   try {
-    const { studyUid } = req.params;
-    const safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
-    const localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+    let { studyUid } = req.params;
+    let safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
+    let localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
 
     let studyDoc = {};
     try {
@@ -1173,6 +1187,24 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
             { accessionNumber: studyUid }
           ]
         })) || {};
+
+        if (!studyDoc.patientName && safeStudy.includes('00')) {
+          // Fuzzy fallback in case of slight consecutive zeros typo in UID
+          try {
+            const regexStr = safeStudy.replace(/0+/g, '0+');
+            const fuzzyDoc = await db.collection('studies').findOne({
+              studyUid: { $regex: new RegExp(`^${regexStr}$`) }
+            });
+            if (fuzzyDoc) {
+              studyDoc = fuzzyDoc;
+              if (fuzzyDoc.studyUid) {
+                studyUid = fuzzyDoc.studyUid;
+                safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
+                localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+              }
+            }
+          } catch (_) {}
+        }
       }
     } catch (e) { }
 
