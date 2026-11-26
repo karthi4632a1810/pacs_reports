@@ -934,6 +934,23 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
             { accessionNumber: studyUid }
           ]
         })) || {};
+
+        if (!studyDoc.patientName && safeStudy.includes('00')) {
+          try {
+            const regexStr = safeStudy.replace(/0+/g, '0+');
+            const fuzzyDoc = await db.collection('studies').findOne({
+              studyUid: { $regex: new RegExp(`^${regexStr}$`) }
+            });
+            if (fuzzyDoc) {
+              studyDoc = fuzzyDoc;
+              if (fuzzyDoc.studyUid) {
+                studyUid = fuzzyDoc.studyUid;
+                safeStudy = studyUid.replace(/[^a-zA-Z0-9._-]/g, '');
+                localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
+              }
+            }
+          } catch (_) {}
+        }
       }
     } catch (e) { }
 
@@ -958,6 +975,18 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
 
       // Interactive HTML format (for in-browser modal viewing)
       if (isHtml) {
+        const modernHtmlPath = path.join(REPORT_DIR, `Modern_Final_${safeStudy}.html`);
+        if (fs.existsSync(modernHtmlPath) && fs.statSync(modernHtmlPath).size > 1000) {
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          return res.sendFile(modernHtmlPath);
+        }
+        try {
+          await renderModernPdf(studyUid, studyDoc);
+          if (fs.existsSync(modernHtmlPath)) {
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.sendFile(modernHtmlPath);
+          }
+        } catch (_) {}
         const rawForParsing = fs.existsSync(localPdfPath) ? localPdfPath : pdfPathToUse;
         const reportData = parseReportFromPdf(rawForParsing, studyDoc);
         const html = await generateReportHtml(reportData, studyUid);
