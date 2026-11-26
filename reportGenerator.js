@@ -1852,8 +1852,13 @@ async function renderModernPdf(studyUid, studyDoc = {}, forceRegenerate = false)
     return modernHtmlPath;
   }
 
-  const printCmd = `"${chromeBin}" --headless=new --no-sandbox --disable-gpu --disable-software-rasterizer --no-pdf-header-footer --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}"`;
-  execSync(printCmd, { timeout: 15000 });
+  const printCmd = `"${chromeBin}" --headless=new --no-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --no-pdf-header-footer --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}" 2>/dev/null`;
+  try {
+    execSync(printCmd, { timeout: 25000, stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch (err) {
+    // Retry without 2>/dev/null if first attempt fails
+    execSync(`"${chromeBin}" --headless=new --no-sandbox --disable-gpu --print-to-pdf="${modernPdfPath}" "${modernHtmlPath}"`, { timeout: 25000 });
+  }
 
   if (fs.existsSync(modernPdfPath) && fs.statSync(modernPdfPath).size > 1000) {
     console.log(`[REPORT GEN] Successfully compiled modern colourful PDF with authentic raw content: ${modernPdfPath} (${fs.statSync(modernPdfPath).size} bytes)`);
