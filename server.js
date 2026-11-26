@@ -2162,6 +2162,31 @@ app.post('/api/whatsapp/run-auto-retry', requireAuth('canViewReports'), async (r
   }
 });
 
+// Admin endpoint to trigger yesterday's report updater script in background
+app.post('/api/admin/reports/update-yesterday', requireAuth('canViewReports'), async (req, res) => {
+  try {
+    const { date, force, concurrency, modality, excludeXray } = req.body || {};
+    const scriptPath = path.join(__dirname, 'scripts/update_yesterday_reports.js');
+    const args = [scriptPath];
+    if (date) args.push(`--date=${date}`);
+    if (force) args.push('--force');
+    if (concurrency) args.push(`--concurrency=${concurrency}`);
+    if (modality) args.push(`--modality=${modality}`);
+    if (excludeXray) args.push('--exclude-xray');
+
+    const { spawn } = require('child_process');
+    const child = spawn(process.execPath, args, { detached: true, stdio: 'ignore' });
+    child.unref();
+
+    res.json({
+      success: true,
+      message: `Batch report update initiated in background for ${date || 'yesterday'} (PID: ${child.pid}).`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Admin Test Send (Dispatches real patient Final PDF report to Fixed Test Number)
 app.post('/api/admin/whatsapp-test-send', requireAuth(), async (req, res) => {
   try {

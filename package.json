@@ -9,6 +9,8 @@
     "sync:mongo": "node scripts/sync_all_patients.js",
     "reports:regenerate": "node scripts/regenerate_reports.js",
     "reports:clean": "node scripts/regenerate_reports.js --clean",
+    "update:yesterday": "node scripts/update_yesterday_reports.js",
+    "update:reports": "node scripts/update_yesterday_reports.js",
     "push:vps": "python3 scripts/push_to_vps.py",
     "deploy:vps": "python3 scripts/push_to_vps.py"
   },
