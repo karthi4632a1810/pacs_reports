@@ -580,7 +580,7 @@ async function ensureStudyPdf(studyUid, studyDoc = null) {
               studyDoc = fuzzyDoc;
               if (fuzzyDoc.studyUid) studyUid = fuzzyDoc.studyUid;
             }
-          } catch (_) {}
+          } catch (_) { }
         }
       }
     } catch (_) { }
@@ -949,7 +949,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
                 localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
               }
             }
-          } catch (_) {}
+          } catch (_) { }
         }
       }
     } catch (e) { }
@@ -986,7 +986,7 @@ app.get('/api/report/:studyUid', requireAuth('canViewReports'), async (req, res)
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
             return res.sendFile(modernHtmlPath);
           }
-        } catch (_) {}
+        } catch (_) { }
         const rawForParsing = fs.existsSync(localPdfPath) ? localPdfPath : pdfPathToUse;
         const reportData = parseReportFromPdf(rawForParsing, studyDoc);
         const html = await generateReportHtml(reportData, studyUid);
@@ -1232,7 +1232,7 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
                 localPdfPath = path.join(REPORT_DIR, `Final_${safeStudy}.pdf`);
               }
             }
-          } catch (_) {}
+          } catch (_) { }
         }
       }
     } catch (e) { }

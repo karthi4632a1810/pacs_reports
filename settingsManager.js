@@ -247,7 +247,7 @@ async function getRecentAuditLogs(limit = 50) {
         return logs;
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return logBuffer.slice(0, limit);
 }
@@ -262,7 +262,7 @@ async function clearAuditLogs() {
     if (db) {
       await db.collection('admin_audit_logs').deleteMany({});
     }
-  } catch (e) {}
+  } catch (e) { }
   return true;
 }
 
