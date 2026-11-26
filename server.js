@@ -1283,6 +1283,28 @@ app.get('/reports/study/:studyUid/:filename', async (req, res) => {
 // WhatsApp Business API Admin & Dispatch Flow
 // ==========================================
 
+/**
+ * Detects whether a radiology examination is an X-ray / Radiography test.
+ * Covers Digital Radiography (DX), Computed Radiography (CR), X-ray Angiography (XA),
+ * Mammography (MG), Radiography (RG), Plain Radiographs (XR), Panoramic (PX), etc.
+ */
+function isXrayStudy(study) {
+  if (!study) return false;
+  const mod = String(study.modality || '').trim().toUpperCase();
+  if (['DX', 'CR', 'XA', 'MG', 'RG', 'XR', 'PX'].includes(mod)) {
+    return true;
+  }
+  // Cross-sectional / Ultrasound / Nuclear imaging are not plain X-rays
+  if (['CT', 'MR', 'MRI', 'US', 'NM', 'PET', 'ECHO'].includes(mod)) {
+    return false;
+  }
+  const sName = String(study.study || study.studyName || study.studyDescription || '').toUpperCase();
+  if (/\b(?:X-?RAY|RADIOGRAPH|CHEST XRAY|CHEST PA|CHEST AP)\b/i.test(sName)) {
+    return true;
+  }
+  return false;
+}
+
 // Function to query WATI for messages of a phone number
 function fetchWatiContactMessages(phone) {
   return new Promise((resolve) => {
@@ -1965,7 +1987,8 @@ app.get('/api/admin/whatsapp-config', requireAuth(), async (req, res) => {
       publicUrl: publicReportBaseUrl || '',
       templateName: process.env.WATI_TEMPLATE_ID || 'pacs_reports_new',
       apiEndpoint: process.env.API_ENDPOINT || 'https://live-mt-server.wati.io/10190409',
-      hasToken: !!process.env.WATI_ACCESS_TOKEN
+      hasToken: !!process.env.WATI_ACCESS_TOKEN,
+      excludeXrayWhatsApp: true
     };
     if (db) {
       const saved = await db.collection('settings').findOne({ _id: 'whatsapp_config' });
@@ -1976,7 +1999,8 @@ app.get('/api/admin/whatsapp-config', requireAuth(), async (req, res) => {
           autoRetryEnabled: saved.autoRetryEnabled !== false,
           autoRetryIntervalMinutes: parseInt(saved.autoRetryIntervalMinutes, 10) || 15,
           maxAutoRetries: parseInt(saved.maxAutoRetries, 10) || 3,
-          publicUrl: publicReportBaseUrl || saved.publicUrl || ''
+          publicUrl: publicReportBaseUrl || saved.publicUrl || '',
+          excludeXrayWhatsApp: saved.excludeXrayWhatsApp !== false
         };
       }
     }
@@ -2001,7 +2025,8 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
       watiAccessToken,
       publicUrl,
       autoSendFinalized,
-      autoSendLookbackDays
+      autoSendLookbackDays,
+      excludeXrayWhatsApp
     } = req.body || {};
 
     if (testMode !== undefined && typeof testMode !== 'boolean') {
@@ -2036,6 +2061,7 @@ app.post('/api/admin/whatsapp-config', requireAuth('canManageUsers'), async (req
     if (publicUrl !== undefined) updateDoc.publicUrl = String(publicUrl).trim();
     if (autoSendFinalized !== undefined) updateDoc.autoSendFinalized = Boolean(autoSendFinalized);
     if (autoSendLookbackDays !== undefined) updateDoc.autoSendLookbackDays = Math.max(1, Math.min(30, parseInt(autoSendLookbackDays, 10) || 7));
+    if (excludeXrayWhatsApp !== undefined) updateDoc.excludeXrayWhatsApp = Boolean(excludeXrayWhatsApp);
 
     await db.collection('settings').updateOne(
       { _id: 'whatsapp_config' },
@@ -2632,11 +2658,12 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
       });
     }
 
-    // 2. Load WhatsApp Settings (Check if Test Mode is active)
+    // 2. Load WhatsApp Settings (Check if Test Mode is active & X-Ray Exclusion)
     let whatsappConfig = {
       testMode: true,
       fixedTestPhone: '7200504251',
-      templateName: process.env.WATI_TEMPLATE_ID || 'pacs_reports_new'
+      templateName: process.env.WATI_TEMPLATE_ID || 'pacs_reports_new',
+      excludeXrayWhatsApp: true
     };
 
     if (db) {
@@ -2644,6 +2671,18 @@ app.post('/api/report/:studyUid/send-whatsapp', requireAuth('canViewReports'), a
       if (savedConfig) {
         whatsappConfig = { ...whatsappConfig, ...savedConfig };
       }
+    }
+
+    // 2.1 X-Ray Modality Exclusion Guard: Exclude DX, CR, XA, MG from WhatsApp unless force=true
+    const isExcludingXray = (whatsappConfig.excludeXrayWhatsApp !== false);
+    const studyObj = studyDoc || { modality: finalModality, study: studyName };
+    const isXray = isXrayStudy(studyObj);
+    if (isExcludingXray && isXray && req.body.force !== true) {
+      return res.status(422).json({
+        success: false,
+        isXray: true,
+        error: `Dispatch blocked: X-Ray examinations (${finalModality || 'X-Ray'}) are configured to be excluded from WhatsApp delivery.`
+      });
     }
 
     const isTestMode = (whatsappConfig.testMode !== false);
@@ -2980,7 +3019,8 @@ async function runAutoSendFinalizedWorker() {
       studyDate: { $gte: dateStr },
       whatsappDispatchedAt: { $exists: false },
       isFakePatient: { $ne: true },
-      autoSendSkipped: { $ne: true }
+      autoSendSkipped: { $ne: true },
+      ...(configDoc.excludeXrayWhatsApp !== false ? { modality: { $nin: ['DX', 'CR', 'XA', 'MG', 'RG', 'XR', 'PX'] } } : {})
     }).limit(10).toArray();
 
     if (unDispatchedStudies.length === 0) return;
@@ -2989,6 +3029,21 @@ async function runAutoSendFinalizedWorker() {
     const fixedTestPhone = configDoc.fixedTestPhone || '9498094815';
 
     for (const study of unDispatchedStudies) {
+      // 0. Exclude X-Ray examinations if configured
+      if (configDoc.excludeXrayWhatsApp !== false && isXrayStudy(study)) {
+        console.log(`[Auto-Send Worker] Skipping study ${study.studyUid}: X-Ray modality excluded from WhatsApp (${study.modality || 'XRAY'})`);
+        await db.collection('studies').updateOne(
+          { studyUid: study.studyUid },
+          {
+            $set: {
+              autoSendSkipped: true,
+              autoSendSkipReason: 'XRAY_EXCLUDED',
+              autoSendSkipDetails: `Modality: ${study.modality || 'XRAY'}, Study: ${study.study || ''}`
+            }
+          }
+        );
+        continue;
+      }
       // Double check it wasn't already logged
       const existingLog = await db.collection('whatsapp_logs').findOne({ studyUid: study.studyUid });
       if (existingLog) {
@@ -3536,7 +3591,8 @@ app.get('/api/whatsapp/logs', requireAuth(), async (req, res) => {
         maxAutoRetries: parseInt(configDoc?.maxAutoRetries, 10) || 3,
         publicUrl: publicReportBaseUrl || configDoc?.publicUrl || '',
         templateName: configDoc?.templateName || process.env.WATI_TEMPLATE_ID || 'pacs_reports_new',
-        autoSendFinalized: configDoc?.autoSendFinalized !== false
+        autoSendFinalized: configDoc?.autoSendFinalized !== false,
+        excludeXrayWhatsApp: configDoc?.excludeXrayWhatsApp !== false
       },
       analytics: {
         statusBreakdown: {

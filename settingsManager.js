@@ -51,7 +51,8 @@ function getDefaultSettings() {
       maxAutoRetries: 3,
       publicUrl: '',
       autoSendFinalized: true,
-      autoSendLookbackDays: 7
+      autoSendLookbackDays: 7,
+      excludeXrayWhatsApp: true
     },
     reportTemplate: {
       hospitalName: 'MAPIMS Hospital',

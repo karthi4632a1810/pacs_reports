@@ -5661,7 +5661,7 @@
       <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 16px;">
         
         <!-- Summary KPI Cards -->
-        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">
           <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Eligible Final Reports</div>
             <div style="font-size: 22px; font-weight: 700; color: #38bdf8; margin-top: 4px;" id="bulkKpiTotal">0</div>
@@ -5682,6 +5682,10 @@
             <div style="font-size: 11px; color: #f87171; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Fake / ZPATIENT</div>
             <div style="font-size: 22px; font-weight: 700; color: #ef4444; margin-top: 4px;" id="bulkKpiFake">0</div>
           </div>
+          <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 12px 14px;">
+            <div style="font-size: 11px; color: #fbbf24; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">🩻 X-Ray (Excluded)</div>
+            <div style="font-size: 22px; font-weight: 700; color: #fbbf24; margin-top: 4px;" id="bulkKpiXray">0</div>
+          </div>
         </div>
 
         <!-- Options & Filter Bar -->
@@ -5694,6 +5698,10 @@
             <label style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: #e2e8f0; cursor: pointer; user-select: none;">
               <input type="checkbox" id="bulkOptRequirePhone" checked onchange="onBulkFilterChange()" style="accent-color: #10b981; width: 16px; height: 16px; cursor: pointer;">
               <span>Only select valid 10-digit mobile</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: #fbbf24; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="bulkOptExcludeXray" checked onchange="onBulkFilterChange()" style="accent-color: #f59e0b; width: 16px; height: 16px; cursor: pointer;">
+              <span>🩻 Exclude X-Ray tests (DX, CR)</span>
             </label>
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -6212,6 +6220,18 @@
                 <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 2px;">When checked, finalized radiology reports approved by doctors are automatically dispatched via WhatsApp.</div>
               </div>
               <input type="checkbox" id="adminAutoSendFinalized" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #10b981;">
+            </label>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px 14px; margin-bottom: 14px;">
+            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <div>
+                <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                  <span>🩻</span> Exclude X-Ray Tests from WhatsApp Dispatch
+                </div>
+                <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 2px;">When enabled, X-Ray examinations (DX, CR, XA, MG) will not be sent to patients via WhatsApp (both auto-send and manual dispatches).</div>
+              </div>
+              <input type="checkbox" id="adminExcludeXrayWhatsApp" checked style="width: 18px; height: 18px; cursor: pointer; accent-color: #f59e0b;">
             </label>
           </div>
         </div>
@@ -7047,8 +7067,22 @@
       testMode: true,
       fixedTestPhone: '7200504251',
       testPatientId: '4867768',
-      templateName: 'pacs_reports_new'
+      templateName: 'pacs_reports_new',
+      excludeXrayWhatsApp: true
     };
+
+    /**
+     * Determines if a study is an X-ray / Radiography examination.
+     */
+    function isXrayStudy(study) {
+      if (!study) return false;
+      const mod = String(study.modality || '').trim().toUpperCase();
+      if (['DX', 'CR', 'XA', 'MG', 'RG', 'XR', 'PX'].includes(mod)) return true;
+      if (['CT', 'MR', 'MRI', 'US', 'NM', 'PET', 'ECHO'].includes(mod)) return false;
+      const sName = String(study.study || study.studyName || study.studyDescription || '').toUpperCase();
+      if (/\b(?:X-?RAY|RADIOGRAPH|CHEST XRAY|CHEST PA|CHEST AP)\b/i.test(sName)) return true;
+      return false;
+    }
 
     async function fetchWhatsAppConfig() {
       try {
@@ -7117,6 +7151,7 @@
 
       // Populate inputs in Advanced Settings Modal
       const autoSendCb = document.getElementById('adminAutoSendFinalized');
+      const excludeXrayCb = document.getElementById('adminExcludeXrayWhatsApp');
       const autoRetryCb = document.getElementById('adminAutoRetryEnabled');
       const autoRetryInterval = document.getElementById('adminAutoRetryInterval');
       const maxAutoRetries = document.getElementById('adminMaxAutoRetries');
@@ -7126,6 +7161,7 @@
       const testSendPhone = document.getElementById('adminTestSendPhone');
 
       if (autoSendCb) autoSendCb.checked = (currentWhatsAppConfig.autoSendFinalized !== false);
+      if (excludeXrayCb) excludeXrayCb.checked = (currentWhatsAppConfig.excludeXrayWhatsApp !== false);
       if (document.getElementById('adminAutoSendLookbackDays')) document.getElementById('adminAutoSendLookbackDays').value = currentWhatsAppConfig.autoSendLookbackDays || 7;
       if (autoRetryCb) autoRetryCb.checked = (currentWhatsAppConfig.autoRetryEnabled !== false);
       if (autoRetryInterval) autoRetryInterval.value = String(currentWhatsAppConfig.autoRetryIntervalMinutes || 15);
@@ -7231,6 +7267,7 @@
       const phone = (document.getElementById('adminFixedTestPhone')?.value || '').trim();
       const patientId = (document.getElementById('adminTestPatientId')?.value || '').trim();
       const autoSend = document.getElementById('adminAutoSendFinalized')?.checked !== false;
+      const excludeXray = document.getElementById('adminExcludeXrayWhatsApp')?.checked !== false;
       const autoRetry = document.getElementById('adminAutoRetryEnabled')?.checked !== false;
       const retryInterval = parseInt(document.getElementById('adminAutoRetryInterval')?.value || '15', 10);
       const maxRetries = parseInt(document.getElementById('adminMaxAutoRetries')?.value || '3', 10);
@@ -7251,6 +7288,7 @@
         fixedTestPhone: phone,
         testPatientId: patientId,
         autoSendFinalized: autoSend,
+        excludeXrayWhatsApp: excludeXray,
         autoSendLookbackDays: parseInt(document.getElementById('adminAutoSendLookbackDays')?.value, 10) || 7,
         autoRetryEnabled: autoRetry,
         autoRetryIntervalMinutes: retryInterval,
@@ -7273,7 +7311,7 @@
         if (data.success) {
           currentWhatsAppConfig = { ...currentWhatsAppConfig, ...payload };
           renderWhatsAppConfigUI();
-          alert(`✅ All WhatsApp Settings Saved Successfully!\n• Mode: ${isTest ? 'TEST MODE' : 'LIVE PRODUCTION'}\n• Template: ${template}\n• Auto-Retry: ${autoRetry ? 'Active (' + retryInterval + 'm, Max ' + maxRetries + 'x)' : 'Disabled'}\n• Safe Test Phone: ${phone}\n• PDF Gateway: ${publicUrl || 'Auto-Connected'}`);
+          alert(`✅ All WhatsApp Settings Saved Successfully!\n• Mode: ${isTest ? 'TEST MODE' : 'LIVE PRODUCTION'}\n• Template: ${template}\n• X-Ray Filter: ${excludeXray ? 'EXCLUDED (X-Ray tests blocked from WhatsApp)' : 'INCLUDED (All modalities allowed)'}\n• Auto-Retry: ${autoRetry ? 'Active (' + retryInterval + 'm, Max ' + maxRetries + 'x)' : 'Disabled'}\n• Safe Test Phone: ${phone}\n• PDF Gateway: ${publicUrl || 'Auto-Connected'}`);
           loadWhatsAppLogs(false);
         } else {
           alert(`❌ Failed to save settings: ${data.error || 'Server error'}`);
@@ -7336,6 +7374,8 @@
       }
 
       const isTest = currentWhatsAppConfig.testMode !== false;
+      const excludeXrayCb = document.getElementById('adminExcludeXrayWhatsApp');
+      const excludeXray = excludeXrayCb ? excludeXrayCb.checked : (currentWhatsAppConfig.excludeXrayWhatsApp !== false);
 
       try {
         const res = await fetch('/api/admin/whatsapp-config', {
@@ -7344,7 +7384,8 @@
           body: JSON.stringify({
             testMode: isTest,
             fixedTestPhone: phone,
-            testPatientId: patientId
+            testPatientId: patientId,
+            excludeXrayWhatsApp: excludeXray
           })
         });
         const data = await res.json();
@@ -7352,6 +7393,7 @@
           currentWhatsAppConfig.testMode = isTest;
           currentWhatsAppConfig.fixedTestPhone = phone;
           currentWhatsAppConfig.testPatientId = patientId;
+          currentWhatsAppConfig.excludeXrayWhatsApp = excludeXray;
           const autoRetryCb = document.getElementById('adminAutoRetryEnabled');
           const autoRetryInterval = document.getElementById('adminAutoRetryInterval');
           const maxAutoRetries = document.getElementById('adminMaxAutoRetries');
@@ -9938,6 +9980,18 @@
 
       const s = allStudies.find(item => item.studyUid === currentReportStudyUid) || {};
 
+      let forceSend = false;
+      if (currentWhatsAppConfig && currentWhatsAppConfig.excludeXrayWhatsApp !== false && isXrayStudy(s)) {
+        const allowForce = confirm(
+          `⚠️ X-RAY WHATSAPP DISPATCH BLOCKED\n\n` +
+          `Study: ${s.study || 'Radiology Investigation'} (${s.modality || ''})\n\n` +
+          `X-Ray examinations are configured to be excluded from WhatsApp delivery.\n\n` +
+          `Do you want to override and FORCE SEND this X-ray report anyway?`
+        );
+        if (!allowForce) return;
+        forceSend = true;
+      }
+
       const isTest = (currentWhatsAppConfig.testMode !== false);
       const fixedTest = currentWhatsAppConfig.fixedTestPhone || '7200504251';
       let phoneToSend = '';
@@ -10000,7 +10054,8 @@
           studyName: `${s.study || 'Radiology Investigation'} (${s.modality || ''})`.trim(),
           patientId: s.patientId,
           studyDate: s.studyDate,
-          modality: s.modality || ''
+          modality: s.modality || '',
+          force: forceSend
         })
       })
       .then(res => res.json())
@@ -10133,6 +10188,12 @@
         const data = await res.json();
         const resolvedMap = data.resolved || {};
 
+        const excludeXrayOpt = document.getElementById('bulkOptExcludeXray');
+        if (excludeXrayOpt) {
+          excludeXrayOpt.checked = (currentWhatsAppConfig.excludeXrayWhatsApp !== false);
+        }
+        const excludeXray = excludeXrayOpt ? excludeXrayOpt.checked : (currentWhatsAppConfig.excludeXrayWhatsApp !== false);
+
         bulkCandidates = eligibleStudies.map(s => {
           const info = resolvedMap[s.studyUid] || {};
           const phone = info.phone || '';
@@ -10140,6 +10201,7 @@
           const isFake = Boolean(info.isFake || info.patientType === 'ZPATIENT');
           const isDummy = Boolean(info.isDummy || isFake || (phone && (phone === '9000000000' || phone === '0000000000')));
           const hasPhone = phone && phone.length >= 10 && !isDummy && !isFake;
+          const isXray = isXrayStudy(s);
           return {
             studyUid: s.studyUid,
             patientId: s.patientId,
@@ -10156,8 +10218,9 @@
             messageId: info.messageId || null,
             isDummy: isDummy,
             isFake: isFake,
+            isXray: isXray,
             patientType: info.patientType || (isFake ? 'ZPATIENT' : ''),
-            selected: (!already && hasPhone && !isDummy && !isFake)
+            selected: (!already && hasPhone && !isDummy && !isFake && (!excludeXray || !isXray))
           };
         });
 
@@ -10235,8 +10298,9 @@
               <div style="font-size: 11px; color: #94a3b8;">ID: <code>${escapeHtml(c.patientId)}</code> ${c.age ? '&bull; ' + escapeHtml(c.age) : ''} ${c.sex ? '&bull; ' + escapeHtml(c.sex) : ''}</div>
             </td>
             <td style="padding: 10px 12px;">
-              <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <span class="modality-badge ${modClass}" style="font-size: 10px; padding: 1px 6px;">${escapeHtml(c.modality || '-')}</span>
+                ${c.isXray ? `<span class="badge" style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); font-size: 9px; padding: 1px 5px; border-radius: 4px; font-weight: 700;" title="X-Ray test excluded from WhatsApp send by default">🩻 X-Ray</span>` : ''}
                 <span style="font-weight: 500; color: #e2e8f0; font-size: 12px;">${escapeHtml(c.study)}</span>
               </div>
               <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${escapeHtml(c.studyDate)}</div>
@@ -10271,10 +10335,15 @@
     function toggleSelectAllBulk(checked) {
       const skipSent = document.getElementById('bulkOptSkipSent')?.checked !== false;
       const requirePhone = document.getElementById('bulkOptRequirePhone')?.checked !== false;
+      const excludeXray = document.getElementById('bulkOptExcludeXray')?.checked !== false;
 
       bulkCandidates.forEach(c => {
         if (checked) {
           if (c.isFake || c.patientType === 'ZPATIENT') {
+            c.selected = false;
+            return;
+          }
+          if (excludeXray && c.isXray) {
             c.selected = false;
             return;
           }
@@ -10321,9 +10390,12 @@
     function onBulkFilterChange() {
       const skipSent = document.getElementById('bulkOptSkipSent')?.checked !== false;
       const requirePhone = document.getElementById('bulkOptRequirePhone')?.checked !== false;
+      const excludeXray = document.getElementById('bulkOptExcludeXray')?.checked !== false;
 
       bulkCandidates.forEach(c => {
         if (c.isFake || c.patientType === 'ZPATIENT') {
+          c.selected = false;
+        } else if (excludeXray && c.isXray) {
           c.selected = false;
         } else if (skipSent && c.alreadyDispatched) {
           c.selected = false;
@@ -10344,7 +10416,8 @@
     function updateBulkKPIs() {
       const total = bulkCandidates.length;
       const fakeCount = bulkCandidates.filter(c => c.isFake || c.patientType === 'ZPATIENT').length;
-      const ready = bulkCandidates.filter(c => c.phone && c.phone.length >= 10 && !c.alreadyDispatched && !c.isDummy && !c.isFake).length;
+      const xrayCount = bulkCandidates.filter(c => c.isXray).length;
+      const ready = bulkCandidates.filter(c => c.phone && c.phone.length >= 10 && !c.alreadyDispatched && !c.isDummy && !c.isFake && (!document.getElementById('bulkOptExcludeXray')?.checked || !c.isXray)).length;
       const already = bulkCandidates.filter(c => c.alreadyDispatched).length;
       const missing = bulkCandidates.filter(c => (!c.phone || c.phone.length < 10 || c.isDummy) && !c.isFake).length;
       const selected = bulkCandidates.filter(c => c.selected && !c.isFake).length;
@@ -10355,6 +10428,8 @@
       document.getElementById('bulkKpiMissing').textContent = String(missing);
       const fakeKpiEl = document.getElementById('bulkKpiFake');
       if (fakeKpiEl) fakeKpiEl.textContent = String(fakeCount);
+      const xrayKpiEl = document.getElementById('bulkKpiXray');
+      if (xrayKpiEl) xrayKpiEl.textContent = String(xrayCount);
 
       document.getElementById('bulkFooterSelectedCount').textContent = String(selected);
       document.getElementById('bulkFooterTotalCount').textContent = String(total);
@@ -10453,6 +10528,11 @@
           updateCandidateRowStatus(candidate.studyUid, 'SKIPPED', 'Ignored: Fake patient (ZPATIENT)');
           continue;
         }
+        if (candidate.isXray && document.getElementById('bulkOptExcludeXray')?.checked !== false) {
+          appendBulkLog(`[${new Date().toLocaleTimeString()}] 🩻 Skipped: ${candidate.patientName} (${candidate.patientId}) - X-Ray test excluded`, '#fbbf24');
+          updateCandidateRowStatus(candidate.studyUid, 'SKIPPED', 'Ignored: X-Ray test excluded');
+          continue;
+        }
         bulkSendingState.currentIndex = i;
 
         // Update progress bar
@@ -10476,7 +10556,8 @@
               studyName: candidate.study,
               patientId: candidate.patientId,
               studyDate: candidate.studyDate,
-              modality: candidate.modality
+              modality: candidate.modality,
+              force: !document.getElementById('bulkOptExcludeXray')?.checked
             })
           });
 
